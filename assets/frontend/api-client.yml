@@ -1,0 +1,257 @@
+# API 클라이언트 모듈
+name: api-client
+version: "1.0.0"
+category: frontend
+description: 중앙 집중식 API 클라이언트 (인터셉터, 재시도, 에러 처리)
+
+# 출처 정보
+source:
+  repository: BizPlatform
+  path: frontend/src/utils/
+
+# 포함 파일
+files:
+  - path: utils/api.ts
+    description: API 클라이언트 메인
+  - path: utils/apiError.ts
+    description: API 에러 클래스
+  - path: types/api.types.ts
+    description: API 응답 타입
+
+# 의존성
+dependencies: []
+
+# 기능
+features:
+  - name: 자동 인증 헤더
+    description: localStorage의 토큰을 자동으로 Authorization 헤더에 추가
+  - name: 응답 인터셉터
+    description: 표준 응답 형식 처리 및 에러 변환
+  - name: 401 처리
+    description: 인증 만료 시 토큰 갱신 또는 로그아웃
+  - name: 재시도 로직
+    description: 네트워크 오류 시 자동 재시도
+  - name: 타임아웃
+    description: 요청 타임아웃 설정
+  - name: 요청 취소
+    description: AbortController 기반 요청 취소
+
+# 구현 코드
+implementation: |
+  // api.ts
+  interface ApiResponse<T> {
+    success: boolean;
+    data?: T;
+    error?: {
+      code: string;
+      message: string;
+      details?: string[];
+    };
+  }
+
+  class ApiClient {
+    private baseUrl: string;
+    private timeout: number;
+
+    constructor(baseUrl = '', timeout = 30000) {
+      this.baseUrl = baseUrl;
+      this.timeout = timeout;
+    }
+
+    private async request<T>(
+      method: string,
+      url: string,
+      data?: unknown,
+      options?: RequestInit
+    ): Promise<ApiResponse<T>> {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+
+      try {
+        const headers: HeadersInit = {
+          'Content-Type': 'application/json',
+        };
+
+        // 토큰 추가
+        const token = localStorage.getItem('accessToken');
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const response = await fetch(this.baseUrl + url, {
+          method,
+          headers,
+          body: data ? JSON.stringify(data) : undefined,
+          signal: controller.signal,
+          ...options,
+        });
+
+        clearTimeout(timeoutId);
+
+        // 401 처리
+        if (response.status === 401) {
+          const refreshed = await this.refreshToken();
+          if (refreshed) {
+            return this.request(method, url, data, options);
+          }
+          this.handleLogout();
+          throw new ApiError('AUTH_EXPIRED', '인증이 만료되었습니다.');
+        }
+
+        const result = await response.json();
+        return result;
+
+      } catch (error) {
+        clearTimeout(timeoutId);
+        if (error instanceof ApiError) throw error;
+        if (error.name === 'AbortError') {
+          throw new ApiError('TIMEOUT', '요청 시간이 초과되었습니다.');
+        }
+        throw new ApiError('NETWORK_ERROR', '네트워크 오류가 발생했습니다.');
+      }
+    }
+
+    async get<T>(url: string): Promise<ApiResponse<T>> {
+      return this.request('GET', url);
+    }
+
+    async post<T>(url: string, data: unknown): Promise<ApiResponse<T>> {
+      return this.request('POST', url, data);
+    }
+
+    async put<T>(url: string, data: unknown): Promise<ApiResponse<T>> {
+      return this.request('PUT', url, data);
+    }
+
+    async delete<T>(url: string): Promise<ApiResponse<T>> {
+      return this.request('DELETE', url);
+    }
+
+    private async refreshToken(): Promise<boolean> {
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (!refreshToken) return false;
+
+      try {
+        const response = await fetch(this.baseUrl + '/api/v1/auth/refresh', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          localStorage.setItem('accessToken', data.data.accessToken);
+          return true;
+        }
+      } catch {
+        // ignore
+      }
+      return false;
+    }
+
+    private handleLogout() {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      window.location.href = '/login';
+    }
+  }
+
+  export const api = new ApiClient();
+
+  // apiError.ts
+  export class ApiError extends Error {
+    constructor(
+      public code: string,
+      message: string,
+      public details?: string[]
+    ) {
+      super(message);
+      this.name = 'ApiError';
+    }
+  }
+
+# 사용 예시
+usage:
+  basic: |
+    // 기본 사용
+    const response = await api.get<User[]>('/api/v1/users');
+    if (response.success) {
+      setUsers(response.data);
+    } else {
+      showError(response.error.message);
+    }
+
+  withHook: |
+    // React Query와 함께
+    function useUsers() {
+      return useQuery({
+        queryKey: ['users'],
+        queryFn: async () => {
+          const response = await api.get<User[]>('/api/v1/users');
+          if (!response.success) {
+            throw new ApiError(response.error.code, response.error.message);
+          }
+          return response.data;
+        },
+      });
+    }
+
+  mutation: |
+    // 생성/수정
+    const createUser = async (userData: CreateUserDto) => {
+      const response = await api.post<User>('/api/v1/users', userData);
+      if (response.success) {
+        toast.success('사용자가 생성되었습니다.');
+        return response.data;
+      } else {
+        toast.error(response.error.message);
+        throw new ApiError(response.error.code, response.error.message);
+      }
+    };
+
+# 설정 옵션
+configuration:
+  baseUrl:
+    description: API 기본 URL
+    default: "''"
+    example: "'/api' 또는 'https://api.example.com'"
+  timeout:
+    description: 요청 타임아웃 (ms)
+    default: 30000
+  retryCount:
+    description: 재시도 횟수
+    default: 0
+  retryDelay:
+    description: 재시도 간격 (ms)
+    default: 1000
+
+# 이식 시 수정 사항
+migration:
+  notes:
+    - baseUrl 환경에 맞게 설정
+    - 토큰 갱신 엔드포인트 경로 확인
+    - 에러 코드 프로젝트에 맞게 정의
+    - 로그아웃 처리 로직 AuthContext와 연동
+
+# 에러 처리
+errorHandling:
+  - code: AUTH_EXPIRED
+    description: 인증 만료 (401)
+  - code: FORBIDDEN
+    description: 접근 권한 없음 (403)
+  - code: NOT_FOUND
+    description: 리소스 없음 (404)
+  - code: VALIDATION_ERROR
+    description: 유효성 검증 실패 (400)
+  - code: SERVER_ERROR
+    description: 서버 오류 (500)
+  - code: NETWORK_ERROR
+    description: 네트워크 오류
+  - code: TIMEOUT
+    description: 요청 타임아웃
+
+tags:
+  - api
+  - fetch
+  - http-client
+  - interceptor

@@ -1,0 +1,93 @@
+# JWT 인증 모듈
+name: authentication
+version: "1.0.0"
+category: core
+description: JWT 기반 인증/인가 시스템
+
+# 출처 정보
+source:
+  repository: BizPlatform
+  path: backend/src/main/java/com/tnt/sales/auth/
+
+# 포함 파일
+files:
+  backend:
+    - path: auth/controller/AuthController.java
+      description: 로그인/로그아웃/토큰갱신 API
+    - path: auth/service/AuthService.java
+      description: 인증 비즈니스 로직
+    - path: auth/util/JwtUtil.java
+      description: JWT 토큰 생성/검증 유틸리티
+    - path: auth/filter/JwtAuthenticationFilter.java
+      description: JWT 인증 필터
+    - path: auth/model/User.java
+      description: 사용자 엔티티
+    - path: auth/model/Role.java
+      description: 역할 엔티티
+    - path: config/SecurityConfig.java
+      description: Spring Security 설정
+  frontend:
+    - path: contexts/AuthContext.tsx
+      description: 인증 상태 관리 Context
+    - path: pages/LoginPage.tsx
+      description: 로그인 페이지
+
+# 의존성
+dependencies:
+  backend:
+    - "io.jsonwebtoken:jjwt-api:0.12.6"
+    - "io.jsonwebtoken:jjwt-impl:0.12.6"
+    - "io.jsonwebtoken:jjwt-jackson:0.12.6"
+    - "org.springframework.boot:spring-boot-starter-security"
+  frontend:
+    - "react-router-dom"
+
+# 환경 변수
+environment:
+  - name: JWT_SECRET
+    description: JWT 서명 비밀키 (최소 256bit)
+    required: true
+  - name: JWT_ACCESS_EXPIRY
+    description: Access Token 만료시간
+    default: "30m"
+  - name: JWT_REFRESH_EXPIRY
+    description: Refresh Token 만료시간
+    default: "7d"
+
+# 이식 시 수정 사항
+migration:
+  packageRename:
+    from: "com.tnt.sales.auth"
+    to: "com.{company}.{project}.auth"
+  notes:
+    - SecurityConfig의 permitAll 경로 조정 필요
+    - 사용자 테이블 스키마에 맞게 User 엔티티 수정
+
+# API 엔드포인트
+api:
+  - method: POST
+    path: /api/v1/auth/login
+    description: 로그인
+  - method: POST
+    path: /api/v1/auth/logout
+    description: 로그아웃
+  - method: POST
+    path: /api/v1/auth/refresh
+    description: 토큰 갱신
+  - method: GET
+    path: /api/v1/auth/me
+    description: 현재 사용자 정보
+
+# 테스트
+testing:
+  unit:
+    - JwtUtilTest.java
+    - AuthServiceTest.java
+  integration:
+    - AuthControllerIntegrationTest.java
+
+tags:
+  - security
+  - jwt
+  - authentication
+  - spring-security

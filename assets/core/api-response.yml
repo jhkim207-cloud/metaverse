@@ -1,0 +1,96 @@
+# 표준 API 응답 모듈
+name: api-response
+version: "1.0.0"
+category: core
+description: 표준화된 API 응답 형식 및 페이징
+
+# 출처 정보
+source:
+  repository: BizPlatform
+  path: backend/src/main/java/com/tnt/sales/common/dto/
+
+# 포함 파일
+files:
+  backend:
+    - path: common/dto/ApiResponse.java
+      description: 표준 API 응답 래퍼
+    - path: common/dto/PageRequest.java
+      description: 페이징 요청 DTO
+    - path: common/dto/PageResponse.java
+      description: 페이징 응답 DTO
+  frontend:
+    - path: types/api.types.ts
+      description: API 응답 타입 정의
+    - path: utils/api.ts
+      description: API 클라이언트 유틸리티
+
+# 응답 형식
+responseFormat:
+  success:
+    success: true
+    data: "응답 데이터"
+    message: "성공 메시지 (선택)"
+  error:
+    success: false
+    error:
+      code: "에러 코드"
+      message: "에러 메시지"
+  paged:
+    success: true
+    data:
+      content: ["데이터 배열"]
+      page: 0
+      size: 20
+      totalElements: 100
+      totalPages: 5
+      first: true
+      last: false
+
+# 페이징 파라미터
+pagination:
+  parameters:
+    - name: page
+      type: int
+      default: 0
+      description: 페이지 번호 (0부터 시작)
+    - name: size
+      type: int
+      default: 20
+      max: 100
+      description: 페이지 크기
+    - name: sort
+      type: string
+      description: "정렬 (예: createdAt,desc)"
+
+# 이식 시 수정 사항
+migration:
+  packageRename:
+    from: "com.tnt.sales.common.dto"
+    to: "com.{company}.{project}.common.dto"
+  notes:
+    - 프론트엔드 api.ts의 BASE_URL 수정
+    - 에러 핸들링 로직 프로젝트에 맞게 조정
+
+# 사용 예시
+usage:
+  backend: |
+    @GetMapping
+    public ApiResponse<List<UserDto>> getUsers() {
+        return ApiResponse.success(userService.findAll());
+    }
+
+    @GetMapping("/paged")
+    public ApiResponse<PageResponse<UserDto>> getUsersPaged(PageRequest request) {
+        return ApiResponse.success(userService.findAllPaged(request));
+    }
+  frontend: |
+    const response = await api.get<User[]>('/api/v1/users');
+    if (response.success) {
+      setUsers(response.data);
+    }
+
+tags:
+  - api
+  - response
+  - pagination
+  - dto

@@ -1,0 +1,40 @@
+# Build outputs
+target/
+dist/
+build/
+
+# Dependencies
+node_modules/
+
+# IDE
+.idea/
+*.iml
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Java
+*.class
+*.jar
+*.war
+
+# Temporary
+tmp/
+temp/
+
+# Local config (sensitive data)
+application-local.yml
+**/application-local.yml
+nul
+frontend/nul

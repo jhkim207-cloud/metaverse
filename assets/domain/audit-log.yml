@@ -1,0 +1,170 @@
+# 감사 로그 모듈
+name: audit-log
+version: "1.0.0"
+category: domain
+description: 시스템 감사 로그 기록 및 조회
+
+# 출처 정보
+source:
+  repository: BizPlatform
+  path: backend/src/main/java/com/tnt/sales/common/audit/
+
+# 포함 파일
+files:
+  backend:
+    - path: common/audit/AuditLogService.java
+      description: 감사 로그 서비스
+    - path: common/audit/AuditLogAspect.java
+      description: AOP 기반 자동 로깅
+    - path: common/audit/Auditable.java
+      description: 감사 로깅 대상 어노테이션
+    - path: common/audit/AuditLog.java
+      description: 감사 로그 엔티티
+    - path: common/audit/AuditLogMapper.java
+      description: MyBatis 매퍼
+  resources:
+    - path: mapper/common/AuditLogMapper.xml
+      description: MyBatis XML
+  database:
+    - path: db/migration/V3__create_audit_log.sql
+      description: 테이블 생성 DDL
+
+# 데이터베이스 스키마
+schema:
+  tableName: audit_log
+  columns:
+    - name: id
+      type: bigint
+      pk: true
+      auto: true
+      description: PK
+    - name: action_type
+      type: varchar(50)
+      description: "액션 유형 (CREATE, UPDATE, DELETE, READ, LOGIN, LOGOUT)"
+    - name: entity_type
+      type: varchar(100)
+      description: 대상 엔티티 (테이블명/클래스명)
+    - name: entity_id
+      type: varchar(100)
+      description: 대상 엔티티 ID
+    - name: before_value
+      type: jsonb
+      description: 변경 전 값 (JSON)
+    - name: after_value
+      type: jsonb
+      description: 변경 후 값 (JSON)
+    - name: user_id
+      type: varchar(100)
+      description: 수행자 ID
+    - name: user_name
+      type: varchar(200)
+      description: 수행자 이름
+    - name: ip_address
+      type: varchar(50)
+      description: IP 주소
+    - name: user_agent
+      type: varchar(500)
+      description: User Agent
+    - name: request_uri
+      type: varchar(500)
+      description: 요청 URI
+    - name: created_at
+      type: timestamp
+      description: 생성일시
+
+# 로깅 액션 유형
+actionTypes:
+  - CREATE: 생성
+  - UPDATE: 수정
+  - DELETE: 삭제
+  - READ: 조회 (선택적)
+  - LOGIN: 로그인
+  - LOGOUT: 로그아웃
+  - EXPORT: 데이터 내보내기
+  - IMPORT: 데이터 가져오기
+
+# 사용 방법
+usage:
+  annotation: |
+    // 어노테이션 방식 (권장)
+    @Auditable(action = "UPDATE", entity = "User")
+    public void updateUser(Long id, UserDto dto) {
+        userMapper.update(dto);
+    }
+
+  programmatic: |
+    // 프로그래밍 방식
+    @Autowired
+    private AuditLogService auditLogService;
+
+    public void deleteUser(Long id) {
+        User before = userMapper.findById(id);
+        userMapper.delete(id);
+        auditLogService.log(AuditLog.builder()
+            .actionType("DELETE")
+            .entityType("User")
+            .entityId(String.valueOf(id))
+            .beforeValue(objectMapper.writeValueAsString(before))
+            .build());
+    }
+
+# API 엔드포인트
+api:
+  - method: GET
+    path: /api/v1/audit-logs
+    description: 감사 로그 목록 (검색/필터)
+  - method: GET
+    path: /api/v1/audit-logs/{id}
+    description: 감사 로그 상세
+  - method: GET
+    path: /api/v1/audit-logs/entity/{type}/{id}
+    description: 특정 엔티티의 변경 이력
+  - method: GET
+    path: /api/v1/audit-logs/user/{userId}
+    description: 특정 사용자의 활동 이력
+
+# 검색 파라미터
+searchParams:
+  - name: actionType
+    description: 액션 유형 필터
+  - name: entityType
+    description: 엔티티 유형 필터
+  - name: userId
+    description: 사용자 ID 필터
+  - name: startDate
+    description: 시작일
+  - name: endDate
+    description: 종료일
+  - name: keyword
+    description: 키워드 검색
+
+# 이식 시 수정 사항
+migration:
+  packageRename:
+    from: "com.tnt.sales.common.audit"
+    to: "com.{company}.{project}.common.audit"
+  notes:
+    - SecurityContext에서 현재 사용자 정보 가져오는 로직 확인
+    - 민감 정보 마스킹 규칙 정의 (비밀번호, 개인정보 등)
+    - 로그 보관 기간 정책 수립 (예: 1년)
+    - 대용량 테이블 관리 전략 (파티셔닝, 아카이빙)
+
+# 보안 고려사항
+security:
+  - 감사 로그는 수정/삭제 불가 (INSERT only)
+  - 민감 정보 자동 마스킹 (password, token 등)
+  - 감사 로그 조회 권한 제한 (ADMIN only)
+  - 로그 무결성 보장 (해시값 저장 검토)
+
+# 성능 고려사항
+performance:
+  - 비동기 로깅으로 응답 시간 영향 최소화
+  - 인덱스: (action_type, created_at), (entity_type, entity_id), (user_id, created_at)
+  - 월별 파티셔닝 권장
+  - 오래된 로그 별도 테이블로 아카이빙
+
+tags:
+  - audit
+  - logging
+  - compliance
+  - history

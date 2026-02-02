@@ -1,0 +1,123 @@
+# 캐시 설정 모듈
+name: cache-config
+version: "1.0.0"
+category: common
+description: Caffeine 기반 로컬 캐시 설정
+
+# 출처 정보
+source:
+  repository: BizPlatform
+  path: backend/src/main/java/com/tnt/sales/config/
+
+# 포함 파일
+files:
+  backend:
+    - path: config/CacheConfig.java
+      description: 캐시 설정 클래스
+    - path: common/util/CacheUtil.java
+      description: 캐시 유틸리티 (선택)
+
+# 의존성
+dependencies:
+  backend:
+    - "org.springframework.boot:spring-boot-starter-cache"
+    - "com.github.ben-manes.caffeine:caffeine:3.1.8"
+
+# 기본 캐시 설정
+caches:
+  - name: codeCache
+    description: 공통코드 캐시
+    maximumSize: 1000
+    expireAfterWrite: 1h
+  - name: userCache
+    description: 사용자 정보 캐시
+    maximumSize: 500
+    expireAfterWrite: 30m
+  - name: menuCache
+    description: 메뉴 캐시
+    maximumSize: 100
+    expireAfterWrite: 1h
+  - name: configCache
+    description: 설정 캐시
+    maximumSize: 200
+    expireAfterWrite: 24h
+
+# 설정 클래스 예시
+configurationClass: |
+  @Configuration
+  @EnableCaching
+  public class CacheConfig {
+
+      @Bean
+      public CacheManager cacheManager() {
+          CaffeineCacheManager cacheManager = new CaffeineCacheManager();
+          cacheManager.setCaffeine(Caffeine.newBuilder()
+              .maximumSize(1000)
+              .expireAfterWrite(Duration.ofHours(1))
+              .recordStats());
+          return cacheManager;
+      }
+
+      // 캐시별 세부 설정
+      @Bean
+      public CacheManager customCacheManager() {
+          SimpleCacheManager cacheManager = new SimpleCacheManager();
+          List<CaffeineCache> caches = List.of(
+              buildCache("codeCache", 1000, 60),
+              buildCache("userCache", 500, 30),
+              buildCache("menuCache", 100, 60)
+          );
+          cacheManager.setCaches(caches);
+          return cacheManager;
+      }
+
+      private CaffeineCache buildCache(String name, int maxSize, int expireMinutes) {
+          return new CaffeineCache(name, Caffeine.newBuilder()
+              .maximumSize(maxSize)
+              .expireAfterWrite(Duration.ofMinutes(expireMinutes))
+              .build());
+      }
+  }
+
+# 사용 예시
+usage:
+  cacheable: |
+    @Cacheable(value = "codeCache", key = "#groupCode")
+    public List<CodeDto> getCodesByGroup(String groupCode) {
+        return codeMapper.findByGroupCode(groupCode);
+    }
+
+  cacheEvict: |
+    @CacheEvict(value = "codeCache", allEntries = true)
+    public void updateCode(CodeDto code) {
+        codeMapper.update(code);
+    }
+
+  cachePut: |
+    @CachePut(value = "userCache", key = "#user.id")
+    public UserDto updateUser(UserDto user) {
+        userMapper.update(user);
+        return user;
+    }
+
+# 이식 시 수정 사항
+migration:
+  packageRename:
+    from: "com.tnt.sales.config"
+    to: "com.{company}.{project}.config"
+  notes:
+    - 캐시 크기와 만료시간 프로젝트 요구사항에 맞게 조정
+    - 분산 환경에서는 Redis 등 외부 캐시 검토
+    - 캐시 무효화 전략 수립 필요
+
+# 모니터링
+monitoring:
+  - Actuator /actuator/caches 엔드포인트로 캐시 상태 확인
+  - CacheManager.getCacheNames()로 등록된 캐시 목록 조회
+  - recordStats() 활성화로 히트율 등 통계 수집
+
+tags:
+  - cache
+  - caffeine
+  - performance
+  - spring-cache

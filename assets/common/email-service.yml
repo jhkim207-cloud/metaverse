@@ -1,0 +1,124 @@
+# 이메일 서비스 모듈
+name: email-service
+version: "1.0.0"
+category: common
+description: 이메일 발송 서비스 (SMTP, 템플릿 지원)
+
+# 출처 정보
+source:
+  repository: BizPlatform
+  path: backend/src/main/java/com/tnt/sales/common/service/
+
+# 포함 파일
+files:
+  backend:
+    - path: common/service/EmailService.java
+      description: 이메일 발송 서비스
+    - path: common/model/EmailRequest.java
+      description: 이메일 요청 DTO
+  resources:
+    - path: templates/email/
+      description: 이메일 HTML 템플릿
+
+# 의존성
+dependencies:
+  backend:
+    - "org.springframework.boot:spring-boot-starter-mail"
+    - "org.springframework.boot:spring-boot-starter-thymeleaf"
+
+# 환경 변수
+environment:
+  - name: MAIL_HOST
+    description: SMTP 서버 호스트
+    required: true
+    example: "smtp.gmail.com"
+  - name: MAIL_PORT
+    description: SMTP 포트
+    default: "587"
+  - name: MAIL_USERNAME
+    description: SMTP 인증 사용자
+    required: true
+  - name: MAIL_PASSWORD
+    description: SMTP 인증 비밀번호
+    required: true
+  - name: MAIL_FROM
+    description: 발신자 이메일
+    required: true
+
+# 기능
+features:
+  - name: 단순 텍스트 이메일
+    description: 텍스트 기반 이메일 발송
+  - name: HTML 이메일
+    description: HTML 형식 이메일 발송
+  - name: 템플릿 이메일
+    description: Thymeleaf 템플릿 기반 이메일
+  - name: 첨부파일
+    description: 파일 첨부 지원
+  - name: 비동기 발송
+    description: "@Async로 비동기 발송"
+
+# 이메일 템플릿 예시
+templates:
+  - name: welcome
+    description: 회원가입 환영 이메일
+    variables:
+      - userName
+      - loginLink
+  - name: password-reset
+    description: 비밀번호 재설정 이메일
+    variables:
+      - userName
+      - resetLink
+      - expiryTime
+  - name: notification
+    description: 알림 이메일
+    variables:
+      - title
+      - content
+      - actionLink
+
+# application.yml 설정
+configuration: |
+  spring:
+    mail:
+      host: ${MAIL_HOST}
+      port: ${MAIL_PORT:587}
+      username: ${MAIL_USERNAME}
+      password: ${MAIL_PASSWORD}
+      properties:
+        mail.smtp.auth: true
+        mail.smtp.starttls.enable: true
+        mail.smtp.ssl.trust: ${MAIL_HOST}
+
+# 이식 시 수정 사항
+migration:
+  packageRename:
+    from: "com.tnt.sales.common.service"
+    to: "com.{company}.{project}.common.service"
+  notes:
+    - SMTP 서버 정보 환경 변수로 설정
+    - 이메일 템플릿 프로젝트에 맞게 수정
+    - 발송 실패 시 재시도 로직 필요 여부 검토
+
+# 사용 예시
+usage:
+  code: |
+    @Autowired
+    private EmailService emailService;
+
+    // 단순 이메일
+    emailService.sendSimpleEmail("to@example.com", "제목", "내용");
+
+    // 템플릿 이메일
+    Map<String, Object> variables = Map.of(
+        "userName", "홍길동",
+        "resetLink", "https://example.com/reset/token123"
+    );
+    emailService.sendTemplateEmail("to@example.com", "password-reset", variables);
+
+tags:
+  - email
+  - smtp
+  - notification
+  - template

@@ -1,0 +1,104 @@
+# 파일 저장 서비스 모듈
+name: file-storage
+version: "1.0.0"
+category: common
+description: 파일 업로드, 다운로드, 썸네일 생성 서비스
+
+# 출처 정보
+source:
+  repository: BizPlatform
+  path: backend/src/main/java/com/tnt/sales/common/
+
+# 포함 파일
+files:
+  backend:
+    - path: common/FileStorageService.java
+      description: 파일 저장/조회/삭제 서비스
+    - path: common/controller/FileController.java
+      description: 파일 업로드/다운로드 API
+    - path: common/model/FileInfo.java
+      description: 파일 정보 엔티티
+
+# 의존성
+dependencies:
+  backend:
+    - "net.coobird:thumbnailator:0.4.20"
+    - "commons-io:commons-io:2.15.1"
+
+# 환경 변수
+environment:
+  - name: FILE_UPLOAD_PATH
+    description: 파일 저장 경로
+    default: "/uploads"
+    required: true
+  - name: FILE_MAX_SIZE
+    description: 최대 파일 크기 (bytes)
+    default: "10485760"  # 10MB
+  - name: THUMBNAIL_SIZE
+    description: 썸네일 크기 (px)
+    default: "200"
+
+# 기능
+features:
+  - name: 파일 업로드
+    description: 다중 파일 업로드 지원
+  - name: 썸네일 생성
+    description: 이미지 파일 업로드 시 자동 썸네일 생성
+  - name: 파일 다운로드
+    description: 저장된 파일 다운로드
+  - name: 파일 삭제
+    description: 파일 및 썸네일 삭제
+  - name: MIME 타입 검증
+    description: 허용된 파일 타입만 업로드
+
+# 허용 파일 타입
+allowedMimeTypes:
+  images:
+    - image/jpeg
+    - image/png
+    - image/gif
+    - image/webp
+  documents:
+    - application/pdf
+    - application/msword
+    - application/vnd.openxmlformats-officedocument.wordprocessingml.document
+    - application/vnd.ms-excel
+    - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+
+# API 엔드포인트
+api:
+  - method: POST
+    path: /api/v1/files/upload
+    description: 파일 업로드
+  - method: GET
+    path: /api/v1/files/{id}/download
+    description: 파일 다운로드
+  - method: GET
+    path: /api/v1/files/{id}/thumbnail
+    description: 썸네일 조회
+  - method: DELETE
+    path: /api/v1/files/{id}
+    description: 파일 삭제
+
+# 이식 시 수정 사항
+migration:
+  packageRename:
+    from: "com.tnt.sales.common"
+    to: "com.{company}.{project}.common"
+  notes:
+    - 파일 저장 경로 환경에 맞게 설정
+    - 허용 MIME 타입 프로젝트 요구사항에 맞게 조정
+    - 클라우드 스토리지 연동 시 추가 구현 필요
+
+# 보안 고려사항
+security:
+  - 파일명 UUID로 변환하여 저장
+  - 경로 조작 공격 방지 (Path Traversal)
+  - MIME 타입 검증으로 악성 파일 업로드 방지
+  - 파일 크기 제한 적용
+
+tags:
+  - file
+  - upload
+  - thumbnail
+  - storage

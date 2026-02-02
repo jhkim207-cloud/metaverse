@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir:*)",
+      "Bash(cat:*)",
+      "Bash(du -sh:*)",
+      "Bash(mvn wrapper:wrapper:*)",
+      "Bash(mkdir:*)",
+      "Bash(npm install:*)",
+      "Bash(./mvnw.cmd spring-boot:run:*)",
+      "Bash(npm run dev:*)",
+      "Bash(curl:*)",
+      "Bash(node generate-ddl.js:*)",
+      "Bash(node set-pg-env.js:*)",
+      "Bash(xcopy \"c:\\\\Users\\\\egjang\\\\projects\\\\BizManagement\" \"c:\\\\Users\\\\egjang\\\\projects\\\\project_temp\"\" /E /I /EXCLUDE:c:\\\\Users\\\\egjang\\\\projects\\\\exclude.txt 2>/dev/null || robocopy \"c:UsersegjangprojectsBizManagement\" \"c:Usersegjangprojectsproject_temp \" /E /XD node_modules target .git /NFL /NDL /NJH /NJS)",
+      "Bash(robocopy:*)",
+      "Bash(powershell:*)",
+      "Bash(tree:*)",
+      "Bash(.gradlew.bat compileJava:*)",
+      "Bash(./gradlew.bat compileJava:*)",
+      "Bash(Remove-Item -Path \"c:\\\\Users\\\\egjang\\\\projects\\\\project_temp\\\\.claude\\\\skills\\\\workflow\\\\design-fast\" -Recurse -Force)",
+      "mcp__zen__listmodels",
+      "mcp__zen__chat",
+      "mcp__zen__thinkdeep",
+      "Bash(findstr:*)"
+    ]
+  }
+}

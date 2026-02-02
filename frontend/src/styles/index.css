@@ -1,0 +1,1184 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@import 'tailwindcss/utilities';
+
+/* ============================================
+   Apple Liquid Glass + visionOS Spatial Design
+   BizManagement Global Design System (2025)
+   UI Standards: docs/ui-standards/UI_STANDARD.md
+   ============================================ */
+
+/* Light theme (default) - Liquid Glass Light */
+:root {
+  /* Base Colors */
+  --bg: #f0f2f5;
+  --panel: rgba(255, 255, 255, 0.72);
+  --panel-2: rgba(241, 245, 249, 0.8);
+  --panel-solid: #ffffff;
+
+  /* Text Colors */
+  --text: #1d1d1f;
+  --text-secondary: #6e6e73;
+  --text-tertiary: #86868b;
+  --muted: #8e8e93;
+
+  /* Accent Colors - Navy Blue */
+  --accent: #1e3a5f;
+  --accent-hover: #162d4d;
+  --accent-glow: rgba(30, 58, 95, 0.3);
+  --on-accent: #ffffff;
+
+  --primary: #1e3a5f;
+  --primary-hover: #162d4d;
+  --secondary: #6e6e73;
+  --bg-primary: rgba(255, 255, 255, 0.72);
+  --bg-secondary: rgba(241, 245, 249, 0.6);
+  --text-primary: #1d1d1f;
+
+  /* Borders - Glass Style */
+  --border: rgba(0, 0, 0, 0.08);
+  --border-input: rgba(120, 120, 130, 0.4);
+  --resizer: rgba(0, 0, 0, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-highlight: rgba(255, 255, 255, 0.5);
+
+  /* Surface Colors */
+  --header: rgba(255, 255, 255, 0.85);
+  --input-bg: rgba(255, 255, 255, 0.9);
+  --disabled-bg: rgba(240, 240, 245, 0.9);
+  --table-header: rgba(248, 250, 252, 0.8);
+  --hover-bg: rgba(0, 0, 0, 0.04);
+
+  /* Status Colors */
+  --success: #30d158;
+  --warning: #ff9f0a;
+  --error: #ff453a;
+  --info: #0a84ff;
+
+  /* Button Colors - Default/Secondary */
+  --btn-bg: rgba(240, 240, 245, 0.9);
+  --btn-border: rgba(0, 0, 0, 0.12);
+  --btn-text: #374151;
+  --btn-bg-hover: rgba(230, 230, 235, 1);
+  --btn-border-hover: rgba(0, 0, 0, 0.18);
+
+  /* Button - Danger */
+  --btn-danger-bg: rgba(255, 69, 58, 0.12);
+  --btn-danger-border: rgba(255, 69, 58, 0.25);
+  --btn-danger-text: #dc2626;
+  --btn-danger-bg-hover: rgba(255, 69, 58, 0.2);
+
+  /* Button - Ghost */
+  --btn-ghost-bg: transparent;
+  --btn-ghost-text: #4b5563;
+  --btn-ghost-bg-hover: rgba(0, 0, 0, 0.08);
+
+  /* Shadows - Spatial Depth */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.12), 0 8px 16px rgba(0, 0, 0, 0.08);
+  --shadow-glow: 0 0 24px var(--accent-glow);
+
+  /* Liquid Glass Effects */
+  --blur-sm: blur(12px);
+  --blur-md: blur(24px);
+  --blur-lg: blur(40px);
+  --saturate: saturate(180%);
+
+  /* Typography - 영문: Inter, 한글: Pretendard */
+  --font-sans: 'Inter', 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+
+  /* Aurora Mesh Gradients */
+  --aurora-1: rgba(120, 119, 198, 0.12);
+  --aurora-2: rgba(255, 119, 198, 0.08);
+  --aurora-3: rgba(64, 156, 255, 0.1);
+}
+
+/* Dark theme - Liquid Glass Dark */
+[data-theme='dark'] {
+  /* Base Colors */
+  --bg: #0a0a0c;
+  --panel: rgba(30, 30, 35, 0.72);
+  --panel-2: rgba(45, 45, 55, 0.6);
+  --panel-solid: #1a1a1f;
+
+  /* Text Colors */
+  --text: #f5f5f7;
+  --text-secondary: #a1a1a6;
+  --text-tertiary: #86868b;
+  --muted: #8e8e93;
+
+  /* Accent Colors - Navy Blue for Dark Mode */
+  --accent: #1e3a5f;
+  --accent-hover: #162d4d;
+  --accent-glow: rgba(30, 58, 95, 0.5);
+  --on-accent: #ffffff;
+
+  --primary: #1e3a5f;
+  --primary-hover: #162d4d;
+  --secondary: #a1a1a6;
+  --bg-primary: rgba(30, 30, 35, 0.72);
+  --bg-secondary: rgba(45, 45, 55, 0.6);
+  --text-primary: #f5f5f7;
+
+  /* Borders - Glass Style */
+  --border: rgba(255, 255, 255, 0.08);
+  --border-input: rgba(140, 140, 150, 0.5);
+  --resizer: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-highlight: rgba(255, 255, 255, 0.12);
+
+  /* Surface Colors */
+  --header: rgba(20, 20, 25, 0.85);
+  --input-bg: rgba(30, 30, 35, 0.9);
+  --disabled-bg: rgba(50, 50, 55, 0.9);
+  --table-header: rgba(30, 30, 35, 0.8);
+  --hover-bg: rgba(255, 255, 255, 0.06);
+
+  /* Status Colors */
+  --success: #30d158;
+  --warning: #ff9f0a;
+  --error: #ff453a;
+  --info: #0a84ff;
+
+  /* Button Colors - Default/Secondary */
+  --btn-bg: rgba(255, 255, 255, 0.08);
+  --btn-border: rgba(255, 255, 255, 0.1);
+  --btn-text: #f5f5f7;
+  --btn-bg-hover: rgba(255, 255, 255, 0.12);
+  --btn-border-hover: rgba(255, 255, 255, 0.15);
+
+  /* Button - Danger */
+  --btn-danger-bg: rgba(255, 69, 58, 0.15);
+  --btn-danger-border: rgba(255, 69, 58, 0.3);
+  --btn-danger-text: #ff6961;
+  --btn-danger-bg-hover: rgba(255, 69, 58, 0.25);
+
+  /* Button - Ghost */
+  --btn-ghost-bg: transparent;
+  --btn-ghost-text: #f5f5f7;
+  --btn-ghost-bg-hover: rgba(255, 255, 255, 0.08);
+
+  /* Aurora Mesh Gradients */
+  --aurora-1: rgba(120, 119, 198, 0.15);
+  --aurora-2: rgba(255, 119, 198, 0.1);
+  --aurora-3: rgba(64, 156, 255, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  margin: 0;
+}
+
+html {
+  overflow-y: auto;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar - Liquid Glass Style */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(120, 120, 128, 0.1);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(120, 120, 128, 0.5);
+  border-radius: 5px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(120, 120, 128, 0.7);
+  background-clip: padding-box;
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(120, 120, 128, 0.5) rgba(120, 120, 128, 0.1);
+}
+
+/* Aurora Mesh Background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 40%, var(--aurora-1), transparent),
+    radial-gradient(ellipse 60% 40% at 80% 60%, var(--aurora-2), transparent),
+    radial-gradient(ellipse 50% 30% at 50% 20%, var(--aurora-3), transparent);
+  pointer-events: none;
+  z-index: -1;
+  animation: auroraShift 20s ease-in-out infinite alternate;
+}
+
+@keyframes auroraShift {
+  0% {
+    opacity: 0.6;
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05) rotate(0.5deg);
+  }
+  100% {
+    opacity: 0.6;
+    transform: scale(1) rotate(-0.5deg);
+  }
+}
+
+input,
+textarea,
+select,
+button {
+  font: inherit;
+}
+
+.app-root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.resizable-container {
+  position: relative;
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.resizable-container .col {
+  height: 100%;
+  overflow: auto;
+}
+
+.resizable-container .left {
+  background: var(--panel);
+  -webkit-backdrop-filter: var(--blur-md) var(--saturate);
+  backdrop-filter: var(--blur-md) var(--saturate);
+  border-right: 1px solid var(--border);
+  box-shadow: inset -1px 0 0 var(--glass-highlight);
+}
+
+.resizable-container .center {
+  background: var(--panel-2);
+  -webkit-backdrop-filter: var(--blur-sm);
+  backdrop-filter: var(--blur-sm);
+  flex: 1 1 auto;
+  min-width: 100px;
+}
+
+.resizable-container .right {
+  background: var(--panel);
+  -webkit-backdrop-filter: var(--blur-md) var(--saturate);
+  backdrop-filter: var(--blur-md) var(--saturate);
+  border-left: 1px solid var(--border);
+  box-shadow: inset 1px 0 0 var(--glass-highlight);
+  width: 582px;
+  min-width: 200px;
+  flex-shrink: 0;
+}
+
+/* Resizer Handle */
+.resizer {
+  width: 8px;
+  background: transparent;
+  cursor: col-resize;
+  position: relative;
+  flex-shrink: 0;
+  z-index: 10;
+  transition: background 0.15s ease;
+}
+
+.resizer::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 4px;
+  height: 48px;
+  background: var(--resizer);
+  border-radius: 2px;
+  opacity: 1;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.resizer:hover::before,
+.resizer.active::before {
+  background: var(--text-secondary);
+}
+
+.resizer.active::before {
+  background: var(--accent);
+}
+
+.pane {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.pane.center {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.menu {
+  padding: 12px;
+}
+
+.menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.menu button {
+  width: 100%;
+  text-align: left;
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  border-radius: 12px;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.menu button:hover {
+  background: var(--hover-bg);
+  transform: translateX(2px);
+}
+
+.menu button.active {
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+  box-shadow: 0 4px 12px var(--accent-glow);
+}
+
+.main-view {
+  padding: 16px;
+}
+
+.page-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--panel);
+  -webkit-backdrop-filter: var(--blur-md) var(--saturate);
+  backdrop-filter: var(--blur-md) var(--saturate);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow:
+    var(--shadow),
+    inset 0 1px 0 var(--glass-highlight);
+}
+
+.page-title h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.card {
+  background: var(--panel);
+  -webkit-backdrop-filter: var(--blur-md) var(--saturate);
+  backdrop-filter: var(--blur-md) var(--saturate);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow:
+    var(--shadow),
+    inset 0 1px 0 var(--glass-highlight);
+  padding: 20px;
+  transition: all 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.card:hover {
+  box-shadow:
+    var(--shadow-md),
+    inset 0 1px 0 var(--glass-highlight);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--btn-bg);
+  -webkit-backdrop-filter: var(--blur-sm) var(--saturate);
+  backdrop-filter: var(--blur-sm) var(--saturate);
+  border: 1px solid var(--btn-border);
+  color: var(--btn-text);
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+  box-shadow:
+    var(--shadow-sm),
+    inset 0 1px 0 var(--glass-highlight);
+}
+
+.btn:hover {
+  background: var(--btn-bg-hover);
+  transform: translateY(-1px);
+  box-shadow:
+    var(--shadow),
+    inset 0 1px 0 var(--glass-highlight);
+}
+
+.btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn-primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-accent);
+  box-shadow:
+    0 4px 12px var(--accent-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.btn-primary:hover {
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
+  box-shadow:
+    0 6px 20px var(--accent-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.btn-secondary {
+  background: var(--btn-bg);
+  border: 1px solid var(--btn-border);
+  color: var(--btn-text);
+}
+
+.btn-danger {
+  background: var(--btn-danger-bg);
+  border: 1px solid var(--btn-danger-border);
+  color: var(--btn-danger-text);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-danger:hover {
+  background: var(--btn-danger-bg-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+
+.btn-ghost {
+  background: var(--btn-ghost-bg);
+  border: 1px solid transparent;
+  color: var(--btn-ghost-text);
+  box-shadow: none;
+}
+
+.btn-ghost:hover {
+  background: var(--btn-ghost-bg-hover);
+  box-shadow: none;
+}
+
+.btn-icon {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text);
+  border-radius: 12px;
+  transition: all 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.btn-icon:hover {
+  background: var(--hover-bg);
+  transform: scale(1.05);
+}
+
+.theme-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 56px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  -webkit-backdrop-filter: var(--blur-sm);
+  backdrop-filter: var(--blur-sm);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.theme-toggle:hover {
+  border-color: var(--accent);
+}
+
+.theme-toggle .thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  box-shadow: 0 2px 8px var(--accent-glow);
+}
+
+[data-theme='dark'] .theme-toggle .thumb {
+  transform: translateX(28px);
+}
+
+.mobile-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+}
+
+.mobile-drawer-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.mobile-drawer-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 85vw;
+  max-width: 300px;
+  background: var(--panel);
+  -webkit-backdrop-filter: var(--blur-lg) var(--saturate);
+  backdrop-filter: var(--blur-lg) var(--saturate);
+  border-right: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  animation: slideInLeft 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.table th,
+.table td {
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+  text-align: left;
+}
+
+.table thead th {
+  background: var(--table-header);
+  -webkit-backdrop-filter: var(--blur-sm);
+  backdrop-filter: var(--blur-sm);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+
+.table tbody tr {
+  transition: background 0.2s ease;
+}
+
+.table tbody tr:hover {
+  background: var(--hover-bg);
+}
+
+.input {
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--input-bg);
+  -webkit-backdrop-filter: var(--blur-sm);
+  backdrop-filter: var(--blur-sm);
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.input:focus {
+  border-color: rgba(140, 140, 150, 0.6);
+  box-shadow:
+    0 0 0 3px rgba(120, 120, 130, 0.25),
+    inset 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.input:disabled {
+  background: var(--disabled-bg);
+  color: var(--text-tertiary);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--panel-2);
+  -webkit-backdrop-filter: var(--blur-sm);
+  backdrop-filter: var(--blur-sm);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.badge-success {
+  background: rgba(48, 209, 88, 0.15);
+  border-color: rgba(48, 209, 88, 0.3);
+  color: var(--success);
+}
+
+.badge-warning {
+  background: rgba(255, 159, 10, 0.15);
+  border-color: rgba(255, 159, 10, 0.3);
+  color: var(--warning);
+}
+
+.badge-error {
+  background: rgba(255, 69, 58, 0.15);
+  border-color: rgba(255, 69, 58, 0.3);
+  color: var(--error);
+}
+
+@media (max-width: 768px) {
+  .resizable-container .left {
+    display: none;
+  }
+
+  .md-only {
+    display: inline-flex !important;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin,
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Modal & Dialog Animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Screen reader only - accessibility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Skeleton Shimmer Animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite linear;
+}
+
+/* Pulse Animation (enhanced) */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Ping Animation for notifications */
+@keyframes ping {
+  75%,
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.animate-ping {
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* Bounce Animation */
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(-5%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+.animate-bounce {
+  animation: bounce 1s infinite;
+}
+
+/* Slide animations for Toast/Drawer */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-down {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.animate-slide-in-up {
+  animation: slide-in-up 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.animate-slide-in-down {
+  animation: slide-in-down 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Glow effect for focus states */
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 var(--accent-glow);
+  }
+  50% {
+    box-shadow: 0 0 20px 4px var(--accent-glow);
+  }
+}
+
+.animate-glow {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+/* React Flow Custom Node - Remove wrapper styles */
+.react-flow__node-custom {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+/* React Flow Controls - Liquid Glass Style */
+.react-flow__controls {
+  background: rgba(20, 20, 25, 0.85) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 16px !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  padding: 6px !important;
+  overflow: hidden;
+}
+
+.react-flow__controls-button {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 10px !important;
+  width: 32px !important;
+  height: 32px !important;
+  margin: 2px !important;
+  transition: all 0.2s cubic-bezier(0.32, 0.72, 0, 1) !important;
+}
+
+.react-flow__controls-button:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.react-flow__controls-button svg {
+  fill: rgba(255, 255, 255, 0.8) !important;
+}
+
+.react-flow__controls-button:hover svg {
+  fill: #fff !important;
+}
+
+/* React Flow Attribution - Hide or Style */
+.react-flow__attribution {
+  background: rgba(20, 20, 25, 0.6) !important;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border-radius: 8px !important;
+  padding: 4px 8px !important;
+  font-size: 10px !important;
+}
+
+.react-flow__attribution a {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* React Flow Edge Labels */
+.react-flow__edge-textbg {
+  fill: rgba(30, 30, 35, 0.9) !important;
+}
+
+.react-flow__edge-text {
+  fill: rgba(255, 255, 255, 0.8) !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+}
+
+/* ========================================
+   React DatePicker Custom Styles
+   ======================================== */
+
+/* Input 스타일 */
+.custom-datepicker-input {
+  padding: 6px 12px;
+  font-size: 13px;
+  background: var(--input-bg);
+  border: 1px solid var(--border-input);
+  border-radius: 6px;
+  color: var(--text);
+  cursor: pointer;
+  width: 140px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.custom-datepicker-input:hover {
+  border-color: var(--accent);
+}
+
+.custom-datepicker-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+/* Popper 컨테이너 */
+.custom-datepicker-popper {
+  z-index: 100 !important;
+}
+
+/* 캘린더 컨테이너 */
+.custom-datepicker-calendar,
+.react-datepicker {
+  background: var(--panel) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  box-shadow: var(--shadow-lg) !important;
+  font-family: var(--font-sans) !important;
+  overflow: hidden;
+}
+
+/* 헤더 */
+.react-datepicker__header {
+  background: var(--panel) !important;
+  border-bottom: 1px solid var(--border) !important;
+  padding: 12px 8px 8px !important;
+}
+
+.react-datepicker__current-month {
+  color: var(--text) !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  margin-bottom: 8px !important;
+}
+
+/* 요일 헤더 */
+.react-datepicker__day-names {
+  margin-top: 4px !important;
+}
+
+.react-datepicker__day-name {
+  color: var(--text-secondary) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  width: 32px !important;
+  line-height: 32px !important;
+  margin: 2px !important;
+}
+
+/* 일요일 빨간색 */
+.react-datepicker__day-name:first-child {
+  color: var(--error) !important;
+}
+
+/* 토요일 파란색 */
+.react-datepicker__day-name:last-child {
+  color: #3b82f6 !important;
+}
+
+/* 날짜 셀 */
+.react-datepicker__day {
+  color: var(--text) !important;
+  font-size: 13px !important;
+  width: 32px !important;
+  line-height: 32px !important;
+  margin: 2px !important;
+  border-radius: 6px !important;
+  transition: background 0.15s, color 0.15s !important;
+}
+
+.react-datepicker__day:hover {
+  background: var(--btn-bg-hover) !important;
+  color: var(--text) !important;
+}
+
+/* 선택된 날짜 */
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected {
+  background: var(--accent) !important;
+  color: var(--on-accent) !important;
+  font-weight: 600 !important;
+}
+
+.react-datepicker__day--selected:hover,
+.react-datepicker__day--keyboard-selected:hover {
+  background: var(--accent-hover) !important;
+  color: var(--on-accent) !important;
+}
+
+/* 오늘 날짜 */
+.react-datepicker__day--today {
+  font-weight: 700 !important;
+  border: 1px solid var(--accent) !important;
+}
+
+/* 다른 달 날짜 */
+.react-datepicker__day--outside-month {
+  color: var(--text-secondary) !important;
+  opacity: 0.5 !important;
+}
+
+/* 비활성화된 날짜 */
+.react-datepicker__day--disabled {
+  color: var(--text-secondary) !important;
+  opacity: 0.3 !important;
+  cursor: not-allowed !important;
+}
+
+/* 네비게이션 버튼 */
+.react-datepicker__navigation {
+  top: 12px !important;
+}
+
+.react-datepicker__navigation-icon::before {
+  border-color: var(--text-secondary) !important;
+  border-width: 2px 2px 0 0 !important;
+}
+
+.react-datepicker__navigation:hover .react-datepicker__navigation-icon::before {
+  border-color: var(--text) !important;
+}
+
+/* 월/년 드롭다운 */
+.react-datepicker__month-dropdown-container,
+.react-datepicker__year-dropdown-container {
+  margin: 0 4px !important;
+}
+
+.react-datepicker__month-select,
+.react-datepicker__year-select {
+  padding: 4px 8px !important;
+  font-size: 13px !important;
+  background: var(--input-bg) !important;
+  border: 1px solid var(--border-input) !important;
+  border-radius: 6px !important;
+  color: var(--text) !important;
+  cursor: pointer !important;
+  outline: none !important;
+}
+
+.react-datepicker__month-select:focus,
+.react-datepicker__year-select:focus {
+  border-color: var(--accent) !important;
+}
+
+/* 오늘 버튼 */
+.react-datepicker__today-button {
+  background: var(--btn-bg) !important;
+  border-top: 1px solid var(--border) !important;
+  color: var(--accent) !important;
+  font-weight: 500 !important;
+  padding: 8px !important;
+  cursor: pointer !important;
+  transition: background 0.15s !important;
+}
+
+.react-datepicker__today-button:hover {
+  background: var(--btn-bg-hover) !important;
+}
+
+/* 삭제 버튼 (X) */
+.react-datepicker__close-icon {
+  padding-right: 4px !important;
+}
+
+.react-datepicker__close-icon::after {
+  background-color: var(--text-secondary) !important;
+  font-size: 14px !important;
+  width: 16px !important;
+  height: 16px !important;
+  line-height: 14px !important;
+}
+
+.react-datepicker__close-icon:hover::after {
+  background-color: var(--error) !important;
+}
+
+/* 삼각형 화살표 숨김 */
+.react-datepicker__triangle {
+  display: none !important;
+}

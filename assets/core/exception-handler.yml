@@ -1,0 +1,77 @@
+# 전역 예외 처리 모듈
+name: exception-handler
+version: "1.0.0"
+category: core
+description: 전역 예외 처리 및 표준 에러 응답
+
+# 출처 정보
+source:
+  repository: BizPlatform
+  path: backend/src/main/java/com/tnt/sales/common/
+
+# 포함 파일
+files:
+  backend:
+    - path: common/exception/GlobalExceptionHandler.java
+      description: "@ControllerAdvice 전역 예외 처리기"
+    - path: common/exception/BizException.java
+      description: 비즈니스 예외 클래스
+    - path: common/exception/ErrorCode.java
+      description: 에러 코드 enum
+    - path: common/dto/ErrorResponse.java
+      description: 표준 에러 응답 DTO
+
+# 의존성
+dependencies:
+  backend:
+    - "org.springframework.boot:spring-boot-starter-validation"
+
+# 처리하는 예외 유형
+exceptionTypes:
+  - type: BizException
+    httpStatus: 400
+    description: 비즈니스 로직 예외
+  - type: MethodArgumentNotValidException
+    httpStatus: 400
+    description: 유효성 검증 실패
+  - type: AccessDeniedException
+    httpStatus: 403
+    description: 접근 권한 없음
+  - type: EntityNotFoundException
+    httpStatus: 404
+    description: 리소스 없음
+  - type: Exception
+    httpStatus: 500
+    description: 서버 내부 오류
+
+# 에러 응답 형식
+errorResponseFormat:
+  success: false
+  error:
+    code: "ERR_001"
+    message: "에러 메시지"
+    details: ["상세 정보 배열"]
+    timestamp: "2026-01-31T12:00:00Z"
+    path: "/api/v1/resource"
+
+# 이식 시 수정 사항
+migration:
+  packageRename:
+    from: "com.tnt.sales.common"
+    to: "com.{company}.{project}.common"
+  notes:
+    - ErrorCode enum에 프로젝트별 에러 코드 추가
+    - 로깅 설정 확인 (민감 정보 마스킹)
+
+# 테스트
+testing:
+  unit:
+    - GlobalExceptionHandlerTest.java
+  integration:
+    - ErrorResponseIntegrationTest.java
+
+tags:
+  - exception
+  - error-handling
+  - validation
+  - rest-api

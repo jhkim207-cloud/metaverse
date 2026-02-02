@@ -1,0 +1,239 @@
+# UI 컴포넌트 라이브러리
+name: ui-components
+version: "1.0.0"
+category: frontend
+description: 재사용 가능한 공통 UI 컴포넌트 라이브러리
+
+# 출처 정보
+source:
+  repository: BizPlatform
+  path: frontend/src/ui/
+
+# 디렉토리 구조 (Atomic Design)
+structure:
+  atoms:
+    description: 가장 작은 단위의 컴포넌트
+    components:
+      - Button
+      - Input
+      - Badge
+      - Switch
+      - Checkbox
+      - Radio
+      - Label
+  molecules:
+    description: Atoms를 조합한 컴포넌트
+    components:
+      - Select
+      - SearchInput
+      - Tabs
+      - FormField
+      - Pagination
+  organisms:
+    description: 복잡한 UI 구성요소
+    components:
+      - Modal
+      - DataTable
+      - Card
+      - Sidebar
+      - Header
+  helpers:
+    description: 유틸리티 컴포넌트
+    components:
+      - ErrorBoundary
+      - LoadingSpinner
+      - EmptyState
+      - BackendGuard
+
+# 컴포넌트 상세
+components:
+  Button:
+    path: ui/atoms/Button.tsx
+    props:
+      - name: variant
+        type: "'primary' | 'secondary' | 'error' | 'ghost'"
+        default: "'primary'"
+      - name: size
+        type: "'sm' | 'md' | 'lg'"
+        default: "'md'"
+      - name: disabled
+        type: boolean
+        default: false
+      - name: loading
+        type: boolean
+        default: false
+    usage: |
+      <Button variant="primary" onClick={handleClick}>
+        저장
+      </Button>
+      <Button variant="secondary" size="sm">
+        취소
+      </Button>
+
+  Input:
+    path: ui/atoms/Input.tsx
+    props:
+      - name: type
+        type: string
+        default: "'text'"
+      - name: error
+        type: string
+      - name: disabled
+        type: boolean
+    usage: |
+      <Input
+        type="email"
+        placeholder="이메일 입력"
+        error={errors.email}
+        onChange={handleChange}
+      />
+
+  Badge:
+    path: ui/atoms/Badge.tsx
+    props:
+      - name: variant
+        type: "'success' | 'warning' | 'error' | 'info' | 'default'"
+      - name: size
+        type: "'sm' | 'md'"
+    usage: |
+      <Badge variant="success">완료</Badge>
+      <Badge variant="warning">진행중</Badge>
+
+  Select:
+    path: ui/molecules/Select.tsx
+    props:
+      - name: options
+        type: "{ value: string; label: string }[]"
+      - name: value
+        type: string
+      - name: onChange
+        type: "(value: string) => void"
+      - name: placeholder
+        type: string
+    usage: |
+      <Select
+        options={[
+          { value: 'opt1', label: '옵션 1' },
+          { value: 'opt2', label: '옵션 2' },
+        ]}
+        value={selected}
+        onChange={setSelected}
+      />
+
+  Modal:
+    path: ui/organisms/Modal.tsx
+    props:
+      - name: isOpen
+        type: boolean
+      - name: onClose
+        type: "() => void"
+      - name: title
+        type: string
+      - name: size
+        type: "'sm' | 'md' | 'lg' | 'xl'"
+    usage: |
+      <Modal isOpen={isOpen} onClose={closeModal} title="확인">
+        <p>정말 삭제하시겠습니까?</p>
+        <div className="modal-actions">
+          <Button variant="secondary" onClick={closeModal}>취소</Button>
+          <Button variant="error" onClick={handleDelete}>삭제</Button>
+        </div>
+      </Modal>
+
+  DataTable:
+    path: ui/organisms/DataTable.tsx
+    props:
+      - name: columns
+        type: "Column[]"
+      - name: data
+        type: "T[]"
+      - name: loading
+        type: boolean
+      - name: onRowClick
+        type: "(row: T) => void"
+      - name: pagination
+        type: "PaginationProps"
+    usage: |
+      <DataTable
+        columns={[
+          { key: 'name', header: '이름' },
+          { key: 'email', header: '이메일' },
+          { key: 'status', header: '상태', render: (row) => <Badge>{row.status}</Badge> },
+        ]}
+        data={users}
+        loading={isLoading}
+        onRowClick={handleRowClick}
+      />
+
+  ErrorBoundary:
+    path: ui/helpers/ErrorBoundary.tsx
+    description: React 에러 경계 컴포넌트
+    usage: |
+      <ErrorBoundary fallback={<ErrorFallback />}>
+        <App />
+      </ErrorBoundary>
+
+  EmptyState:
+    path: ui/helpers/EmptyState.tsx
+    props:
+      - name: title
+        type: string
+      - name: description
+        type: string
+      - name: action
+        type: ReactNode
+    usage: |
+      <EmptyState
+        title="데이터가 없습니다"
+        description="새로운 항목을 추가해보세요"
+        action={<Button>새로 만들기</Button>}
+      />
+
+# CSS 클래스
+cssClasses:
+  buttons:
+    - .btn
+    - .btn-primary
+    - .btn-secondary
+    - .btn-error
+    - .btn-ghost
+    - .btn-sm / .btn-lg
+  forms:
+    - .input
+    - .select
+    - .field
+    - .form-grid
+  layout:
+    - .card
+    - .panel
+    - .container
+  feedback:
+    - .badge
+    - .toast
+    - .spinner
+
+# 접근성 규칙
+accessibility:
+  - 모든 버튼에 aria-label 또는 명확한 텍스트
+  - 폼 요소에 label 연결 (htmlFor)
+  - 모달에 aria-modal, aria-labelledby
+  - 로딩 상태에 aria-busy
+  - 에러 메시지에 role="alert"
+  - 키보드 탐색 지원 (tabIndex, onKeyDown)
+
+# 이식 시 체크리스트
+migration:
+  checklist:
+    - CSS 변수 정의 확인 (index.css)
+    - 아이콘 라이브러리 설치 (lucide-react)
+    - 타입 정의 확인 (props 타입)
+    - 스토리북 설정 (선택)
+  notes:
+    - 프로젝트 디자인 시스템에 맞게 색상/간격 조정
+    - 필요한 컴포넌트만 선택적으로 이식 가능
+
+tags:
+  - react
+  - components
+  - ui
+  - atomic-design

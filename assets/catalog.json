@@ -1,0 +1,53 @@
+{
+  "version": "1.0.0",
+  "description": "BizPlatform 재사용 가능 자산 카탈로그",
+  "lastUpdated": "2026-01-31",
+  "categories": {
+    "core": {
+      "description": "핵심 인프라 자산 (모든 프로젝트 필수)",
+      "assets": [
+        "authentication",
+        "exception-handler",
+        "api-response"
+      ]
+    },
+    "common": {
+      "description": "공통 유틸리티 자산 (선택적 사용)",
+      "assets": [
+        "file-storage",
+        "email-service",
+        "cache-config"
+      ]
+    },
+    "domain": {
+      "description": "도메인 공통 자산 (비즈니스 요구에 따라)",
+      "assets": [
+        "code-master",
+        "audit-log"
+      ]
+    },
+    "frontend": {
+      "description": "프론트엔드 공통 자산",
+      "assets": [
+        "auth-context",
+        "theme-context",
+        "api-client",
+        "ui-components"
+      ]
+    }
+  },
+  "techStack": {
+    "backend": {
+      "framework": "Spring Boot 3.x",
+      "orm": "MyBatis",
+      "database": "PostgreSQL",
+      "security": "Spring Security + JWT"
+    },
+    "frontend": {
+      "framework": "React 18",
+      "language": "TypeScript",
+      "bundler": "Vite",
+      "styling": "CSS Variables + Tailwind"
+    }
+  }
+}

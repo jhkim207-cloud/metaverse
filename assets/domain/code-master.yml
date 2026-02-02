@@ -1,0 +1,179 @@
+# 공통코드 관리 모듈
+name: code-master
+version: "1.0.0"
+category: domain
+description: 공통코드 관리 시스템 (그룹코드/상세코드)
+
+# 출처 정보
+source:
+  repository: BizPlatform
+  path: backend/src/main/java/com/tnt/sales/common/
+
+# 포함 파일
+files:
+  backend:
+    - path: common/controller/CodeMasterController.java
+      description: 공통코드 API 컨트롤러
+    - path: common/service/CodeMasterService.java
+      description: 공통코드 서비스 (캐싱 포함)
+    - path: common/mapper/CodeMasterMapper.java
+      description: 공통코드 MyBatis 매퍼
+    - path: common/model/CodeGroup.java
+      description: 코드그룹 엔티티
+    - path: common/model/CodeDetail.java
+      description: 코드상세 엔티티
+  resources:
+    - path: mapper/common/CodeMasterMapper.xml
+      description: MyBatis XML 매퍼
+  database:
+    - path: db/migration/V2__create_code_master.sql
+      description: 테이블 생성 DDL
+
+# 데이터베이스 스키마
+schema:
+  codeGroup:
+    tableName: code_group
+    columns:
+      - name: group_code
+        type: varchar(50)
+        pk: true
+        description: 그룹코드
+      - name: group_name
+        type: varchar(200)
+        description: 그룹명
+      - name: description
+        type: varchar(500)
+        description: 설명
+      - name: is_active
+        type: char(1)
+        default: "Y"
+        description: 활성여부
+  codeDetail:
+    tableName: code_detail
+    columns:
+      - name: group_code
+        type: varchar(50)
+        pk: true
+        description: 그룹코드 (FK)
+      - name: code
+        type: varchar(50)
+        pk: true
+        description: 상세코드
+      - name: code_name
+        type: varchar(200)
+        description: 코드명
+      - name: sort_order
+        type: int
+        default: 0
+        description: 정렬순서
+      - name: extra_value1
+        type: varchar(500)
+        description: 추가값1
+      - name: extra_value2
+        type: varchar(500)
+        description: 추가값2
+      - name: is_active
+        type: char(1)
+        default: "Y"
+        description: 활성여부
+
+# API 엔드포인트
+api:
+  - method: GET
+    path: /api/v1/codes/groups
+    description: 코드그룹 목록
+  - method: GET
+    path: /api/v1/codes/groups/{groupCode}
+    description: 코드그룹 상세
+  - method: GET
+    path: /api/v1/codes/{groupCode}
+    description: 그룹별 코드 목록 (캐싱)
+  - method: POST
+    path: /api/v1/codes/groups
+    description: 코드그룹 등록
+  - method: PUT
+    path: /api/v1/codes/groups/{groupCode}
+    description: 코드그룹 수정
+  - method: POST
+    path: /api/v1/codes/{groupCode}
+    description: 코드상세 등록
+  - method: PUT
+    path: /api/v1/codes/{groupCode}/{code}
+    description: 코드상세 수정
+  - method: DELETE
+    path: /api/v1/codes/{groupCode}/{code}
+    description: 코드상세 삭제
+
+# 캐시 설정
+caching:
+  cacheName: codeCache
+  key: groupCode
+  strategy: 그룹코드별 캐싱
+  eviction: 코드 CUD 시 해당 그룹 캐시 무효화
+
+# 프론트엔드 연동
+frontend:
+  hook: |
+    // useCodeList.ts
+    export function useCodeList(groupCode: string) {
+      return useQuery({
+        queryKey: ['codes', groupCode],
+        queryFn: () => api.get<CodeDetail[]>(`/api/v1/codes/${groupCode}`),
+        staleTime: 1000 * 60 * 30, // 30분 캐시
+      });
+    }
+
+  component: |
+    // CodeSelect.tsx
+    interface CodeSelectProps {
+      groupCode: string;
+      value?: string;
+      onChange: (value: string) => void;
+    }
+
+    export function CodeSelect({ groupCode, value, onChange }: CodeSelectProps) {
+      const { data: codes } = useCodeList(groupCode);
+      return (
+        <select value={value} onChange={e => onChange(e.target.value)}>
+          {codes?.map(code => (
+            <option key={code.code} value={code.code}>
+              {code.codeName}
+            </option>
+          ))}
+        </select>
+      );
+    }
+
+# 이식 시 수정 사항
+migration:
+  packageRename:
+    from: "com.tnt.sales.common"
+    to: "com.{company}.{project}.common"
+  notes:
+    - 초기 데이터 INSERT 스크립트 준비
+    - 캐시 전략 프로젝트 규모에 맞게 조정
+    - 다국어 지원 필요 시 code_name_en 등 컬럼 추가 검토
+
+# 초기 데이터 예시
+seedData: |
+  -- 상태 코드
+  INSERT INTO code_group (group_code, group_name) VALUES ('STATUS', '상태');
+  INSERT INTO code_detail (group_code, code, code_name, sort_order)
+  VALUES
+    ('STATUS', 'ACTIVE', '활성', 1),
+    ('STATUS', 'INACTIVE', '비활성', 2),
+    ('STATUS', 'DELETED', '삭제됨', 3);
+
+  -- 우선순위
+  INSERT INTO code_group (group_code, group_name) VALUES ('PRIORITY', '우선순위');
+  INSERT INTO code_detail (group_code, code, code_name, sort_order)
+  VALUES
+    ('PRIORITY', 'HIGH', '높음', 1),
+    ('PRIORITY', 'MEDIUM', '보통', 2),
+    ('PRIORITY', 'LOW', '낮음', 3);
+
+tags:
+  - code-master
+  - lookup
+  - cache
+  - admin
