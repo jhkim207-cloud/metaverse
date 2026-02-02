@@ -1031,8 +1031,8 @@
                 <div class="gate-header">
                     <div class="gate-icon gate-2">2</div>
                     <div class="gate-info">
-                        <h4>Gate 2: UI Design</h4>
-                        <p>요구사항을 UI 설계로 변환 - 컴포넌트 트리, 상태 설계, 이벤트 흐름 정의</p>
+                        <h4>Gate 2: UI Design <span style="background: linear-gradient(135deg, #3B82F6, #8B5CF6); color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; margin-left: 10px;">멀티 LLM 필수</span></h4>
+                        <p>요구사항을 UI 설계로 변환 - <strong>3-Way Cross Validation</strong>으로 고품질 설계</p>
                     </div>
                 </div>
                 <div class="gate-content">
@@ -1048,23 +1048,94 @@
                         <h5>📤 산출물</h5>
                         <ul>
                             <li><code>prd/{기능명}/02-ui-design.md</code></li>
+                            <li>Cross Validation Matrix</li>
+                            <li>ASCII Layout Diagram</li>
+                            <li>Mermaid State/Event Flow</li>
                         </ul>
                     </div>
                     <div class="gate-section">
-                        <h5>✅ 검증 항목 (11개)</h5>
-                        <ul>
-                            <li>Persona-화면 커버리지</li>
-                            <li>UC-이벤트 흐름 매핑</li>
-                            <li>컴포넌트 존재 확인</li>
-                            <li>상태 타입 검증 (TS)</li>
-                            <li>화면 상태 정의 (로딩/에러/빈)</li>
-                            <li>폼 검증 규칙</li>
-                            <li>이벤트 흐름 완성</li>
-                            <li>디자인 컨셉 적용</li>
-                            <li>CSS 토큰 매핑</li>
-                            <li>아이콘 표준 (Lucide React)</li>
-                            <li>모션/인터랙션 정의</li>
-                        </ul>
+                        <h5>🤖 멀티 LLM 3-Way Cross Validation (필수)</h5>
+                        <div style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); padding: 15px; border-radius: 10px; margin: 10px 0;">
+                            <table style="width: 100%; font-size: 0.85rem; border-collapse: collapse;">
+                                <tr style="background: rgba(59, 130, 246, 0.1);">
+                                    <th style="padding: 8px; text-align: left; border-bottom: 1px solid #bfdbfe;">LLM</th>
+                                    <th style="padding: 8px; text-align: left; border-bottom: 1px solid #bfdbfe;">역할</th>
+                                    <th style="padding: 8px; text-align: left; border-bottom: 1px solid #bfdbfe;">검증 항목</th>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px;"><strong>Claude</strong></td>
+                                    <td style="padding: 8px;">Design Lead</td>
+                                    <td style="padding: 8px;">컴포넌트 구조, UI 표준, Responsive</td>
+                                </tr>
+                                <tr style="background: rgba(59, 130, 246, 0.05);">
+                                    <td style="padding: 8px;"><strong>GPT-5.2</strong></td>
+                                    <td style="padding: 8px;">Technical</td>
+                                    <td style="padding: 8px;">성능, 상태관리, 번들사이즈, 재사용성</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px;"><strong>Gemini-3-Pro</strong></td>
+                                    <td style="padding: 8px;">UX/A11y</td>
+                                    <td style="padding: 8px;">WCAG, 터치타겟, 트렌드, 인지부하</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="gate-section">
+                        <h5>🔄 5단계 워크플로우</h5>
+                        <ol style="font-size: 0.9rem; line-height: 1.8;">
+                            <li><strong>Phase 1:</strong> 병렬 분석 (Claude + GPT + Gemini)</li>
+                            <li><strong>Phase 2:</strong> Cross Validation Matrix 생성</li>
+                            <li><strong>💬 개발자 확인:</strong> 2라운드 진행 여부 선택
+                                <ul style="margin-top: 5px; font-size: 0.85rem; color: var(--text-secondary);">
+                                    <li>[A] 전체 진행 - 모든 영역 비판 (+3회)</li>
+                                    <li>[B] 특정 영역만 - 상충 있는 영역만</li>
+                                    <li>[C] 스킵 - 현재 결과로 진행</li>
+                                </ul>
+                            </li>
+                            <li><strong>Phase 2.5:</strong> 역할 반전 피드백 (선택적, Claude 주도)
+                                <ul style="margin-top: 5px; font-size: 0.85rem; color: var(--text-secondary);">
+                                    <li>GPT → Claude 설계 비판</li>
+                                    <li>Gemini → GPT 기술 비판</li>
+                                    <li>Claude → Gemini UX 비판</li>
+                                </ul>
+                            </li>
+                            <li><strong>Phase 3:</strong> 상충 해결 & Feedback Loop</li>
+                            <li><strong>Phase 4:</strong> Visual Prototype (ASCII + Mermaid)</li>
+                        </ol>
+                    </div>
+                    <div class="gate-section">
+                        <h5>✅ 검증 항목 (19개)</h5>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div>
+                                <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 5px;">기존 항목 (11개)</p>
+                                <ul style="font-size: 0.85rem;">
+                                    <li>Persona-화면 커버리지</li>
+                                    <li>UC-이벤트 흐름 매핑</li>
+                                    <li>컴포넌트 존재 확인</li>
+                                    <li>상태 타입 검증 (TS)</li>
+                                    <li>화면 상태 정의</li>
+                                    <li>폼 검증 규칙</li>
+                                    <li>이벤트 흐름 완성</li>
+                                    <li>디자인 컨셉 적용</li>
+                                    <li>CSS 토큰 매핑</li>
+                                    <li>아이콘 표준</li>
+                                    <li>모션/인터랙션</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 5px;">추가 항목 (8개) - 멀티 LLM</p>
+                                <ul style="font-size: 0.85rem;">
+                                    <li><span style="color: #3B82F6;">[GPT]</span> 렌더링 성능 최적화</li>
+                                    <li><span style="color: #3B82F6;">[GPT]</span> 상태 관리 패턴</li>
+                                    <li><span style="color: #3B82F6;">[GPT]</span> 번들 사이즈 영향</li>
+                                    <li><span style="color: #3B82F6;">[GPT]</span> 컴포넌트 재사용성</li>
+                                    <li><span style="color: #10B981;">[GEM]</span> WCAG 2.1 AA 준수</li>
+                                    <li><span style="color: #10B981;">[GEM]</span> 모바일 터치 타겟</li>
+                                    <li><span style="color: #10B981;">[GEM]</span> UI 트렌드 반영</li>
+                                    <li><span style="color: #10B981;">[GEM]</span> 사용자 인지 부하</li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                     <div class="gate-section">
                         <h5>🏷️ Provisional 처리</h5>
