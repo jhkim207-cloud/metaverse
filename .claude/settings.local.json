@@ -22,7 +22,19 @@
       "mcp__zen__listmodels",
       "mcp__zen__chat",
       "mcp__zen__thinkdeep",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(git add:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run type-check:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npx tsc:*)",
+      "Bash(ls -la \"c:\\\\Users\\\\egjang\\\\projects\\\\project_temp\\\\.claude\"\" | grep -E \"^d)",
+      "Bash(^- \")",
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:docs.claude.com)"
     ]
   }
 }

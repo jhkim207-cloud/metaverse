@@ -971,114 +971,206 @@ const columns: Column<User>[] = [
 
 **접근성**: `aria-sort`, 키보드 행 선택
 
-### 4.21 EditableGrid (편집 가능 그리드)
+### 4.21 AG Grid (데이터 그리드) - 표준
 
-Excel-like 대량 데이터 입력을 위한 편집 가능 그리드 컴포넌트
+대량 데이터 표시 및 편집을 위한 표준 그리드 컴포넌트. **AG Grid Community** 사용.
 
+> **중요**: 프로젝트의 모든 데이터 그리드는 AG Grid를 표준으로 사용합니다.
+
+**설치**:
+```bash
+npm install ag-grid-react ag-grid-community
+```
+
+**기본 사용법**:
 ```tsx
-import { EditableGrid, Column, GridRow } from '@/components/ui/EditableGrid';
+import { AgGridReact } from 'ag-grid-react';
+import { ColDef, GridReadyEvent, CellValueChangedEvent, RowSelectionOptions } from 'ag-grid-community';
+import { themeQuartz, colorSchemeDark } from 'ag-grid-community';
 
-const columns: Column<OrderLine>[] = [
-  { key: 'productCode', header: '품목코드', width: 120, editable: true },
-  { key: 'width', header: '가로(mm)', width: 100, editable: true, type: 'number' },
-  { key: 'height', header: '세로(mm)', width: 100, editable: true, type: 'number' },
-  { key: 'quantity', header: '수량', width: 80, editable: true, type: 'number' },
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+  stock: number;
+}
+
+const [rowData, setRowData] = useState<Product[]>([
+  { id: 1, name: '노트북', price: 1500000, stock: 50 },
+  { id: 2, name: '모니터', price: 350000, stock: 120 },
+]);
+
+const columnDefs: ColDef<Product>[] = [
+  { field: 'id', headerName: 'ID', width: 70, sortable: true, filter: true },
+  { field: 'name', headerName: '상품명', width: 150, sortable: true, filter: true, editable: true },
+  { field: 'stock', headerName: '재고', width: 100, sortable: true, editable: true },
   {
-    key: 'unitPrice',
-    header: '단가',
-    width: 120,
-    editable: false,
-    render: (value) => `₩${value.toLocaleString()}`,
+    field: 'price',
+    headerName: '가격',
+    width: 130,
+    sortable: true,
+    editable: true,
+    valueFormatter: (params) => params.value ? `₩${params.value.toLocaleString()}` : '',
   },
 ];
 
-<EditableGrid
-  columns={columns}
-  data={rows}
-  onChange={handleChange}
-  onPaste={handlePaste}
-  onValidate={handleValidate}
-  keyExtractor={(row) => row.id}
-  rowHeight={40}
-  maxRows={1000}
-  showRowNumbers={true}
-  allowAddRow={true}
-  allowDeleteRow={true}
+// 다크모드 테마 설정
+const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+const agGridTheme = isDarkMode ? themeQuartz.withPart(colorSchemeDark) : themeQuartz;
+
+<div className="border border-[var(--border)] rounded-lg overflow-hidden" style={{ height: 400 }}>
+  <AgGridReact<Product>
+    rowData={rowData}
+    columnDefs={columnDefs}
+    theme={agGridTheme}
+    animateRows={true}
+    pagination={true}
+    paginationPageSize={10}
+    rowSelection={{ mode: 'multiRow', checkboxes: true }}
+    onCellValueChanged={handleCellValueChanged}
+    onGridReady={handleGridReady}
+  />
+</div>
+```
+
+**주요 Props**:
+| Props | 타입 | 설명 |
+|-------|------|------|
+| `rowData` | T[] | 그리드 데이터 |
+| `columnDefs` | ColDef[] | 컬럼 정의 |
+| `theme` | Theme | AG Grid 테마 (themeQuartz 기본) |
+| `pagination` | boolean | 페이지네이션 사용 |
+| `paginationPageSize` | number | 페이지당 행 수 |
+| `rowSelection` | RowSelectionOptions | 행 선택 옵션 |
+| `animateRows` | boolean | 행 애니메이션 |
+| `onCellValueChanged` | function | 셀 값 변경 핸들러 |
+| `onGridReady` | function | 그리드 초기화 완료 핸들러 |
+
+**ColDef 주요 속성**:
+| 속성 | 타입 | 설명 |
+|------|------|------|
+| `field` | string | 데이터 필드명 |
+| `headerName` | string | 헤더 표시명 |
+| `width` | number | 컬럼 너비 |
+| `sortable` | boolean | 정렬 가능 여부 |
+| `filter` | boolean | 필터 사용 여부 |
+| `editable` | boolean | 편집 가능 여부 |
+| `valueFormatter` | function | 값 포맷터 |
+| `cellRenderer` | function | 커스텀 셀 렌더러 |
+| `rowSpan` | function | 셀 병합 (Row Spanning) |
+
+**다크모드 테마 적용**:
+```tsx
+import { themeQuartz, colorSchemeDark } from 'ag-grid-community';
+import { useMemo } from 'react';
+
+// useMemo로 테마 캐싱 (성능 최적화)
+const agGridTheme = useMemo(() => {
+  return isDarkMode ? themeQuartz.withPart(colorSchemeDark) : themeQuartz;
+}, [isDarkMode]);
+```
+
+**행 선택 (체크박스)**:
+```tsx
+const rowSelection: RowSelectionOptions = {
+  mode: 'multiRow',      // 'singleRow' | 'multiRow'
+  checkboxes: true,      // 체크박스 표시
+  headerCheckbox: true,  // 헤더 전체 선택 체크박스
+};
+
+<AgGridReact
+  rowSelection={rowSelection}
+  onSelectionChanged={(e) => {
+    const selectedRows = e.api.getSelectedRows();
+    console.log('선택된 행:', selectedRows);
+  }}
 />
 ```
 
-**속성**:
-| 속성 | 타입 | 설명 |
-|------|------|------|
-| `columns` | Column[] | 컬럼 정의 (key, header, width, editable, type, render) |
-| `data` | T[] | 그리드 데이터 |
-| `onChange` | function | 셀 값 변경 핸들러 |
-| `onPaste` | function | 붙여넣기 핸들러 (Excel 데이터 파싱) |
-| `onValidate` | function | 셀/행 유효성 검증 핸들러 |
-| `keyExtractor` | function | 행 고유 키 추출 |
-| `rowHeight` | number | 행 높이 (기본: 40px) |
-| `maxRows` | number | 최대 행 수 (가상화 적용) |
-| `showRowNumbers` | boolean | 행 번호 표시 |
-| `allowAddRow` | boolean | 행 추가 허용 |
-| `allowDeleteRow` | boolean | 행 삭제 허용 |
+**셀 편집**:
+```tsx
+const handleCellValueChanged = (event: CellValueChangedEvent<Product>) => {
+  console.log('변경된 데이터:', event.data);
+  console.log('변경된 필드:', event.colDef.field);
+  console.log('이전 값:', event.oldValue);
+  console.log('새 값:', event.newValue);
 
-**키보드 네비게이션**:
+  // 서버 저장 로직
+  saveToServer(event.data);
+};
+```
+
+**Row Spanning (셀 병합)**:
+```tsx
+// 같은 카테고리의 셀을 세로로 병합
+const columnDefs: ColDef[] = [
+  {
+    field: 'category',
+    headerName: '카테고리',
+    rowSpan: (params) => {
+      const category = params.data.category;
+      // 같은 카테고리가 연속으로 몇 개인지 계산
+      return getCategoryRowSpan(params.data, params.node.rowIndex);
+    },
+    cellStyle: (params) => {
+      // 병합된 셀만 배경색 적용
+      if (params.node.rowIndex === getFirstRowOfCategory(params.data)) {
+        return { backgroundColor: 'var(--panel-2)' };
+      }
+      return null;
+    },
+  },
+  // ... 다른 컬럼들
+];
+
+// Row Spanning 사용 시 필수 설정
+<AgGridReact
+  suppressRowTransform={true}  // 필수!
+  // ...
+/>
+```
+
+**커스텀 셀 렌더러**:
+```tsx
+const columnDefs: ColDef[] = [
+  {
+    field: 'status',
+    headerName: '상태',
+    cellRenderer: (params) => {
+      const status = params.value;
+      const colorClass = status === '판매중'
+        ? 'bg-emerald-500/12 text-emerald-600'
+        : 'bg-red-500/12 text-red-600';
+      return (
+        <span className={`px-2 py-1 rounded-md text-xs font-semibold ${colorClass}`}>
+          {status}
+        </span>
+      );
+    },
+  },
+];
+```
+
+**키보드 네비게이션** (기본 지원):
 | 키 | 동작 |
 |----|------|
-| `Tab` | 다음 편집 가능 셀로 이동 |
-| `Shift+Tab` | 이전 편집 가능 셀로 이동 |
-| `Enter` | 아래 셀로 이동 (편집 확정) |
-| `Shift+Enter` | 위 셀로 이동 |
-| `Arrow Keys` | 셀 간 이동 (편집 모드가 아닐 때) |
-| `F2` | 현재 셀 편집 모드 진입 |
+| `Arrow Keys` | 셀 간 이동 |
+| `Enter` | 편집 모드 진입/종료 |
+| `Tab` | 다음 셀로 이동 |
 | `Escape` | 편집 취소 |
 | `Ctrl+C` | 선택 영역 복사 |
-| `Ctrl+V` | 붙여넣기 (Excel 데이터 지원) |
-| `Ctrl+Z` | 실행 취소 |
-| `Delete` | 선택 행 삭제 |
+| `Ctrl+V` | 붙여넣기 |
+| `Space` | 행 선택 토글 |
 
-**Excel 붙여넣기 지원**:
-```tsx
-// onPaste 핸들러 예시
-const handlePaste = (pastedData: string[][], startCell: CellPosition) => {
-  // pastedData: 2D 배열 (행 × 열)
-  // startCell: { rowIndex, columnKey }
+**스타일 규칙**:
+- 컨테이너: `border border-[var(--border)] rounded-lg overflow-hidden`
+- 높이: `style={{ height: 400 }}` 또는 고정 높이 지정 필수
+- 다크/라이트 테마: `themeQuartz` + `colorSchemeDark` 조합
 
-  const newRows = pastedData.map((row, i) => ({
-    productCode: row[0],
-    width: parseFloat(row[1]),
-    height: parseFloat(row[2]),
-    quantity: parseInt(row[3]),
-  }));
-
-  setRows(prev => [...prev, ...newRows]);
-};
-```
-
-**셀 유효성 검증**:
-```tsx
-// onValidate 핸들러 예시
-const handleValidate = (row: OrderLine, columnKey: string): ValidationResult => {
-  if (columnKey === 'width') {
-    if (row.width < 200 || row.width > 2400) {
-      return { valid: false, message: '200~2400mm 범위만 가능' };
-    }
-  }
-  return { valid: true };
-};
-```
-
-**스타일 특징**:
-- 컨테이너: Glass 배경 (`backdrop-filter: blur(12px)`)
-- 셀: `border: 1px solid var(--border)`, 편집 시 `--accent` 테두리
-- 에러 셀: `--error` 배경 + 빨간 테두리
-- 행 선택: `--accent)` 배경 (투명도 10%)
-- 가상화: 1000행 이상 시 `@tanstack/react-virtual` 적용
-
-**접근성**:
-- `role="grid"`, `role="row"`, `role="gridcell"`
-- `aria-rowindex`, `aria-colindex`
-- `aria-invalid` (유효성 검증 실패 시)
+**주의사항**:
+- Row Spanning 사용 시 `suppressRowTransform={true}` 필수
+- 컨테이너에 높이 지정 필수 (height 또는 flex)
+- 대량 데이터(1000행+)는 가상화 자동 적용됨
 
 ### 4.22 LoadingSpinner / LoadingOverlay (로딩)
 

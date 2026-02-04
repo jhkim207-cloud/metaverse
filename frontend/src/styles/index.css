@@ -1194,3 +1194,108 @@ button {
 .react-datepicker__triangle {
   display: none !important;
 }
+
+/* Number Input 스피너 버튼 숨김 (EditableGrid, 수요관리 그리드 등) */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* ============================================
+   AG Grid Theme Customization
+   Light/Dark mode 자동 적용
+   ============================================ */
+
+/* AG Grid Light Mode */
+.ag-theme-quartz {
+  --ag-background-color: var(--panel-solid);
+  --ag-foreground-color: var(--text);
+  --ag-header-background-color: var(--table-header);
+  --ag-header-foreground-color: var(--text);
+  --ag-odd-row-background-color: var(--bg);
+  --ag-row-hover-color: var(--hover-bg);
+  --ag-selected-row-background-color: rgba(30, 58, 95, 0.12);
+  --ag-range-selection-background-color: rgba(30, 58, 95, 0.15);
+  --ag-border-color: var(--border);
+  --ag-secondary-border-color: var(--border);
+  --ag-input-focus-border-color: var(--accent);
+  --ag-cell-horizontal-border: solid var(--border);
+  --ag-row-border-color: var(--border);
+  --ag-header-cell-hover-background-color: var(--hover-bg);
+  --ag-header-cell-moving-background-color: var(--panel);
+}
+
+/* AG Grid Dark Mode */
+[data-theme='dark'] .ag-theme-quartz,
+.ag-theme-quartz-dark {
+  --ag-background-color: var(--panel-solid);
+  --ag-foreground-color: var(--text);
+  --ag-header-background-color: var(--table-header);
+  --ag-header-foreground-color: var(--text);
+  --ag-odd-row-background-color: rgba(20, 20, 25, 0.6);
+  --ag-row-hover-color: var(--hover-bg);
+  --ag-selected-row-background-color: rgba(30, 58, 95, 0.25);
+  --ag-range-selection-background-color: rgba(30, 58, 95, 0.3);
+  --ag-border-color: var(--border);
+  --ag-secondary-border-color: var(--border);
+  --ag-input-focus-border-color: var(--accent);
+  --ag-cell-horizontal-border: solid var(--border);
+  --ag-row-border-color: var(--border);
+  --ag-header-cell-hover-background-color: var(--hover-bg);
+  --ag-header-cell-moving-background-color: var(--panel);
+  --ag-input-disabled-background-color: var(--disabled-bg);
+  --ag-modal-overlay-background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* AG Grid 공통 스타일 */
+.ag-theme-quartz,
+.ag-theme-quartz-dark {
+  --ag-font-family: var(--font-sans);
+  --ag-font-size: 13px;
+  --ag-grid-size: 6px;
+  --ag-row-height: 40px;
+  --ag-header-height: 44px;
+  --ag-cell-horizontal-padding: 12px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* AG Grid 헤더 스타일 */
+.ag-theme-quartz .ag-header,
+.ag-theme-quartz-dark .ag-header {
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* AG Grid 셀 편집 모드 스타일 */
+.ag-theme-quartz .ag-cell-inline-editing,
+.ag-theme-quartz-dark .ag-cell-inline-editing {
+  background-color: var(--input-bg) !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+/* AG Grid 입력 필드 스타일 */
+.ag-theme-quartz .ag-text-field-input,
+.ag-theme-quartz-dark .ag-text-field-input {
+  background-color: var(--input-bg);
+  color: var(--text);
+  border: 1px solid var(--border-input);
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+.ag-theme-quartz .ag-text-field-input:focus,
+.ag-theme-quartz-dark .ag-text-field-input:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}

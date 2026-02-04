@@ -1,0 +1,67 @@
+{
+  "id": "wf_1770176964235",
+  "feature": "prd",
+  "projectPath": "C:\\Users\\egjang\\projects\\project_temp",
+  "status": "pending",
+  "currentGate": -1,
+  "totalGates": 9,
+  "progress": 0,
+  "gates": [
+    {
+      "gate": 0,
+      "name": "Research",
+      "status": "pending",
+      "artifacts": []
+    },
+    {
+      "gate": 1,
+      "name": "Requirements",
+      "status": "pending",
+      "artifacts": []
+    },
+    {
+      "gate": 2,
+      "name": "UI Design",
+      "status": "pending",
+      "artifacts": []
+    },
+    {
+      "gate": 3,
+      "name": "Data Model",
+      "status": "pending",
+      "artifacts": []
+    },
+    {
+      "gate": 4,
+      "name": "API Design",
+      "status": "pending",
+      "artifacts": []
+    },
+    {
+      "gate": 5,
+      "name": "Implementation Plan",
+      "status": "pending",
+      "artifacts": []
+    },
+    {
+      "gate": 6,
+      "name": "Test Cases",
+      "status": "pending",
+      "artifacts": []
+    },
+    {
+      "gate": 7,
+      "name": "Finalize",
+      "status": "pending",
+      "artifacts": []
+    },
+    {
+      "gate": 8,
+      "name": "Implementation",
+      "status": "pending",
+      "artifacts": []
+    }
+  ],
+  "createdAt": "2026-02-04T03:49:24.255Z",
+  "updatedAt": "2026-02-04T03:49:24.255Z"
+}

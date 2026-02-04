@@ -17,6 +17,8 @@
   "dependencies": {
     "@google/genai": "^0.7.0",
     "@types/dagre": "^0.7.53",
+    "ag-grid-community": "^35.0.1",
+    "ag-grid-react": "^35.0.1",
     "dagre": "^0.8.5",
     "date-fns": "^4.1.0",
     "lucide-react": "0.469.0",

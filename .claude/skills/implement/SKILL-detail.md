@@ -67,11 +67,39 @@ Types → API Service → Hooks → Components → Pages → Test
 ### Phase 5: 통합 검증
 
 ```
-1. Backend 빌드 확인
-2. Frontend 빌드 확인
-3. API 연동 테스트 (수동)
-4. Gate 8 체크리스트 확인
+1. Backend 빌드 확인 (./gradlew build)
+2. Frontend TypeScript 체크 (npm run typecheck)
+3. Frontend ESLint 체크 (npm run lint) → warning 0 필수
+4. Frontend 테스트 실행 (npm run test:run)
+5. Frontend 빌드 확인 (npm run build)
+6. API 연동 테스트 (수동)
+7. Gate 8 체크리스트 확인
 ```
+
+#### 검증 실패 시 자동 수정 루프
+
+```
+검증 실패 감지
+    │
+    ├─ 오류 메시지 분석
+    │
+    ├─ 코드 수정
+    │
+    ├─ 재검증 실행
+    │   │
+    │   ├─ 통과 → 다음 검증 항목으로 진행
+    │   │
+    │   └─ 실패 → 수정 루프 반복 (최대 3회)
+    │       │
+    │       └─ 3회 초과 시 → 사용자에게 보고 후 판단 요청
+    │
+    └─ 모든 항목 통과 → Gate 8 완료
+```
+
+**수정 루프 규칙**:
+- 각 검증 항목마다 **최대 3회** 수정 → 재검증 시도
+- 3회 초과 실패 시 오류 내용과 시도한 수정 사항을 사용자에게 보고
+- 한 항목 수정 후 **이전 통과 항목도 재검증** (회귀 방지)
 
 ---
 
