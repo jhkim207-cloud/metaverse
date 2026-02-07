@@ -4,6 +4,22 @@
 
 ## 최근 작업 (Last 5 Sessions)
 
+### 2026-02-07: 프로젝트 DB 설정 확정
+
+- **완료**:
+  - 운영 DB URL 확정: `jdbc:postgresql://168.107.43.244:5432/apps`
+  - Default Schema: `hkgn`
+
+- **주의사항**:
+  - 모든 DB 관련 작업은 반드시 위 URL 기준으로 진행
+  - DDL 작성 시 스키마 `hkgn` 명시
+
+- **참고 파일**:
+  - `backend/src/main/resources/application.yml`
+  - `backend/src/main/resources/application-dev.yml`
+
+---
+
 ### 2026-01-31: project_temp 템플릿 초기화
 
 - **완료**:
@@ -29,6 +45,7 @@
 
 | 날짜 | 결정 | 이유 | 영향 범위 |
 |------|------|------|----------|
+| 2026-02-07 | DB: 168.107.43.244:5432/apps | 운영 DB 확정, schema=hkgn | 모든 DB 작업 |
 | 2026-01-31 | YAML 기반 자산 카탈로그 | 코드 복사 대신 메타데이터 관리로 유연성 확보 | assets/ |
 | 2026-01-31 | 8개 Claude Skills 체계 | AI 협업 시 일관된 가이드 제공 | .claude/skills/ |
 | 2026-01-31 | 테스트 피라미드 80/15/5 | Unit > Integration > E2E 비율로 빠른 피드백 | 테스트 전략 |
@@ -51,4 +68,4 @@
 
 ---
 
-*마지막 업데이트: 2026-01-31*
+*마지막 업데이트: 2026-02-07*
