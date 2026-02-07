@@ -1,34 +1,85 @@
-import { useState, useEffect, useCallback, useRef, ComponentType } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  LayoutDashboard,
   Settings,
   X,
   Sun,
   Moon,
-  Palette,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Search,
   Plus,
   Bell,
   LogOut,
+  Users,
+  Shield,
+  Menu as MenuIcon,
+  Building2,
+  History,
+  User,
+  UserCircle,
+  Lock,
+  Folder,
+  Loader2,
+  LayoutDashboard,
+  GitBranch,
+  Factory,
+  Handshake,
+  ClipboardList,
+  ShoppingCart,
+  Calendar,
+  Wrench,
+  BarChart3,
+  Package,
+  Truck,
+  Receipt,
+  HardHat,
+  AlertTriangle,
+  Warehouse,
 } from 'lucide-react';
-import { UIShowcase } from './pages/UIShowcase';
 import { DatePicker } from './components/common/DatePicker';
+import { useMenus } from './hooks/useMenus';
+import { WorkflowPage } from './pages/production/WorkflowPage';
+import { WorkflowStepper } from './components/workflow/WorkflowStepper';
+import { StageDetailPanel } from './components/workflow/StageDetailPanel';
+import { useWorkflowCounts } from './hooks/useWorkflow';
+import type { MenuDto } from './types/menu.types';
+import type { WorkflowItem } from './types/workflow.types';
 
-type MenuItem = {
-  key: string;
-  label: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  icon?: ComponentType<any>;
-  children?: MenuItem[];
+/** DB icon 필드 → Lucide 아이콘 매핑 */
+const iconMap: Record<string, typeof Settings> = {
+  settings: Settings,
+  people: Users,
+  security: Shield,
+  menu: MenuIcon,
+  business: Building2,
+  history: History,
+  person: User,
+  account_circle: UserCircle,
+  lock: Lock,
+  layout_dashboard: LayoutDashboard,
+  git_branch: GitBranch,
+  factory: Factory,
+  workflow: GitBranch,
+  building: Building2,
+  handshake: Handshake,
+  clipboard_list: ClipboardList,
+  shopping_cart: ShoppingCart,
+  calendar: Calendar,
+  wrench: Wrench,
+  bar_chart: BarChart3,
+  package: Package,
+  truck: Truck,
+  receipt: Receipt,
+  hard_hat: HardHat,
+  alert_triangle: AlertTriangle,
+  warehouse: Warehouse,
 };
 
-const menuItems: MenuItem[] = [
-  { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { key: 'ui-showcase', label: 'UI 컴포넌트', icon: Palette },
-  { key: 'settings', label: '설정', icon: Settings },
-];
+function getIcon(iconName: string | null): typeof Settings {
+  if (!iconName) return Folder;
+  return iconMap[iconName] || Folder;
+}
 
 // 현재 사용자 정보 (추후 인증 Context에서 가져옴)
 const currentUser = {
@@ -37,13 +88,129 @@ const currentUser = {
   avatar: null,
 };
 
+/** 2레벨 메뉴 렌더링 컴포넌트 */
+function SideMenu({
+  menus,
+  loading,
+  selectedMenuCode,
+  expandedGroups,
+  onGroupToggle,
+  onMenuSelect,
+}: {
+  menus: MenuDto[];
+  loading: boolean;
+  selectedMenuCode: string | null;
+  expandedGroups: Set<string>;
+  onGroupToggle: (code: string) => void;
+  onMenuSelect: (menu: MenuDto) => void;
+}) {
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', padding: 24 }}>
+        <Loader2 size={20} className="animate-spin" style={{ color: 'var(--accent)' }} />
+      </div>
+    );
+  }
+
+  return (
+    <nav className="menu" aria-label="메인 메뉴">
+      <ul>
+        {menus.map((group) => {
+          const isExpanded = expandedGroups.has(group.code);
+          const GroupIcon = getIcon(group.icon);
+          const hasActiveChild = group.children.some((c) => c.code === selectedMenuCode);
+
+          return (
+            <li key={group.code} className="menu-group">
+              <button
+                type="button"
+                className={`menu-group-btn ${hasActiveChild ? 'group-active' : ''}`}
+                onClick={() => onGroupToggle(group.code)}
+                aria-expanded={isExpanded}
+              >
+                <GroupIcon size={16} aria-hidden="true" />
+                <span style={{ flex: 1 }}>{group.name}</span>
+                <ChevronDown
+                  size={14}
+                  style={{
+                    transition: 'transform 0.2s cubic-bezier(0.32, 0.72, 0, 1)',
+                    transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                    color: 'var(--text-secondary)',
+                  }}
+                  aria-hidden="true"
+                />
+              </button>
+              {isExpanded && group.children.length > 0 && (
+                <ul className="menu-children">
+                  {group.children.map((child) => {
+                    const ChildIcon = getIcon(child.icon);
+                    const isActive = child.code === selectedMenuCode;
+                    return (
+                      <li key={child.code}>
+                        <button
+                          type="button"
+                          className={isActive ? 'active' : ''}
+                          onClick={() => onMenuSelect(child)}
+                        >
+                          <ChildIcon size={14} aria-hidden="true" />
+                          <span>{child.name}</span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+  );
+}
+
 function App() {
-  const [selectedMenu, setSelectedMenu] = useState('dashboard');
+  const { menus, loading: menuLoading } = useMenus();
+  const [selectedMenuCode, setSelectedMenuCode] = useState<string | null>(null);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [backendStatus, setBackendStatus] = useState<'loading' | 'ok' | 'error'>('loading');
   const [menuSearchQuery, setMenuSearchQuery] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date(2026, 0, 31));
+  const [selectedWorkflowItem, setSelectedWorkflowItem] = useState<WorkflowItem | null>(null);
+  const { stageCounts } = useWorkflowCounts();
+
+  const handleStepperClick = useCallback((stageCode: string) => {
+    setSelectedMenuCode(stageCode);
+    setSelectedWorkflowItem(null);
+  }, []);
+
+  // 메뉴 로드 완료 시 첫 번째 그룹 확장 + 첫 번째 메뉴 선택
+  useEffect(() => {
+    if (menus.length > 0 && selectedMenuCode === null) {
+      const firstGroup = menus[0];
+      setExpandedGroups(new Set([firstGroup.code]));
+      if (firstGroup.children.length > 0) {
+        setSelectedMenuCode(firstGroup.children[0].code);
+      }
+    }
+  }, [menus, selectedMenuCode]);
+
+  const handleGroupToggle = useCallback((code: string) => {
+    setExpandedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(code)) {
+        next.delete(code);
+      } else {
+        next.add(code);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleMenuSelect = useCallback((menu: MenuDto) => {
+    setSelectedMenuCode(menu.code);
+  }, []);
 
   // Panel resize state
   const [leftWidth, setLeftWidth] = useState(220);
@@ -312,22 +479,14 @@ function App() {
       >
         {/* Left Menu */}
         <div className="col left" style={{ width: leftWidth, minWidth: 180 }}>
-          <div className="menu">
-            <ul>
-              {menuItems.map((item) => (
-                <li key={item.key}>
-                  <button
-                    type="button"
-                    className={selectedMenu === item.key ? 'active' : ''}
-                    onClick={() => setSelectedMenu(item.key)}
-                  >
-                    {item.icon && <item.icon size={16} />}
-                    <span>{item.label}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <SideMenu
+            menus={menus}
+            loading={menuLoading}
+            selectedMenuCode={selectedMenuCode}
+            expandedGroups={expandedGroups}
+            onGroupToggle={handleGroupToggle}
+            onMenuSelect={handleMenuSelect}
+          />
         </div>
 
         {/* Left Resizer */}
@@ -340,204 +499,223 @@ function App() {
         <div className="col center">
           <div className="pane center" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {/* Filter Header - 고정 영역 */}
-            <div
-              style={{
-                flexShrink: 0,
-                background: 'var(--panel)',
-                backdropFilter: 'var(--blur-md) var(--saturate)',
-                WebkitBackdropFilter: 'var(--blur-md) var(--saturate)',
-                borderBottom: '1px solid var(--border)',
-                padding: '12px 20px',
-              }}
-            >
-              {/* Title Row */}
-              <h3
-                style={{
-                  fontSize: 16,
-                  fontWeight: 600,
-                  color: 'var(--text)',
-                  margin: '0 0 12px 0',
-                }}
-              >
-                TM현황
-              </h3>
-              {/* Filter Row */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  flexWrap: 'wrap',
-                }}
-              >
-                {/* 조회기간 */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>조회기간:</span>
-                  <select
-                    aria-label="조회기간"
-                    style={{
-                      padding: '6px 12px',
-                      fontSize: 13,
-                      background: 'var(--input-bg)',
-                      border: '1px solid var(--border-input)',
-                      borderRadius: 6,
-                      color: 'var(--text)',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <option>주간</option>
-                    <option>월간</option>
-                    <option>분기</option>
-                  </select>
-                </div>
+            {(() => {
+              const isWf = selectedMenuCode?.startsWith('PROD_') || selectedMenuCode === 'MAIN_WORKFLOW';
+              const activeStageForStepper = (!selectedMenuCode || selectedMenuCode === 'MAIN_WORKFLOW')
+                ? 'PROD_SALES_ORDER'
+                : selectedMenuCode;
 
-                {/* 구분 */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>구분:</span>
-                  <select
-                    aria-label="구분"
-                    style={{
-                      padding: '6px 12px',
-                      fontSize: 13,
-                      background: 'var(--input-bg)',
-                      border: '1px solid var(--border-input)',
-                      borderRadius: 6,
-                      color: 'var(--text)',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <option>소유자</option>
-                    <option>부서</option>
-                    <option>팀</option>
-                  </select>
-                </div>
-
-                {/* 소유자 */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>소유자:</span>
-                  <select
-                    aria-label="소유자"
-                    style={{
-                      padding: '6px 12px',
-                      fontSize: 13,
-                      background: 'var(--input-bg)',
-                      border: '1px solid var(--border-input)',
-                      borderRadius: 6,
-                      color: 'var(--text)',
-                      cursor: 'pointer',
-                      minWidth: 120,
-                    }}
-                  >
-                    <option>전체</option>
-                  </select>
-                </div>
-
-                {/* 현재선택 */}
-                <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>현재선택: 전체</span>
-
-                {/* 기준일자 */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>기준일자:</span>
-                  <DatePicker
-                    selected={selectedDate}
-                    onChange={(date) => setSelectedDate(date)}
-                    placeholder="날짜 선택"
-                  />
-                </div>
-
-                {/* 조회 버튼 */}
-                <button
-                  type="button"
+              return isWf ? (
+                <div
                   style={{
-                    padding: '6px 20px',
-                    fontSize: 13,
-                    fontWeight: 500,
-                    background: 'var(--accent)',
-                    border: 'none',
-                    borderRadius: 6,
-                    color: 'var(--on-accent)',
-                    cursor: 'pointer',
+                    flexShrink: 0,
+                    background: 'var(--panel)',
+                    backdropFilter: 'var(--blur-md) var(--saturate)',
+                    WebkitBackdropFilter: 'var(--blur-md) var(--saturate)',
+                    borderBottom: '1px solid var(--border)',
                   }}
                 >
-                  조회
-                </button>
-
-                {/* Spacer */}
-                <div style={{ flex: 1 }} />
-
-                {/* Navigation Buttons */}
-                <div style={{ display: 'flex', gap: 4 }}>
-                  <button
-                    type="button"
-                    aria-label="이전"
-                    style={{
-                      width: 32,
-                      height: 32,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      background: 'var(--btn-bg)',
-                      border: '1px solid var(--btn-border)',
-                      borderRadius: 6,
-                      color: 'var(--text-secondary)',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="다음"
-                    style={{
-                      width: 32,
-                      height: 32,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      background: 'var(--btn-bg)',
-                      border: '1px solid var(--btn-border)',
-                      borderRadius: 6,
-                      color: 'var(--text-secondary)',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <ChevronRight size={16} />
-                  </button>
+                  <WorkflowStepper
+                    activeStage={activeStageForStepper}
+                    onStageClick={handleStepperClick}
+                    stageCounts={stageCounts}
+                  />
                 </div>
-              </div>
-            </div>
+              ) : (
+                <div
+                  style={{
+                    flexShrink: 0,
+                    background: 'var(--panel)',
+                    backdropFilter: 'var(--blur-md) var(--saturate)',
+                    WebkitBackdropFilter: 'var(--blur-md) var(--saturate)',
+                    borderBottom: '1px solid var(--border)',
+                    padding: '12px 20px',
+                  }}
+                >
+                  <h3
+                    style={{
+                      fontSize: 16,
+                      fontWeight: 600,
+                      color: 'var(--text)',
+                      margin: '0 0 12px 0',
+                    }}
+                  >
+                    TM현황
+                  </h3>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>조회기간:</span>
+                      <select
+                        aria-label="조회기간"
+                        style={{
+                          padding: '6px 12px',
+                          fontSize: 13,
+                          background: 'var(--input-bg)',
+                          border: '1px solid var(--border-input)',
+                          borderRadius: 6,
+                          color: 'var(--text)',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <option>주간</option>
+                        <option>월간</option>
+                        <option>분기</option>
+                      </select>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>구분:</span>
+                      <select
+                        aria-label="구분"
+                        style={{
+                          padding: '6px 12px',
+                          fontSize: 13,
+                          background: 'var(--input-bg)',
+                          border: '1px solid var(--border-input)',
+                          borderRadius: 6,
+                          color: 'var(--text)',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <option>소유자</option>
+                        <option>부서</option>
+                        <option>팀</option>
+                      </select>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>소유자:</span>
+                      <select
+                        aria-label="소유자"
+                        style={{
+                          padding: '6px 12px',
+                          fontSize: 13,
+                          background: 'var(--input-bg)',
+                          border: '1px solid var(--border-input)',
+                          borderRadius: 6,
+                          color: 'var(--text)',
+                          cursor: 'pointer',
+                          minWidth: 120,
+                        }}
+                      >
+                        <option>전체</option>
+                      </select>
+                    </div>
+                    <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>현재선택: 전체</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>기준일자:</span>
+                      <DatePicker
+                        selected={selectedDate}
+                        onChange={(date) => setSelectedDate(date)}
+                        placeholder="날짜 선택"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      style={{
+                        padding: '6px 20px',
+                        fontSize: 13,
+                        fontWeight: 500,
+                        background: 'var(--accent)',
+                        border: 'none',
+                        borderRadius: 6,
+                        color: 'var(--on-accent)',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      조회
+                    </button>
+                    <div style={{ flex: 1 }} />
+                    <div style={{ display: 'flex', gap: 4 }}>
+                      <button
+                        type="button"
+                        aria-label="이전"
+                        style={{
+                          width: 32,
+                          height: 32,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          background: 'var(--btn-bg)',
+                          border: '1px solid var(--btn-border)',
+                          borderRadius: 6,
+                          color: 'var(--text-secondary)',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <ChevronLeft size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label="다음"
+                        style={{
+                          width: 32,
+                          height: 32,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          background: 'var(--btn-bg)',
+                          border: '1px solid var(--btn-border)',
+                          borderRadius: 6,
+                          color: 'var(--text-secondary)',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <ChevronRight size={16} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Main Content - 스크롤 영역 */}
             <div className="main-view" style={{ padding: 16, flex: 1, overflowY: 'auto' }}>
-              {selectedMenu === 'dashboard' && (
-                <div>
-                  <div className="page-title">
-                    <h2>Dashboard</h2>
+              {(() => {
+                // 생산관리 메뉴 또는 전체 Workflow인 경우 WorkflowPage 렌더링
+                const isProductionMenu = selectedMenuCode?.startsWith('PROD_') || selectedMenuCode === 'MAIN_WORKFLOW';
+                if (isProductionMenu && selectedMenuCode) {
+                  return (
+                    <WorkflowPage
+                      menuCode={selectedMenuCode}
+                      onItemSelect={setSelectedWorkflowItem}
+                    />
+                  );
+                }
+
+                // 선택된 메뉴 찾기
+                const selectedItem = menus
+                  .flatMap((g) => g.children)
+                  .find((m) => m.code === selectedMenuCode);
+
+                if (!selectedItem) {
+                  return (
+                    <div className="card" style={{ marginTop: 16 }}>
+                      <p style={{ color: 'var(--text-secondary)' }}>
+                        메뉴를 선택해주세요.
+                      </p>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div>
+                    <div className="page-title">
+                      <h2>{selectedItem.name}</h2>
+                    </div>
+                    <div className="card" style={{ marginTop: 16 }}>
+                      <p style={{ color: 'var(--text-secondary)' }}>
+                        {selectedItem.name} 페이지입니다. (경로: {selectedItem.path})
+                      </p>
+                    </div>
                   </div>
-                  <div className="card" style={{ marginTop: 16 }}>
-                    <p style={{ color: 'var(--text-secondary)' }}>
-                      BizManagement 프로젝트가 성공적으로 생성되었습니다.
-                    </p>
-                    <ul style={{ marginTop: 12, paddingLeft: 20, color: 'var(--text-secondary)' }}>
-                      <li>Backend: Spring Boot 3.5 + Java 21</li>
-                      <li>Frontend: React 18 + Vite + TypeScript</li>
-                      <li>Database: PostgreSQL + Flyway</li>
-                      <li>ORM: MyBatis + JPA</li>
-                    </ul>
-                  </div>
-                </div>
-              )}
-              {selectedMenu === 'settings' && (
-                <div>
-                  <div className="page-title">
-                    <h2>설정</h2>
-                  </div>
-                  <div className="card" style={{ marginTop: 16 }}>
-                    <p style={{ color: 'var(--text-secondary)' }}>설정 페이지</p>
-                  </div>
-                </div>
-              )}
-              {selectedMenu === 'ui-showcase' && <UIShowcase />}
+                );
+              })()}
             </div>
           </div>
         </div>
@@ -551,89 +729,100 @@ function App() {
         {/* Right Panel */}
         <div className="col right" style={{ width: rightWidth }}>
           <div className="pane" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            {/* Filter Header - 고정 영역 */}
-            <div
-              style={{
-                flexShrink: 0,
-                background: 'var(--panel)',
-                backdropFilter: 'var(--blur-md) var(--saturate)',
-                WebkitBackdropFilter: 'var(--blur-md) var(--saturate)',
-                borderBottom: '1px solid var(--border)',
-                padding: '12px 20px',
-              }}
-            >
-              {/* Title Row */}
-              <h3
-                style={{
-                  fontSize: 16,
-                  fontWeight: 600,
-                  color: 'var(--text)',
-                  margin: '0 0 12px 0',
-                }}
-              >
-                상세 정보
-              </h3>
-              {/* Filter Row */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  flexWrap: 'wrap',
-                }}
-              >
-                {/* 구분 */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>구분:</span>
-                  <select
-                    aria-label="구분"
+            {(selectedMenuCode?.startsWith('PROD_') || selectedMenuCode === 'MAIN_WORKFLOW') && selectedWorkflowItem ? (
+              <StageDetailPanel
+                item={selectedWorkflowItem}
+                onClose={() => setSelectedWorkflowItem(null)}
+              />
+            ) : (
+              <>
+                {/* Filter Header - 고정 영역 */}
+                <div
+                  style={{
+                    flexShrink: 0,
+                    background: 'var(--panel)',
+                    backdropFilter: 'var(--blur-md) var(--saturate)',
+                    WebkitBackdropFilter: 'var(--blur-md) var(--saturate)',
+                    borderBottom: '1px solid var(--border)',
+                    padding: '12px 20px',
+                  }}
+                >
+                  {/* Title Row */}
+                  <h3
                     style={{
-                      padding: '6px 12px',
-                      fontSize: 13,
-                      background: 'var(--input-bg)',
-                      border: '1px solid var(--border-input)',
-                      borderRadius: 6,
+                      fontSize: 16,
+                      fontWeight: 600,
                       color: 'var(--text)',
-                      cursor: 'pointer',
+                      margin: '0 0 12px 0',
                     }}
                   >
-                    <option>전체</option>
-                    <option>진행중</option>
-                    <option>완료</option>
-                  </select>
-                </div>
-
-                {/* 정렬 */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>정렬:</span>
-                  <select
-                    aria-label="정렬"
+                    상세 정보
+                  </h3>
+                  {/* Filter Row */}
+                  <div
                     style={{
-                      padding: '6px 12px',
-                      fontSize: 13,
-                      background: 'var(--input-bg)',
-                      border: '1px solid var(--border-input)',
-                      borderRadius: 6,
-                      color: 'var(--text)',
-                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                      flexWrap: 'wrap',
                     }}
                   >
-                    <option>최신순</option>
-                    <option>오래된순</option>
-                    <option>이름순</option>
-                  </select>
-                </div>
-              </div>
-            </div>
+                    {/* 구분 */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>구분:</span>
+                      <select
+                        aria-label="구분"
+                        style={{
+                          padding: '6px 12px',
+                          fontSize: 13,
+                          background: 'var(--input-bg)',
+                          border: '1px solid var(--border-input)',
+                          borderRadius: 6,
+                          color: 'var(--text)',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <option>전체</option>
+                        <option>진행중</option>
+                        <option>완료</option>
+                      </select>
+                    </div>
 
-            {/* Content */}
-            <div style={{ padding: 16, flex: 1, overflowY: 'auto' }}>
-              <div className="card" style={{ padding: 16 }}>
-                <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-                  선택된 항목의 상세 정보가 여기에 표시됩니다.
-                </p>
-              </div>
-            </div>
+                    {/* 정렬 */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>정렬:</span>
+                      <select
+                        aria-label="정렬"
+                        style={{
+                          padding: '6px 12px',
+                          fontSize: 13,
+                          background: 'var(--input-bg)',
+                          border: '1px solid var(--border-input)',
+                          borderRadius: 6,
+                          color: 'var(--text)',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <option>최신순</option>
+                        <option>오래된순</option>
+                        <option>이름순</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div style={{ padding: 16, flex: 1, overflowY: 'auto' }}>
+                  <div className="card" style={{ padding: 16 }}>
+                    <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                      {(selectedMenuCode?.startsWith('PROD_') || selectedMenuCode === 'MAIN_WORKFLOW')
+                        ? '좌측 그리드 또는 칸반에서 항목을 선택하세요.'
+                        : '선택된 항목의 상세 정보가 여기에 표시됩니다.'}
+                    </p>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -662,25 +851,17 @@ function App() {
                 <X size={20} />
               </button>
             </div>
-            <div className="menu">
-              <ul>
-                {menuItems.map((item) => (
-                  <li key={item.key}>
-                    <button
-                      type="button"
-                      className={selectedMenu === item.key ? 'active' : ''}
-                      onClick={() => {
-                        setSelectedMenu(item.key);
-                        setMobileMenuOpen(false);
-                      }}
-                    >
-                      {item.icon && <item.icon size={16} />}
-                      <span>{item.label}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <SideMenu
+              menus={menus}
+              loading={menuLoading}
+              selectedMenuCode={selectedMenuCode}
+              expandedGroups={expandedGroups}
+              onGroupToggle={handleGroupToggle}
+              onMenuSelect={(menu) => {
+                handleMenuSelect(menu);
+                setMobileMenuOpen(false);
+              }}
+            />
           </div>
         </div>
       )}

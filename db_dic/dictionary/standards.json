@@ -700,5 +700,36 @@
       "constraint": "NULL",
       "desc": "태그 배열"
     }
+  },
+
+  "code_master": {
+    "group_code": {
+      "korean": "그룹코드",
+      "english": "Group Code",
+      "type": "VARCHAR(50)",
+      "constraint": "NOT NULL",
+      "desc": "코드 그룹 식별자 (예: DEPT, PRIORITY, QMS_STATUS)"
+    },
+    "group_name": {
+      "korean": "그룹명",
+      "english": "Group Name",
+      "type": "VARCHAR(100)",
+      "constraint": "NOT NULL",
+      "desc": "코드 그룹 표시명 (예: 부서, 우선순위)"
+    },
+    "code_id": {
+      "korean": "코드ID",
+      "english": "Code ID",
+      "type": "VARCHAR(50)",
+      "constraint": "NOT NULL",
+      "desc": "그룹 내 코드 식별자 (예: QA, HIGH, IT01)"
+    },
+    "code_name": {
+      "korean": "코드명",
+      "english": "Code Name",
+      "type": "VARCHAR(200)",
+      "constraint": "NOT NULL",
+      "desc": "화면 표시용 코드명 (예: 품질보증팀, 높음)"
+    }
   }
 }

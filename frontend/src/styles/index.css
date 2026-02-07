@@ -362,16 +362,17 @@ button {
   padding: 12px;
 }
 
-.menu ul {
+.menu > ul {
   list-style: none;
   padding: 0;
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
-.menu button {
+/* Level 1: 그룹 버튼 */
+.menu .menu-group-btn {
   width: 100%;
   text-align: left;
   padding: 10px 14px;
@@ -380,20 +381,57 @@ button {
   border-radius: 12px;
   color: var(--text);
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
   gap: 10px;
   transition: all 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+  letter-spacing: -0.01em;
 }
 
-.menu button:hover {
+.menu .menu-group-btn:hover {
   background: var(--hover-bg);
+}
+
+.menu .menu-group-btn.group-active {
+  color: var(--text);
+}
+
+/* Level 2: 자식 메뉴 목록 */
+.menu .menu-children {
+  list-style: none;
+  padding: 2px 0 6px 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.menu .menu-children button {
+  width: 100%;
+  text-align: left;
+  padding: 8px 14px 8px 40px;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.menu .menu-children button:hover {
+  background: var(--hover-bg);
+  color: var(--text);
   transform: translateX(2px);
 }
 
-.menu button.active {
+.menu .menu-children button.active {
   background: var(--accent);
   color: var(--on-accent);
   font-weight: 600;

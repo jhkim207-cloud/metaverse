@@ -2,7 +2,7 @@
 
 spring:
   datasource:
-    url: jdbc:postgresql://168.107.43.244:5432/postgres
+    url: jdbc:postgresql://168.107.43.244:5432/apps?currentSchema=hkgn
     username: postgres
     password: TNTdys1234
     driver-class-name: org.postgresql.Driver
