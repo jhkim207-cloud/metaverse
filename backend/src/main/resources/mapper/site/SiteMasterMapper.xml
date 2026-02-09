@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.biz.management.site.mapper.SiteMasterMapper">
+
+    <select id="findAll" resultType="com.biz.management.site.dto.SiteMasterDto">
+        SELECT id,
+               site_cd,
+               site_nm,
+               constructor_nm,
+               bp_cd,
+               address,
+               remark,
+               is_active
+          FROM site_master
+         WHERE is_active = TRUE
+         ORDER BY id DESC
+    </select>
+
+    <select id="findById" resultType="com.biz.management.site.dto.SiteMasterDto">
+        SELECT id,
+               site_cd,
+               site_nm,
+               constructor_nm,
+               bp_cd,
+               address,
+               remark,
+               is_active
+          FROM site_master
+         WHERE id = #{id}
+    </select>
+
+    <select id="existsBySiteCd" resultType="boolean">
+        SELECT EXISTS(
+            SELECT 1 FROM site_master WHERE site_cd = #{siteCd}
+        )
+    </select>
+
+    <insert id="insert" parameterType="com.biz.management.site.dto.SiteMasterCreateRequest">
+        INSERT INTO site_master (site_cd, site_nm, constructor_nm, bp_cd, address, remark)
+        VALUES (#{siteCd}, #{siteNm}, #{constructorNm}, #{bpCd}, #{address}, #{remark})
+    </insert>
+
+</mapper>

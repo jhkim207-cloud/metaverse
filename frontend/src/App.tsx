@@ -42,9 +42,16 @@ import { useMenus } from './hooks/useMenus';
 import { WorkflowPage } from './pages/production/WorkflowPage';
 import { WorkflowStepper } from './components/workflow/WorkflowStepper';
 import { StageDetailPanel } from './components/workflow/StageDetailPanel';
+import { SiteDetailPanel } from './components/site/SiteDetailPanel';
 import { useWorkflowCounts } from './hooks/useWorkflow';
 import type { MenuDto } from './types/menu.types';
 import type { WorkflowItem } from './types/workflow.types';
+import type { SiteMaster } from './types/site.types';
+
+/** SiteMaster인지 판별하는 타입 가드 */
+function isSiteMaster(item: WorkflowItem | SiteMaster): item is SiteMaster {
+  return 'siteCd' in item;
+}
 
 /** DB icon 필드 → Lucide 아이콘 매핑 */
 const iconMap: Record<string, typeof Settings> = {
@@ -177,7 +184,7 @@ function App() {
   const [backendStatus, setBackendStatus] = useState<'loading' | 'ok' | 'error'>('loading');
   const [menuSearchQuery, setMenuSearchQuery] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date(2026, 0, 31));
-  const [selectedWorkflowItem, setSelectedWorkflowItem] = useState<WorkflowItem | null>(null);
+  const [selectedWorkflowItem, setSelectedWorkflowItem] = useState<WorkflowItem | SiteMaster | null>(null);
   const { stageCounts } = useWorkflowCounts();
 
   const handleStepperClick = useCallback((stageCode: string) => {
@@ -730,10 +737,17 @@ function App() {
         <div className="col right" style={{ width: rightWidth }}>
           <div className="pane" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {(selectedMenuCode?.startsWith('PROD_') || selectedMenuCode === 'MAIN_WORKFLOW') && selectedWorkflowItem ? (
-              <StageDetailPanel
-                item={selectedWorkflowItem}
-                onClose={() => setSelectedWorkflowItem(null)}
-              />
+              isSiteMaster(selectedWorkflowItem) ? (
+                <SiteDetailPanel
+                  site={selectedWorkflowItem}
+                  onClose={() => setSelectedWorkflowItem(null)}
+                />
+              ) : (
+                <StageDetailPanel
+                  item={selectedWorkflowItem}
+                  onClose={() => setSelectedWorkflowItem(null)}
+                />
+              )
             ) : (
               <>
                 {/* Filter Header - 고정 영역 */}

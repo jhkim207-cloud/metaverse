@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.biz.management.site.mapper.BusinessPartnerMapper">
+
+    <select id="findByBpCd" resultType="com.biz.management.site.dto.BusinessPartnerDto">
+        SELECT id,
+               bp_cd,
+               bp_type,
+               sales_category,
+               purchase_category,
+               bp_nm,
+               ceo_nm,
+               biz_reg_no,
+               phone,
+               mobile,
+               fax,
+               contact_person,
+               email,
+               address1,
+               address2,
+               biz_type,
+               biz_item,
+               bank_holder,
+               bank_account,
+               bank_nm,
+               is_active
+          FROM business_partner
+         WHERE bp_cd = #{bpCd}
+    </select>
+
+</mapper>
