@@ -1,10 +1,19 @@
 -- ============================================
--- 테이블: packing_order
--- 설명: 포장 지시 (출하 전 포장 작업 지시)
--- 작성일: 2026-02-07
--- 스키마: hkgn
+-- 포장지시 테이블 (packing_order)
+-- ============================================
+-- 설명: 출하 전 포장 작업 지시
+-- 참조: db_dic/dictionary/standards.json
+-- 출처: _execute_all_ddl_merged.sql에서 분리
 -- ============================================
 
+SET search_path TO hkgn, public;
+
+-- 기존 테이블 삭제
+DROP TABLE IF EXISTS hkgn.packing_order CASCADE;
+
+-- ============================================
+-- packing_order (포장지시)
+-- ============================================
 CREATE TABLE hkgn.packing_order (
     -- PK
     id              BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,         -- [식별자] 기본 키
@@ -44,13 +53,17 @@ CREATE TABLE hkgn.packing_order (
     updated_by      VARCHAR(100)  NOT NULL DEFAULT CURRENT_USER              -- [수정자] 레코드 최종 수정자
 );
 
+-- ============================================
 -- 인덱스
+-- ============================================
 CREATE INDEX idx_packing_order_date ON hkgn.packing_order(packing_date);
 CREATE INDEX idx_packing_order_order ON hkgn.packing_order(order_no);
 CREATE INDEX idx_packing_order_material ON hkgn.packing_order(material_cd);
 CREATE INDEX idx_packing_order_status ON hkgn.packing_order(packing_status);
 
+-- ============================================
 -- 코멘트
+-- ============================================
 COMMENT ON TABLE hkgn.packing_order IS '포장 지시 - 출하 전 포장 작업 지시';
 COMMENT ON COLUMN hkgn.packing_order.id IS '[식별자] 기본 키';
 COMMENT ON COLUMN hkgn.packing_order.packing_no IS '[포장번호] 포장 지시 문서 번호';

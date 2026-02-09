@@ -15,6 +15,23 @@
     }
   },
 
+  "_standardTermsReference": {
+    "description": "standard_terms 테이블 참조 가이드",
+    "table": "hkgn.standard_terms",
+    "purpose": "코드성 데이터의 표준 용어 관리 (결제조건, 배송조건, 품질기준 등)",
+    "usage": {
+      "query": "SELECT term_code, term_name_kr FROM hkgn.standard_terms WHERE term_group = '{그룹명}' AND is_active = TRUE ORDER BY sort_order",
+      "groups": {
+        "PAYMENT": "결제조건",
+        "DELIVERY": "배송조건",
+        "QUALITY": "품질기준",
+        "WORK_CATEGORY": "작업구분",
+        "APPROVAL_STATUS": "승인상태"
+      }
+    },
+    "note": "새로운 표준 용어 그룹이 필요한 경우, standard_terms 테이블에 INSERT 후 이 섹션에 문서화할 것"
+  },
+
   "common": {
     "id": {
       "korean": "식별자",
@@ -730,6 +747,1193 @@
       "type": "VARCHAR(200)",
       "constraint": "NOT NULL",
       "desc": "화면 표시용 코드명 (예: 품질보증팀, 높음)"
+    }
+  },
+
+  "work_request": {
+    "request_no": {
+      "korean": "의뢰번호",
+      "english": "Request Number",
+      "type": "VARCHAR(50)",
+      "constraint": "NOT NULL",
+      "desc": "작업 의뢰 번호"
+    },
+    "request_date": {
+      "korean": "의뢰일자",
+      "english": "Request Date",
+      "type": "DATE",
+      "constraint": "NOT NULL",
+      "desc": "작업 의뢰 일자"
+    },
+    "work_category": {
+      "korean": "작업구분",
+      "english": "Work Category",
+      "type": "VARCHAR(50)",
+      "constraint": "NULL",
+      "desc": "작업 구분 (standard_terms: WORK_CATEGORY)"
+    },
+    "duo_light": {
+      "korean": "듀오라이트",
+      "english": "Duo Light",
+      "type": "VARCHAR(50)",
+      "constraint": "NULL",
+      "desc": "듀오라이트 사용 여부"
+    },
+    "dong_ho_window_separate": {
+      "korean": "동호수창분리",
+      "english": "Dong Ho Window Separate",
+      "type": "BOOLEAN",
+      "constraint": "NULL DEFAULT FALSE",
+      "desc": "동호수창 분리 여부"
+    },
+    "memo": {
+      "korean": "메모",
+      "english": "Memo",
+      "type": "TEXT",
+      "constraint": "NULL",
+      "desc": "메모"
+    },
+    "customer_nm": {
+      "korean": "주문처명",
+      "english": "Customer Name",
+      "type": "VARCHAR(200)",
+      "constraint": "NULL",
+      "desc": "주문처 이름"
+    },
+    "supplier_nm": {
+      "korean": "거래처명",
+      "english": "Supplier Name",
+      "type": "VARCHAR(200)",
+      "constraint": "NULL",
+      "desc": "거래처 이름"
+    },
+    "site_nm": {
+      "korean": "현장명",
+      "english": "Site Name",
+      "type": "VARCHAR(200)",
+      "constraint": "NULL",
+      "desc": "현장 이름"
+    },
+    "material_nm": {
+      "korean": "품명",
+      "english": "Material Name",
+      "type": "VARCHAR(200)",
+      "constraint": "NULL",
+      "desc": "품명"
+    },
+    "product_category": {
+      "korean": "제품구분",
+      "english": "Product Category",
+      "type": "VARCHAR(10)",
+      "constraint": "NULL",
+      "desc": "제품 구분 코드 (P: 완제품 등)"
+    },
+    "thickness": {
+      "korean": "두께",
+      "english": "Thickness",
+      "type": "INTEGER",
+      "constraint": "NULL",
+      "desc": "두께 (mm)"
+    },
+    "unit_type": {
+      "korean": "규격단위",
+      "english": "Unit Type",
+      "type": "VARCHAR(20)",
+      "constraint": "NULL",
+      "desc": "규격 단위 (mm, cm 등)"
+    },
+    "width": {
+      "korean": "가로규격",
+      "english": "Width",
+      "type": "NUMERIC(10,2)",
+      "constraint": "NULL",
+      "desc": "가로 규격"
+    },
+    "height": {
+      "korean": "세로규격",
+      "english": "Height",
+      "type": "NUMERIC(10,2)",
+      "constraint": "NULL",
+      "desc": "세로 규격"
+    },
+    "unrequested_quantity": {
+      "korean": "미의뢰수량",
+      "english": "Unrequested Quantity",
+      "type": "INTEGER",
+      "constraint": "NULL DEFAULT 0",
+      "desc": "미의뢰 수량"
+    },
+    "requested_quantity": {
+      "korean": "의뢰수량",
+      "english": "Requested Quantity",
+      "type": "INTEGER",
+      "constraint": "NULL DEFAULT 0",
+      "desc": "의뢰 수량"
+    },
+    "area": {
+      "korean": "면적",
+      "english": "Area",
+      "type": "NUMERIC(10,3)",
+      "constraint": "NULL",
+      "desc": "면적 (㎡)"
+    },
+    "order_remarks": {
+      "korean": "주문비고",
+      "english": "Order Remarks",
+      "type": "TEXT",
+      "constraint": "NULL",
+      "desc": "주문 비고"
+    },
+    "other_spec": {
+      "korean": "기타규격",
+      "english": "Other Specification",
+      "type": "VARCHAR(200)",
+      "constraint": "NULL",
+      "desc": "기타 규격"
+    },
+    "origin_country": {
+      "korean": "원산지",
+      "english": "Origin Country",
+      "type": "VARCHAR(100)",
+      "constraint": "NULL",
+      "desc": "원산지"
+    },
+    "process_name": {
+      "korean": "공정명",
+      "english": "Process Name",
+      "type": "VARCHAR(100)",
+      "constraint": "NULL",
+      "desc": "공정 이름"
+    }
+  },
+
+  "production_plan": {
+    "plan_no": {
+      "korean": "작지번호",
+      "english": "Production Plan Number",
+      "type": "VARCHAR(50)",
+      "constraint": "NOT NULL UNIQUE",
+      "desc": "작업 지시 번호 (생산 계획 번호)"
+    },
+    "production_date": {
+      "korean": "생산일자",
+      "english": "Production Date",
+      "type": "DATE",
+      "constraint": "NULL",
+      "desc": "생산 예정 일자"
+    },
+    "machine_no": {
+      "korean": "호기",
+      "english": "Machine Number",
+      "type": "VARCHAR(100)",
+      "constraint": "NULL",
+      "desc": "생산 설비 호기 (예: 복층1호기)"
+    },
+    "product_type": {
+      "korean": "품종",
+      "english": "Product Type",
+      "type": "VARCHAR(50)",
+      "constraint": "NULL",
+      "desc": "제품 품종 (예: A종, B종, C종)"
+    },
+    "location": {
+      "korean": "위치",
+      "english": "Location",
+      "type": "VARCHAR(200)",
+      "constraint": "NULL",
+      "desc": "설치 위치"
+    },
+    "shipping_date": {
+      "korean": "상차예정일",
+      "english": "Shipping Date",
+      "type": "VARCHAR(50)",
+      "constraint": "NULL",
+      "desc": "상차 예정일"
+    },
+    "completed_quantity": {
+      "korean": "생산완료수량",
+      "english": "Completed Quantity",
+      "type": "INTEGER",
+      "constraint": "NULL DEFAULT 0",
+      "desc": "생산 완료 수량"
+    },
+    "completed_area": {
+      "korean": "생산완료평수",
+      "english": "Completed Area",
+      "type": "NUMERIC(10,3)",
+      "constraint": "NULL",
+      "desc": "생산 완료 평수"
+    },
+    "defect_quantity": {
+      "korean": "불량분수량",
+      "english": "Defect Quantity",
+      "type": "INTEGER",
+      "constraint": "NULL DEFAULT 0",
+      "desc": "불량품 수량"
+    },
+    "defect_area": {
+      "korean": "불량분평수",
+      "english": "Defect Area",
+      "type": "NUMERIC(10,3)",
+      "constraint": "NULL",
+      "desc": "불량품 평수"
+    },
+    "pending_quantity": {
+      "korean": "미생산수량",
+      "english": "Pending Quantity",
+      "type": "INTEGER",
+      "constraint": "NULL DEFAULT 0",
+      "desc": "미생산 수량"
+    },
+    "pending_area": {
+      "korean": "미생산평수",
+      "english": "Pending Area",
+      "type": "NUMERIC(10,3)",
+      "constraint": "NULL",
+      "desc": "미생산 평수"
+    },
+    "unit_price": {
+      "korean": "단가",
+      "english": "Unit Price",
+      "type": "NUMERIC(15,2)",
+      "constraint": "NULL",
+      "desc": "단가"
+    },
+    "amount": {
+      "korean": "금액",
+      "english": "Amount",
+      "type": "NUMERIC(15,2)",
+      "constraint": "NULL",
+      "desc": "총 금액"
+    },
+    "options": {
+      "korean": "옵션및특이사항",
+      "english": "Options",
+      "type": "TEXT",
+      "constraint": "NULL",
+      "desc": "옵션 및 특이사항"
+    },
+    "work_request_no": {
+      "korean": "작업의뢰번호",
+      "english": "Work Request Number",
+      "type": "VARCHAR(50)",
+      "constraint": "NULL",
+      "desc": "작업 의뢰 번호 (work_request.request_no 참조)"
+    }
+  },
+
+  "production_plan_detail": {
+    "process_type": {
+      "korean": "공정구분",
+      "english": "Process Type",
+      "type": "VARCHAR(50)",
+      "constraint": "NULL",
+      "desc": "공정 구분 (재단1, 재단2, 아와, 강화, 라벨 등)"
+    },
+    "is_checked": {
+      "korean": "체크여부",
+      "english": "Is Checked",
+      "type": "BOOLEAN",
+      "constraint": "NULL DEFAULT FALSE",
+      "desc": "공정 완료 체크 여부"
+    }
+  },
+
+  "worker_assignment": {
+    "assignment_type_cd": {
+      "korean": "배치유형코드",
+      "english": "Assignment Type Code",
+      "type": "VARCHAR(10)",
+      "constraint": "NOT NULL",
+      "desc": "작업 배치 유형 코드 (A, B, C, D, E, F)"
+    },
+    "assignment_type_nm": {
+      "korean": "배치유형명",
+      "english": "Assignment Type Name",
+      "type": "VARCHAR(100)",
+      "constraint": "NULL",
+      "desc": "작업 배치 유형 이름"
+    },
+    "work_date": {
+      "korean": "작업일자",
+      "english": "Work Date",
+      "type": "DATE",
+      "constraint": "NOT NULL",
+      "desc": "작업 일자"
+    },
+    "work_area": {
+      "korean": "작업영역",
+      "english": "Work Area",
+      "type": "VARCHAR(50)",
+      "constraint": "NULL",
+      "desc": "작업 영역 (복층1호기, 복층2호기, 재단/강화)"
+    },
+    "position": {
+      "korean": "직책",
+      "english": "Position",
+      "type": "VARCHAR(50)",
+      "constraint": "NULL",
+      "desc": "직책 (관리자, 투입, 조립, 부틸, 부착, 후처리, 재단, 강화, 간봉, 지게차 등)"
+    },
+    "worker_nm": {
+      "korean": "작업자명",
+      "english": "Worker Name",
+      "type": "VARCHAR(100)",
+      "constraint": "NULL",
+      "desc": "작업자 이름"
+    },
+    "assignment_remarks": {
+      "korean": "배치비고",
+      "english": "Assignment Remarks",
+      "type": "TEXT",
+      "constraint": "NULL",
+      "desc": "배치 비고"
+    }
+  },
+
+  "production_result": {
+    "production_no": {
+      "korean": "생산번호",
+      "english": "Production Number",
+      "type": "VARCHAR(30)",
+      "constraint": "NOT NULL UNIQUE",
+      "desc": "생산 실적 문서 번호"
+    },
+    "good_qty": {
+      "korean": "양품수량",
+      "english": "Good Quantity",
+      "type": "NUMERIC(12,2)",
+      "constraint": "NOT NULL DEFAULT 0",
+      "desc": "양품 수량"
+    },
+    "defect_qty": {
+      "korean": "불량수량",
+      "english": "Defect Quantity",
+      "type": "NUMERIC(12,2)",
+      "constraint": "NULL DEFAULT 0",
+      "desc": "불량 수량"
+    },
+    "total_qty": {
+      "korean": "총수량",
+      "english": "Total Quantity",
+      "type": "NUMERIC(12,2)",
+      "constraint": "NOT NULL",
+      "desc": "총 생산 수량 (양품 + 불량)"
+    },
+    "good_area": {
+      "korean": "양품면적",
+      "english": "Good Area",
+      "type": "NUMERIC(10,3)",
+      "constraint": "NULL DEFAULT 0",
+      "desc": "양품 면적 (평수)"
+    },
+    "defect_area": {
+      "korean": "불량면적",
+      "english": "Defect Area",
+      "type": "NUMERIC(10,3)",
+      "constraint": "NULL DEFAULT 0",
+      "desc": "불량 면적 (평수)"
+    },
+    "total_area": {
+      "korean": "총면적",
+      "english": "Total Area",
+      "type": "NUMERIC(10,3)",
+      "constraint": "NULL",
+      "desc": "총 생산 면적 (양품 + 불량)"
+    },
+    "defect_reason": {
+      "korean": "불량사유",
+      "english": "Defect Reason",
+      "type": "TEXT",
+      "constraint": "NULL",
+      "desc": "불량 발생 사유"
+    }
+  },
+
+  "delivery": {
+    "delivery_no": {
+      "korean": "출고번호",
+      "english": "Delivery Number",
+      "type": "VARCHAR(30)",
+      "constraint": "NOT NULL UNIQUE",
+      "desc": "출고 문서 번호"
+    },
+    "transaction_type": {
+      "korean": "거래구분",
+      "english": "Transaction Type",
+      "type": "VARCHAR(20)",
+      "constraint": "NULL DEFAULT '정상'",
+      "desc": "거래 구분 (정상, 반품, 교환 등)"
+    },
+    "special_notes": {
+      "korean": "특이사항",
+      "english": "Special Notes",
+      "type": "TEXT",
+      "constraint": "NULL",
+      "desc": "특이사항"
+    },
+    "shipping_company": {
+      "korean": "운송사",
+      "english": "Shipping Company",
+      "type": "VARCHAR(200)",
+      "constraint": "NULL",
+      "desc": "운송 회사명"
+    },
+    "shipping_cost": {
+      "korean": "운반비",
+      "english": "Shipping Cost",
+      "type": "NUMERIC(15,2)",
+      "constraint": "NULL DEFAULT 0",
+      "desc": "운반비"
+    },
+    "shipping_tax": {
+      "korean": "운반비세액",
+      "english": "Shipping Tax",
+      "type": "NUMERIC(15,2)",
+      "constraint": "NULL DEFAULT 0",
+      "desc": "운반비 세액"
+    },
+    "width": {
+      "korean": "가로규격",
+      "english": "Width",
+      "type": "NUMERIC(10,2)",
+      "constraint": "NULL",
+      "desc": "가로 규격"
+    },
+    "height": {
+      "korean": "세로규격",
+      "english": "Height",
+      "type": "NUMERIC(10,2)",
+      "constraint": "NULL",
+      "desc": "세로 규격"
+    },
+    "order_quantity": {
+      "korean": "주문수량",
+      "english": "Order Quantity",
+      "type": "NUMERIC(12,2)",
+      "constraint": "NULL DEFAULT 0",
+      "desc": "주문 수량"
+    },
+    "unshipped_quantity": {
+      "korean": "미출수량",
+      "english": "Unshipped Quantity",
+      "type": "NUMERIC(12,2)",
+      "constraint": "NULL DEFAULT 0",
+      "desc": "미출고 수량"
+    }
+  },
+  "cutting_daily_report": {
+    "work_request_no": {
+      "korean": "작업의뢰번호",
+      "english": "Work Request Number",
+      "type": "VARCHAR(50)",
+      "constraint": "NULL",
+      "desc": "작업 의뢰 번호"
+    },
+    "seq_no": {
+      "korean": "순번",
+      "english": "Sequence Number",
+      "type": "INTEGER",
+      "constraint": "NULL",
+      "desc": "일보 내 작업 순번"
+    },
+    "raw_plate_no": {
+      "korean": "원판순번",
+      "english": "Raw Plate Number",
+      "type": "INTEGER",
+      "constraint": "NULL",
+      "desc": "원판 구분 (1, 2, 3...)"
+    },
+    "raw_material_nm": {
+      "korean": "원판명",
+      "english": "Raw Material Name",
+      "type": "VARCHAR(200)",
+      "constraint": "NULL",
+      "desc": "원판 이름"
+    },
+    "raw_width": {
+      "korean": "원판가로",
+      "english": "Raw Width",
+      "type": "NUMERIC(10,2)",
+      "constraint": "NULL",
+      "desc": "원판 가로 크기 (mm)"
+    },
+    "raw_height": {
+      "korean": "원판세로",
+      "english": "Raw Height",
+      "type": "NUMERIC(10,2)",
+      "constraint": "NULL",
+      "desc": "원판 세로 크기 (mm)"
+    },
+    "raw_plate_count": {
+      "korean": "원판매수",
+      "english": "Raw Plate Count",
+      "type": "INTEGER",
+      "constraint": "NULL DEFAULT 0",
+      "desc": "사용한 원판 매수"
+    },
+    "required_area": {
+      "korean": "실평수A",
+      "english": "Required Area",
+      "type": "NUMERIC(10,3)",
+      "constraint": "NULL DEFAULT 0",
+      "desc": "실제 필요 면적 (평)"
+    },
+    "waste_included_area": {
+      "korean": "아와평수B",
+      "english": "Waste Included Area",
+      "type": "NUMERIC(10,3)",
+      "constraint": "NULL DEFAULT 0",
+      "desc": "불량 포함 면적 (평)"
+    },
+    "used_area": {
+      "korean": "사용평수C",
+      "english": "Used Area",
+      "type": "NUMERIC(10,3)",
+      "constraint": "NULL DEFAULT 0",
+      "desc": "실제 사용 면적 (평)"
+    },
+    "production_defect_area": {
+      "korean": "생산불량",
+      "english": "Production Defect Area",
+      "type": "NUMERIC(10,3)",
+      "constraint": "NULL DEFAULT 0",
+      "desc": "C-B (평)"
+    },
+    "loss_area": {
+      "korean": "로스평수",
+      "english": "Loss Area",
+      "type": "NUMERIC(10,3)",
+      "constraint": "NULL DEFAULT 0",
+      "desc": "C-A (평)"
+    },
+    "loss_rate": {
+      "korean": "로스율",
+      "english": "Loss Rate",
+      "type": "NUMERIC(5,2)",
+      "constraint": "NULL DEFAULT 0",
+      "desc": "로스율 (%)"
+    },
+    "loss_weight": {
+      "korean": "로스중량",
+      "english": "Loss Weight",
+      "type": "NUMERIC(10,2)",
+      "constraint": "NULL DEFAULT 0",
+      "desc": "로스 중량 (kg)"
+    },
+    "loss_amount": {
+      "korean": "로스금액",
+      "english": "Loss Amount",
+      "type": "NUMERIC(15,2)",
+      "constraint": "NULL DEFAULT 0",
+      "desc": "로스 금액 (원)"
+    },
+    "optimized_area_pyeong": {
+      "korean": "옵티마평수",
+      "english": "Optimized Area Pyeong",
+      "type": "NUMERIC(10,3)",
+      "constraint": "NULL DEFAULT 0",
+      "desc": "최적화 재단 면적 (평)"
+    },
+    "optimized_area_m2": {
+      "korean": "옵티마M2",
+      "english": "Optimized Area M2",
+      "type": "NUMERIC(10,3)",
+      "constraint": "NULL DEFAULT 0",
+      "desc": "최적화 재단 면적 (㎡)"
+    },
+    "cutting_area": {
+      "korean": "재단평수",
+      "english": "Cutting Area",
+      "type": "NUMERIC(10,3)",
+      "constraint": "NULL DEFAULT 0",
+      "desc": "재단 작업 면적 (평)"
+    },
+    "total_region": {
+      "korean": "총영역",
+      "english": "Total Region",
+      "type": "NUMERIC(10,3)",
+      "constraint": "NULL DEFAULT 0",
+      "desc": "전체 영역 (㎡)"
+    },
+    "opt_region": {
+      "korean": "OPT영역",
+      "english": "OPT Region",
+      "type": "NUMERIC(10,3)",
+      "constraint": "NULL DEFAULT 0",
+      "desc": "최적화 영역 (㎡)"
+    }
+  },
+  "site_price": {
+    "spec": {
+      "korean": "사양",
+      "english": "Specification",
+      "type": "VARCHAR(200)",
+      "constraint": "NOT NULL",
+      "desc": "유리 사양 (예: 5CL(HS)+12AR+5CL(HS) 22T)"
+    },
+    "remark": {
+      "korean": "비고",
+      "english": "Remark",
+      "type": "VARCHAR(200)",
+      "constraint": "NULL",
+      "desc": "비고 (아르곤/TPS/eno 등)"
+    },
+    "bid_price": {
+      "korean": "입찰실행단가",
+      "english": "Bid Price",
+      "type": "NUMERIC(12,2)",
+      "constraint": "DEFAULT 0",
+      "desc": "입찰실행단가 (원/평)"
+    },
+    "proc_price": {
+      "korean": "가공단가",
+      "english": "Processing Price",
+      "type": "NUMERIC(12,2)",
+      "constraint": "DEFAULT 0",
+      "desc": "가공단가 (원/평)"
+    },
+    "processing_cost": {
+      "korean": "가공비",
+      "english": "Processing Cost",
+      "type": "NUMERIC(12,2)",
+      "constraint": "DEFAULT 0",
+      "desc": "기본 가공비 (원/평)"
+    },
+    "argon_cost": {
+      "korean": "아르곤비",
+      "english": "Argon Cost",
+      "type": "NUMERIC(12,2)",
+      "constraint": "DEFAULT 0",
+      "desc": "아르곤 충진 비용 (원/평)"
+    },
+    "insul_cost": {
+      "korean": "단열비",
+      "english": "Insulation Cost",
+      "type": "NUMERIC(12,2)",
+      "constraint": "DEFAULT 0",
+      "desc": "단열 처리 비용 (원/평)"
+    },
+    "struct_cost": {
+      "korean": "구조용비",
+      "english": "Structural Cost",
+      "type": "NUMERIC(12,2)",
+      "constraint": "DEFAULT 0",
+      "desc": "구조용 유리 비용 (원/평)"
+    },
+    "edge_cost": {
+      "korean": "엣지비",
+      "english": "Edge Cost",
+      "type": "NUMERIC(12,2)",
+      "constraint": "DEFAULT 0",
+      "desc": "엣지 가공 비용 (원/평)"
+    },
+    "etching_cost": {
+      "korean": "에칭비",
+      "english": "Etching Cost",
+      "type": "NUMERIC(12,2)",
+      "constraint": "DEFAULT 0",
+      "desc": "에칭 가공 비용 (원/평)"
+    },
+    "step_cost": {
+      "korean": "스텝비",
+      "english": "Step Cost",
+      "type": "NUMERIC(12,2)",
+      "constraint": "DEFAULT 0",
+      "desc": "스텝 가공 비용 (원/평)"
+    },
+    "deform_cost": {
+      "korean": "이형비",
+      "english": "Deform Cost",
+      "type": "NUMERIC(12,2)",
+      "constraint": "DEFAULT 0",
+      "desc": "이형 가공 비용 (원/평)"
+    },
+    "temper1_cost": {
+      "korean": "강화1비",
+      "english": "Tempering 1 Cost",
+      "type": "NUMERIC(12,2)",
+      "constraint": "DEFAULT 0",
+      "desc": "강화1 처리 비용 (원/평)"
+    },
+    "temper2_cost": {
+      "korean": "강화2비",
+      "english": "Tempering 2 Cost",
+      "type": "NUMERIC(12,2)",
+      "constraint": "DEFAULT 0",
+      "desc": "강화2 처리 비용 (원/평)"
+    },
+    "temper3_cost": {
+      "korean": "강화3비",
+      "english": "Tempering 3 Cost",
+      "type": "NUMERIC(12,2)",
+      "constraint": "DEFAULT 0",
+      "desc": "강화3 처리 비용 (원/평)"
+    },
+    "total_processing_cost": {
+      "korean": "가공비계",
+      "english": "Total Processing Cost",
+      "type": "NUMERIC(12,2)",
+      "constraint": "DEFAULT 0",
+      "desc": "가공비 합계 (원/평)"
+    }
+  },
+
+  "subcontract_order": {
+    "subcontract_no": {
+      "korean": "외주번호",
+      "english": "Subcontract Number",
+      "type": "VARCHAR(30)",
+      "constraint": "NOT NULL",
+      "desc": "외주 발주 문서 번호 (예: HK-230601-01)"
+    },
+    "subcontract_date": {
+      "korean": "외주일",
+      "english": "Subcontract Date",
+      "type": "DATE",
+      "constraint": "NOT NULL",
+      "desc": "외주 발주일"
+    },
+    "subcontract_type": {
+      "korean": "외주구분",
+      "english": "Subcontract Type",
+      "type": "VARCHAR(30)",
+      "constraint": "NOT NULL DEFAULT 'PROCESSING'",
+      "desc": "외주 구분 (PROCESSING:임가공, TEMPERED:강화, ETCHED:에칭, CUTTING:재단)"
+    },
+    "subcontractor_cd": {
+      "korean": "외주업체코드",
+      "english": "Subcontractor Code",
+      "type": "VARCHAR(30)",
+      "constraint": "NULL",
+      "desc": "외주 업체 코드 (→ business_partner.bp_cd)"
+    },
+    "subcontractor_nm": {
+      "korean": "외주업체명",
+      "english": "Subcontractor Name",
+      "type": "VARCHAR(100)",
+      "constraint": "NOT NULL",
+      "desc": "외주 업체 이름"
+    },
+    "product_type": {
+      "korean": "품종",
+      "english": "Product Type",
+      "type": "VARCHAR(50)",
+      "constraint": "NULL",
+      "desc": "유리 품종 구분"
+    },
+    "area_m2": {
+      "korean": "면적M2",
+      "english": "Area in M2",
+      "type": "NUMERIC(12,4)",
+      "constraint": "NULL",
+      "desc": "M2 단위 면적"
+    },
+    "area_pyeong": {
+      "korean": "면적평수",
+      "english": "Area in Pyeong",
+      "type": "NUMERIC(12,2)",
+      "constraint": "NULL",
+      "desc": "평 단위 면적"
+    },
+    "requested_receipt_date": {
+      "korean": "입고요청일",
+      "english": "Requested Receipt Date",
+      "type": "DATE",
+      "constraint": "NULL",
+      "desc": "입고 요청일"
+    },
+    "actual_receipt_date": {
+      "korean": "실제입고일",
+      "english": "Actual Receipt Date",
+      "type": "DATE",
+      "constraint": "NULL",
+      "desc": "실제 입고 완료일"
+    },
+    "receipt_changed_date": {
+      "korean": "입고변경일",
+      "english": "Receipt Changed Date",
+      "type": "DATE",
+      "constraint": "NULL",
+      "desc": "입고일 변경된 경우"
+    },
+    "receipt_location": {
+      "korean": "입고처",
+      "english": "Receipt Location",
+      "type": "VARCHAR(100)",
+      "constraint": "NULL",
+      "desc": "입고 위치 (HK지앤텍 1공장, 현장입고 등)"
+    },
+    "completed_qty": {
+      "korean": "완료수량",
+      "english": "Completed Quantity",
+      "type": "NUMERIC(12,2)",
+      "constraint": "DEFAULT 0",
+      "desc": "가공 완료 수량"
+    },
+    "subcontract_status": {
+      "korean": "외주상태",
+      "english": "Subcontract Status",
+      "type": "VARCHAR(20)",
+      "constraint": "NOT NULL DEFAULT 'PENDING'",
+      "desc": "외주 상태 (PENDING:대기, PROCESSING:작업중, RECEIVED:입고완료, COMPLETED:완료, CANCELLED:취소)"
+    }
+  },
+
+  "purchase_order": {
+    "_description": "구매발주 관련 용어 (purchase_order, purchase_order_detail 테이블)",
+    "po_no": {
+      "korean": "발주번호",
+      "english": "Purchase Order Number",
+      "type": "VARCHAR(30)",
+      "constraint": "NOT NULL UNIQUE",
+      "desc": "발주 문서 번호 (예: LX글라스-2602-01, 2026-0204-01)"
+    },
+    "po_date": {
+      "korean": "발주일",
+      "english": "Purchase Order Date",
+      "type": "DATE",
+      "constraint": "NOT NULL",
+      "desc": "발주 일자"
+    },
+    "po_type": {
+      "korean": "양식구분",
+      "english": "Purchase Order Type",
+      "type": "VARCHAR(30)",
+      "constraint": "NOT NULL DEFAULT 'RAW_GLASS'",
+      "desc": "양식 구분 (RAW_GLASS:원판구매품의서, MATERIAL:자재발주서)"
+    },
+    "po_status": {
+      "korean": "발주상태",
+      "english": "Purchase Order Status",
+      "type": "VARCHAR(20)",
+      "constraint": "NOT NULL DEFAULT 'PENDING'",
+      "desc": "발주 상태 (PENDING:대기, CONFIRMED:확정, RECEIVING:입고중, COMPLETED:완료, CANCELLED:취소)"
+    },
+    "receiver_nm": {
+      "korean": "수신자명",
+      "english": "Receiver Name",
+      "type": "VARCHAR(100)",
+      "constraint": "NULL",
+      "desc": "공급사 담당자 (수신자)"
+    },
+    "sender_dept": {
+      "korean": "발신처",
+      "english": "Sender Department",
+      "type": "VARCHAR(200)",
+      "constraint": "NULL",
+      "desc": "발신 회사/부서 (예: ㈜ 에이치케이 지앤텍)"
+    },
+    "sender_nm": {
+      "korean": "발신자명",
+      "english": "Sender Name",
+      "type": "VARCHAR(100)",
+      "constraint": "NULL",
+      "desc": "발주 담당자 (예: 조하나 과장)"
+    },
+    "width_mm": {
+      "korean": "가로규격",
+      "english": "Width (mm)",
+      "type": "NUMERIC(10,2)",
+      "constraint": "NULL",
+      "desc": "유리 가로 사이즈 (mm)"
+    },
+    "height_mm": {
+      "korean": "세로규격",
+      "english": "Height (mm)",
+      "type": "NUMERIC(10,2)",
+      "constraint": "NULL",
+      "desc": "유리 세로 사이즈 (mm)"
+    },
+    "frame_count": {
+      "korean": "프레임수",
+      "english": "Frame Count",
+      "type": "INTEGER",
+      "constraint": "NULL",
+      "desc": "원판 프레임 수"
+    },
+    "supply_amount": {
+      "korean": "공급가액",
+      "english": "Supply Amount",
+      "type": "NUMERIC(15,2)",
+      "constraint": "DEFAULT 0",
+      "desc": "공급가액 (수량 × 단가)"
+    },
+    "received_qty": {
+      "korean": "입고수량",
+      "english": "Received Quantity",
+      "type": "NUMERIC(12,2)",
+      "constraint": "DEFAULT 0",
+      "desc": "입고 완료 수량"
+    },
+    "line_status": {
+      "korean": "행상태",
+      "english": "Line Status",
+      "type": "VARCHAR(20)",
+      "constraint": "NOT NULL DEFAULT 'PENDING'",
+      "desc": "행 상태 (PENDING:대기, CONFIRMED:확정, RECEIVING:입고중, COMPLETED:완료)"
+    }
+  },
+
+  "goods_receipt": {
+    "_description": "입고 실적 관련 용어 (goods_receipt 테이블)",
+    "receipt_no": {
+      "korean": "입고번호",
+      "english": "Receipt Number",
+      "type": "VARCHAR(30)",
+      "constraint": "NOT NULL UNIQUE",
+      "desc": "입고 문서 번호"
+    },
+    "receipt_date": {
+      "korean": "입고일",
+      "english": "Receipt Date",
+      "type": "DATE",
+      "constraint": "NOT NULL",
+      "desc": "입고 일자"
+    },
+    "po_line_seq": {
+      "korean": "발주라인순번",
+      "english": "PO Line Sequence",
+      "type": "INTEGER",
+      "constraint": "NULL",
+      "desc": "연관 발주 상세 라인 순번 (→ purchase_order_detail.line_seq)"
+    },
+    "outstanding_qty": {
+      "korean": "미입고수량",
+      "english": "Outstanding Quantity",
+      "type": "NUMERIC(12,2)",
+      "constraint": "DEFAULT 0",
+      "desc": "잔여 미입고 수량"
+    },
+    "price_per_pyeong": {
+      "korean": "평단가",
+      "english": "Price Per Pyeong",
+      "type": "NUMERIC(12,2)",
+      "constraint": "NULL",
+      "desc": "평(면적) 기준 단가 (원/평)"
+    },
+    "discount_pct": {
+      "korean": "할인율",
+      "english": "Discount Percentage",
+      "type": "NUMERIC(5,2)",
+      "constraint": "NULL",
+      "desc": "할인율 (%)"
+    },
+    "inspected_qty": {
+      "korean": "검사수량",
+      "english": "Inspected Quantity",
+      "type": "NUMERIC(12,2)",
+      "constraint": "DEFAULT 0",
+      "desc": "품질 검사 수량"
+    },
+    "passed_qty": {
+      "korean": "합격수량",
+      "english": "Passed Quantity",
+      "type": "NUMERIC(12,2)",
+      "constraint": "DEFAULT 0",
+      "desc": "품질 합격 수량"
+    },
+    "rejected_qty": {
+      "korean": "불량수량",
+      "english": "Rejected Quantity",
+      "type": "NUMERIC(12,2)",
+      "constraint": "DEFAULT 0",
+      "desc": "품질 불량 수량"
+    },
+    "inspection_status": {
+      "korean": "검사상태",
+      "english": "Inspection Status",
+      "type": "VARCHAR(20)",
+      "constraint": "DEFAULT 'PENDING'",
+      "desc": "검사 상태 (PENDING:대기, PASSED:합격, REJECTED:불합격, PARTIAL:부분합격)"
+    },
+    "rejection_reason": {
+      "korean": "불량사유",
+      "english": "Rejection Reason",
+      "type": "TEXT",
+      "constraint": "NULL",
+      "desc": "불량 사유 설명"
+    }
+  },
+
+  "inventory": {
+    "_metadata": {
+      "table": "hkgn.inventory",
+      "description": "재고 현황 - 자재별 재고 수량 관리 (원판유리 + 부자재)",
+      "created": "2026-02-09",
+      "source": "원자재입출고현황.xlsx"
+    },
+    "inventory_type": {
+      "korean": "재고유형",
+      "english": "Inventory Type",
+      "type": "VARCHAR(20)",
+      "constraint": "NOT NULL DEFAULT 'GENERAL'",
+      "desc": "RAW_GLASS:원판유리, MATERIAL:부자재, GENERAL:일반"
+    },
+    "current_qty": {
+      "korean": "현재고",
+      "english": "Current Quantity",
+      "type": "NUMERIC(12,2)",
+      "constraint": "NOT NULL DEFAULT 0",
+      "desc": "현재 재고 수량"
+    },
+    "available_qty": {
+      "korean": "가용재고",
+      "english": "Available Quantity",
+      "type": "NUMERIC(12,2)",
+      "constraint": "NOT NULL DEFAULT 0",
+      "desc": "가용 재고 (현재고 - 예약)"
+    },
+    "reserved_qty": {
+      "korean": "예약수량",
+      "english": "Reserved Quantity",
+      "type": "NUMERIC(12,2)",
+      "constraint": "DEFAULT 0",
+      "desc": "예약된 수량"
+    },
+    "area_pyeong": {
+      "korean": "면적평수",
+      "english": "Area Pyeong",
+      "type": "NUMERIC(12,2)",
+      "constraint": "NULL",
+      "desc": "현재고 평수 환산 (원판유리 전용)"
+    },
+    "min_qty": {
+      "korean": "최소재고",
+      "english": "Minimum Quantity",
+      "type": "NUMERIC(12,2)",
+      "constraint": "DEFAULT 0",
+      "desc": "안전 재고 수량"
+    },
+    "max_qty": {
+      "korean": "최대재고",
+      "english": "Maximum Quantity",
+      "type": "NUMERIC(12,2)",
+      "constraint": "DEFAULT 0",
+      "desc": "최대 보유 수량"
+    },
+    "warehouse_cd": {
+      "korean": "창고코드",
+      "english": "Warehouse Code",
+      "type": "VARCHAR(30)",
+      "constraint": "NULL",
+      "desc": "보관 창고 코드"
+    },
+    "snapshot_date": {
+      "korean": "기준일",
+      "english": "Snapshot Date",
+      "type": "DATE",
+      "constraint": "NULL",
+      "desc": "재고 스냅샷 기준일"
+    }
+  },
+
+  "inventory_transaction": {
+    "_metadata": {
+      "table": "hkgn.inventory_transaction",
+      "description": "재고 이동 이력 - 원자재/부자재/용기 입출고 트랜잭션 로그",
+      "created": "2026-02-09",
+      "source": "원자재입출고현황.xlsx + 현장별용기입출고현황.xlsx"
+    },
+    "transaction_no": {
+      "korean": "전표번호",
+      "english": "Transaction Number",
+      "type": "VARCHAR(30)",
+      "constraint": "NOT NULL",
+      "desc": "이동 전표 번호"
+    },
+    "transaction_date": {
+      "korean": "이동일",
+      "english": "Transaction Date",
+      "type": "DATE",
+      "constraint": "NOT NULL",
+      "desc": "이동 일자"
+    },
+    "transaction_type": {
+      "korean": "이동유형",
+      "english": "Transaction Type",
+      "type": "VARCHAR(20)",
+      "constraint": "NOT NULL",
+      "desc": "IN:입고, OUT:출고, ADJUST:조정, MOVE:이동"
+    },
+    "before_qty": {
+      "korean": "이동전재고",
+      "english": "Before Quantity",
+      "type": "NUMERIC(12,2)",
+      "constraint": "NULL",
+      "desc": "이동 전 재고 수량"
+    },
+    "after_qty": {
+      "korean": "이동후재고",
+      "english": "After Quantity",
+      "type": "NUMERIC(12,2)",
+      "constraint": "NULL",
+      "desc": "이동 후 재고 수량"
+    },
+    "vehicle_no": {
+      "korean": "차량번호",
+      "english": "Vehicle Number",
+      "type": "VARCHAR(50)",
+      "constraint": "NULL",
+      "desc": "운송 차량 정보"
+    },
+    "ref_doc_type": {
+      "korean": "참조문서유형",
+      "english": "Reference Document Type",
+      "type": "VARCHAR(20)",
+      "constraint": "NULL",
+      "desc": "PO:발주, SO:수주, PROD:생산, DELIVERY:출하, GR:입고"
+    },
+    "ref_doc_no": {
+      "korean": "참조문서번호",
+      "english": "Reference Document Number",
+      "type": "VARCHAR(30)",
+      "constraint": "NULL",
+      "desc": "참조 문서 번호"
+    }
+  },
+
+  "container_inventory": {
+    "_metadata": {
+      "table": "hkgn.container_inventory",
+      "description": "용기 재고 - 운반 용기 재고 관리 (공장 + 현장별)",
+      "created": "2026-02-09",
+      "source": "공장내부용기현황.xlsx + 현장별용기입출고현황.xlsx"
+    },
+    "container_cd": {
+      "korean": "용기코드",
+      "english": "Container Code",
+      "type": "VARCHAR(30)",
+      "constraint": "NOT NULL",
+      "desc": "용기 자재 코드 (→ item_master, material_type=CONTAINER)"
+    },
+    "container_nm": {
+      "korean": "용기명",
+      "english": "Container Name",
+      "type": "VARCHAR(200)",
+      "constraint": "NULL",
+      "desc": "용기 이름 (참조용)"
+    },
+    "location_type": {
+      "korean": "위치구분",
+      "english": "Location Type",
+      "type": "VARCHAR(20)",
+      "constraint": "NOT NULL",
+      "desc": "FACTORY:공장, CUSTOMER:고객사, SITE:현장"
+    },
+    "shortage_qty": {
+      "korean": "부족수량",
+      "english": "Shortage Quantity",
+      "type": "INTEGER",
+      "constraint": "DEFAULT 0",
+      "desc": "부족한 용기 수량"
+    },
+    "container_status": {
+      "korean": "상태",
+      "english": "Container Status",
+      "type": "VARCHAR(20)",
+      "constraint": "NOT NULL DEFAULT 'GOOD'",
+      "desc": "GOOD:양호, DAMAGED:파손, LOST:분실"
     }
   }
 }

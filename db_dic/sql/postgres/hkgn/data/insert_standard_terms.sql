@@ -1,13 +1,63 @@
 -- ============================================
--- 테이블: standard_terms
--- 설명: 표준 용어 사전 (약어 포함)
--- 작성일: 2026-02-07
+-- 표준용어 샘플 데이터 (standard_terms)
+-- ============================================
+-- 설명: 표준 용어 샘플 데이터 (거래조건 30개 + 용어사전 127개)
+-- 출처: _insert_all_sample_data_merged_v3.sql에서 분리
 -- 스키마: hkgn
--- 데이터 수: 127개 (기준정보 33, 영업 20, 생산 29, 포장 11, 구매 10, 재고 17, 현장 7)
 -- ============================================
 
+SET search_path TO hkgn, public;
+
+-- ============================================
+-- 1. 거래조건 표준용어 (30개)
+-- ============================================
+INSERT INTO hkgn.standard_terms (term_group, term_code, term_name_kr, term_name_en, description, abbreviation, sort_order, is_active, created_at, updated_at) VALUES
+-- PAYMENT: 결제조건
+('PAYMENT', 'NET30', '30일 후 지급', 'Net 30 Days', '상품 인도 후 30일 이내 지급', 'NET30', 10, TRUE, '2025-01-05 08:00:00+09', '2025-01-05 08:00:00+09'),
+('PAYMENT', 'NET60', '60일 후 지급', 'Net 60 Days', '상품 인도 후 60일 이내 지급', 'NET60', 20, TRUE, '2025-01-05 08:00:00+09', '2025-01-05 08:00:00+09'),
+('PAYMENT', 'NET90', '90일 후 지급', 'Net 90 Days', '상품 인도 후 90일 이내 지급', 'NET90', 30, TRUE, '2025-01-05 08:00:00+09', '2025-01-05 08:00:00+09'),
+('PAYMENT', 'COD', '착불', 'Cash On Delivery', '상품 인도 시 현금 결제', 'COD', 40, TRUE, '2025-01-05 08:00:00+09', '2025-01-05 08:00:00+09'),
+('PAYMENT', 'PREPAY', '선불', 'Prepayment', '상품 인도 전 선지급', 'PREPAY', 50, TRUE, '2025-01-05 08:00:00+09', '2025-01-05 08:00:00+09'),
+('PAYMENT', 'CIA', '선입금', 'Cash In Advance', '주문 시 전액 선입금', 'CIA', 60, TRUE, '2025-01-05 08:00:00+09', '2025-01-05 08:00:00+09'),
+
+-- DELIVERY: 배송조건
+('DELIVERY', 'EXW', '공장인도조건', 'Ex Works', '공장에서 인도, 이후 구매자 책임', 'EXW', 10, TRUE, '2025-01-06 08:00:00+09', '2025-01-06 08:00:00+09'),
+('DELIVERY', 'FOB', '본선인도조건', 'Free On Board', '본선 적재 시까지 판매자 책임', 'FOB', 20, TRUE, '2025-01-06 08:00:00+09', '2025-01-06 08:00:00+09'),
+('DELIVERY', 'CIF', '운임보험료포함인도', 'Cost Insurance Freight', '목적항까지 운임, 보험료 포함', 'CIF', 30, TRUE, '2025-01-06 08:00:00+09', '2025-01-06 08:00:00+09'),
+('DELIVERY', 'DDP', '관세지급인도', 'Delivered Duty Paid', '목적지까지 모든 비용 부담', 'DDP', 40, TRUE, '2025-01-06 08:00:00+09', '2025-01-06 08:00:00+09'),
+('DELIVERY', 'DAP', '목적지인도', 'Delivered At Place', '지정 목적지 인도, 관세 제외', 'DAP', 50, TRUE, '2025-01-06 08:00:00+09', '2025-01-06 08:00:00+09'),
+('DELIVERY', 'FCA', '운송인인도', 'Free Carrier', '지정 장소에서 운송인에게 인도', 'FCA', 60, TRUE, '2025-01-06 08:00:00+09', '2025-01-06 08:00:00+09'),
+
+-- QUALITY: 품질기준
+('QUALITY', 'ISO9001', 'ISO 9001 품질경영', 'ISO 9001', 'ISO 9001 품질경영시스템 인증', 'ISO9001', 10, TRUE, '2025-01-07 08:00:00+09', '2025-01-07 08:00:00+09'),
+('QUALITY', 'KSL2003', 'KS L 2003 복층유리', 'KS L 2003', '한국산업표준 복층유리 규격', 'KSL2003', 20, TRUE, '2025-01-07 08:00:00+09', '2025-01-07 08:00:00+09'),
+('QUALITY', 'KSL2004', 'KS L 2004 강화유리', 'KS L 2004', '한국산업표준 강화유리 규격', 'KSL2004', 30, TRUE, '2025-01-07 08:00:00+09', '2025-01-07 08:00:00+09'),
+('QUALITY', 'AQL1.0', 'AQL 1.0 검사기준', 'AQL 1.0', '허용품질수준 1.0% 검사기준', 'AQL1.0', 40, TRUE, '2025-01-07 08:00:00+09', '2025-01-07 08:00:00+09'),
+('QUALITY', 'AQL2.5', 'AQL 2.5 검사기준', 'AQL 2.5', '허용품질수준 2.5% 검사기준', 'AQL2.5', 50, TRUE, '2025-01-07 08:00:00+09', '2025-01-07 08:00:00+09'),
+('QUALITY', 'ZERO_DEFECT', '무결점 품질', 'Zero Defect', '불량률 0% 목표 품질관리', 'ZD', 60, TRUE, '2025-01-07 08:00:00+09', '2025-01-07 08:00:00+09'),
+
+-- TRANSPORT: 운송수단
+('TRANSPORT', 'TRUCK', '트럭운송', 'Truck', '육상 트럭 운송', 'TRUCK', 10, TRUE, '2025-01-08 08:00:00+09', '2025-01-08 08:00:00+09'),
+('TRANSPORT', 'CARGO', '화물차', 'Cargo', '소형 화물차 운송', 'CARGO', 20, TRUE, '2025-01-08 08:00:00+09', '2025-01-08 08:00:00+09'),
+('TRANSPORT', 'CONTAINER', '컨테이너', 'Container', '컨테이너 운송', 'CONT', 30, TRUE, '2025-01-08 08:00:00+09', '2025-01-08 08:00:00+09'),
+('TRANSPORT', 'SHIP', '선박', 'Ship', '해상 선박 운송', 'SHIP', 40, TRUE, '2025-01-08 08:00:00+09', '2025-01-08 08:00:00+09'),
+
+-- PACKING: 포장방법
+('PACKING', 'WOOD_CRATE', '나무상자', 'Wooden Crate', '나무 상자 포장', 'WCRATE', 10, TRUE, '2025-01-09 08:00:00+09', '2025-01-09 08:00:00+09'),
+('PACKING', 'STEEL_FRAME', '강철틀', 'Steel Frame', '강철 운반틀 포장', 'SFRAME', 20, TRUE, '2025-01-09 08:00:00+09', '2025-01-09 08:00:00+09'),
+('PACKING', 'VINYL_WRAP', '비닐포장', 'Vinyl Wrap', '비닐 랩 포장', 'VINYL', 30, TRUE, '2025-01-09 08:00:00+09', '2025-01-09 08:00:00+09'),
+('PACKING', 'EPE_FOAM', 'EPE 완충재', 'EPE Foam', 'EPE 폼 완충 포장', 'EPE', 40, TRUE, '2025-01-09 08:00:00+09', '2025-01-09 08:00:00+09'),
+('PACKING', 'PAPER_INTERLEAVE', '종이 삽지', 'Paper Interleaving', '종이 삽지 포장', 'PAPER', 50, TRUE, '2025-01-09 08:00:00+09', '2025-01-09 08:00:00+09'),
+
+-- URGENCY: 긴급도
+('URGENCY', 'NORMAL', '일반', 'Normal', '일반 납기', 'NORM', 10, TRUE, '2025-01-10 08:00:00+09', '2025-01-10 08:00:00+09'),
+('URGENCY', 'URGENT', '긴급', 'Urgent', '긴급 납기', 'URG', 20, TRUE, '2025-01-10 08:00:00+09', '2025-01-10 08:00:00+09'),
+('URGENCY', 'ASAP', '최우선', 'ASAP', '최우선 납기', 'ASAP', 30, TRUE, '2025-01-10 08:00:00+09', '2025-01-10 08:00:00+09');
+
+-- ============================================
+-- 2. 용어사전 (127개, ON CONFLICT 처리)
+-- ============================================
 INSERT INTO hkgn.standard_terms (term_group, term_code, term_name_kr, term_name_en, description, abbreviation, sort_order) VALUES
--- 기준정보
 ('기준정보', 'MATERIAL_CD', '자재코드', 'Material Code', '자재 고유 식별 코드 (PK)', 'MAT_CD', 1),
 ('기준정보', 'MATERIAL_TYPE', '자재구분', 'Material Type', '자재/원자재/원판/부자재/강화/에칭/용기', 'MAT_TYPE', 2),
 ('기준정보', 'MATERIAL_NM', '자재명', 'Material Name', '자재 이름', 'MAT_NM', 3),
@@ -40,9 +90,7 @@ INSERT INTO hkgn.standard_terms (term_group, term_code, term_name_kr, term_name_
 ('기준정보', 'DEPT', '소속부서', 'Department', '소속 부서 (복층/강화/재단/관리 등)', 'DEPT', 30),
 ('기준정보', 'POSITION', '직무', 'Position/Role', '직무 (관리자/조립/투입/후처리 등)', 'POS', 31),
 ('기준정보', 'PROD_LINE', '생산라인', 'Production Line', '생산 라인 (1호기/2호기 등)', 'LINE', 32),
-('기준정보', 'PROD_LINE', '생산라인', 'Production Line', '복층 1호/2호/3호 기준', 'LINE', 33),
-
--- 영업
+('기준정보', 'IGU_LINE', '생산라인', 'Production Line', '복층 1호/2호/3호 기준', 'LINE', 33),
 ('영업', 'SO', '수주', 'Sales Order', '고객 주문 접수', 'SO', 100),
 ('영업', 'DOC_NO', 'ID서류번호', 'Document No', '수주 ID서류번호 (예: 26-0154)', 'DOC_NO', 101),
 ('영업', 'ORDER_DATE', '수주일자', 'Order Date', '수주 접수일', 'ORD_DT', 102),
@@ -63,8 +111,6 @@ INSERT INTO hkgn.standard_terms (term_group, term_code, term_name_kr, term_name_
 ('영업', 'BUILDING', '동', 'Building', '아파트 동 번호', 'BLDG', 117),
 ('영업', 'UNIT_NO', '호수', 'Unit No', '아파트 호수', 'UNIT', 118),
 ('영업', 'WINDOW_TYPE', '창', 'Window Type', '창 종류 (PH:파테라이 등)', 'WINDOW', 119),
-
--- 생산
 ('생산', 'PP', '생산계획', 'Production Plan', '주간 생산계획 (작업지시)', 'PP', 200),
 ('생산', 'WO_NO', '작업지시번호', 'Work Order No', '작업지시서 번호', 'WO_NO', 201),
 ('생산', 'WORK_TYPE', '작업구분', 'Work Type', '보통/간급 등', 'WK_TYPE', 202),
@@ -79,9 +125,9 @@ INSERT INTO hkgn.standard_terms (term_group, term_code, term_name_kr, term_name_
 ('생산', 'WASHING', '아르곤', 'Argon/Washing', '아르곤 충전 / 세척 공정', 'WASH', 211),
 ('생산', 'TEMPERING', '강화', 'Tempering', '유리 열처리 강화 공정', 'TEMP', 212),
 ('생산', 'ETCHING', '에칭', 'Etching', '유리 에칭 가공 공정', 'ETCH', 213),
-('생산', 'IGLU_ASSEMBLY', '복층조립', 'IGU Assembly', '복층유리(IGU) 조립 공정', 'IGU', 214),
+('생산', 'IGU_ASSEMBLY', '복층조립', 'IGU Assembly', '복층유리(IGU) 조립 공정', 'IGU', 214),
 ('생산', 'SEALING', '씰링', 'Sealing', '복층 씰링 공정', 'SEAL', 215),
-('생산', 'PR', '생산실적', 'Production Result', '생산일지 (생산 기록)', 'PR', 216),
+('생산', 'PDPR', '생산실적', 'Production Result', '생산일지 (생산 기록)', 'PR', 216),
 ('생산', 'RESULT_DOC_NO', '실적문서번호', 'Result Doc No', '생산실적 문서번호', 'RSLT_NO', 217),
 ('생산', 'PROCESS', '공정', 'Process', '복층/강화/재단/선택 등', 'PROC', 218),
 ('생산', 'SHIFT_TYPE', '근무조구분', 'Day/Night Shift', '주간/야간/저녁 구분', 'SHIFT', 219),
@@ -89,13 +135,10 @@ INSERT INTO hkgn.standard_terms (term_group, term_code, term_name_kr, term_name_
 ('생산', 'DEFECT_QTY', '불량수량', 'Defect Qty', '불량 수량', 'DEFECT', 221),
 ('생산', 'UNPROD_QTY', '미생산수량', 'Unproduced Qty', '미생산 전량 수량', 'UNPROD', 222),
 ('생산', 'CDR', '재단일보', 'Cutting Daily Report', '일일 재단 작업 일보', 'CDR', 223),
-('생산', 'WASHED_PYEONG', '로스면적', 'Washed Area', '로스(분할) 면적 (평)', 'LOSS_PY', 224),
-('생산', 'WASHED_PYEONG', '아르곤면적', 'Washed Area', '아르곤(세척) 면적 (평)', 'WASH_PY', 225),
+('생산', 'WASHED_PYEONG', '세척면적', 'Washed Area', '아르곤(세척) 면적 (평)', 'WASH_PY', 225),
 ('생산', 'USED_PYEONG', '사용면적', 'Used Area', '원판 사용 면적 (평)', 'USED_PY', 226),
 ('생산', 'LOSS_PYEONG', '로스면적', 'Loss Area', '손실(잔량) 면적 (평)', 'LOSS_PY', 227),
 ('생산', 'LOSS_RATE', '로스율', 'Loss Rate', '손실률 = 로스면적/사용면적', 'LOSS_RT', 228),
-
--- 포장
 ('포장', 'PO_PACK', '포장지시', 'Packing Order', '포장 지시 정보', 'PACK', 300),
 ('포장', 'DELIVERY_DOC', '출고문서', 'Delivery/Shipment', '출고 상세 관리', 'DLV_DOC', 301),
 ('포장', 'DLV_DOC_NO', '출고문서번호', 'Delivery Doc No', '출고문서 번호', 'DLV_NO', 302),
@@ -107,8 +150,6 @@ INSERT INTO hkgn.standard_terms (term_group, term_code, term_name_kr, term_name_
 ('포장', 'DLV_QTY', '출고수량', 'Delivered Qty', '출고 수량', 'DLV_QTY', 308),
 ('포장', 'DLV_AMOUNT', '출고금액', 'Delivery Amount', '출고 금액', 'DLV_AMT', 309),
 ('포장', 'VAT', '부가세', 'VAT', '부가세액', 'VAT', 310),
-
--- 구매
 ('구매', 'PO', '구매발주', 'Purchase Order', '원자재 구매 발주', 'PO', 400),
 ('구매', 'PO_DOC_NO', '발주문서번호', 'PO Doc No', '발주서(PO) 번호 (PO-YYYYMMDD-CC)', 'PO_NO', 401),
 ('구매', 'PO_DATE', '발주일자', 'PO Date', '발주 요청일', 'PO_DT', 402),
@@ -119,8 +160,6 @@ INSERT INTO hkgn.standard_terms (term_group, term_code, term_name_kr, term_name_
 ('구매', 'GR_CONFIRM', '입고확인', 'GR Confirmation', '입고확인 상태', 'GR_CONF', 407),
 ('구매', 'DISCOUNT_RATE', 'DC율', 'Discount Rate', '할인율 (%)', 'DC_RT', 408),
 ('구매', 'PYEONG_PRICE', '평단가', 'Unit Price/Pyeong', '평당 단가', 'PY_PRC', 409),
-
--- 재고
 ('재고', 'INV', '재고', 'Inventory', '재고 현황 및 이력', 'INV', 500),
 ('재고', 'INV_STATUS', '재고상태', 'Inventory Status', '정상/불량/검사 대기 등', 'INV_STS', 501),
 ('재고', 'INV_TXN_TYPE', '거래유형', 'Txn Type', 'IN입고 / OUT출고', 'TXN_TYPE', 502),
@@ -136,8 +175,6 @@ INSERT INTO hkgn.standard_terms (term_group, term_code, term_name_kr, term_name_
 ('재고', 'REC_RECEIPT_DATE', '입고요청일자', 'Rec Receipt Date', '외주 입고 요청일', 'REC_DT', 512),
 ('재고', 'ACT_RECEIPT_DATE', '실제입고일', 'Act Receipt Date', '실제 입고일', 'ACT_DT', 513),
 ('재고', 'RECEIPT_LOCATION', '입고장소', 'Receipt Location', '입고 장소 (아파트명 등)', 'REC_LOC', 514),
-
--- 현장
 ('현장', 'SITE_PRICE', '현장단가', 'Site Price', '현장별 유리 사양 단가', 'SITE_PRC', 600),
 ('현장', 'BID_EXEC_PRICE', '입찰실행단가', 'Bid Exec Price', '입찰 시 낙찰 단가', 'BID_PRC', 601),
 ('현장', 'PROC_PRICE', '가공단가', 'Processing Price', '가공비 단가', 'PROC_PRC', 602),

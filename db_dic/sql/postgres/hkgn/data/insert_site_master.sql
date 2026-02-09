@@ -1,10 +1,13 @@
 -- ============================================
--- 테이블: site_master
--- 설명: 현장 마스터 샘플 데이터
--- 작성일: 2026-02-07
+-- 현장 마스터 샘플 데이터 (site_master)
+-- ============================================
+-- 설명: 건설현장/납품처 샘플 데이터
+-- 출처: _insert_sample_data_with_id_pk.sql에서 분리
 -- 스키마: hkgn
 -- 데이터 수: 10개
 -- ============================================
+
+SET search_path TO hkgn, public;
 
 INSERT INTO hkgn.site_master (site_cd, site_nm, constructor_nm, bp_cd, address, remark, is_active, created_at, updated_at) VALUES
 ('SITE001', '강남 테헤란 오피스텔', '대한건설', 'S001', '서울시 강남구 테헤란로 789', '30층 규모 오피스텔 신축', TRUE, '2025-01-15 09:00:00+09', '2025-01-15 09:00:00+09'),

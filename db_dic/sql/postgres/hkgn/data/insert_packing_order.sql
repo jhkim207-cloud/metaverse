@@ -1,10 +1,13 @@
 -- ============================================
--- 테이블: packing_order
--- 설명: 포장 지시 샘플 데이터 (DDL 일치 버전)
--- 작성일: 2026-02-07
+-- 포장지시 샘플 데이터 (packing_order)
+-- ============================================
+-- 설명: 포장 지시 샘플 데이터
+-- 출처: _insert_all_sample_data_merged_v3.sql에서 분리
 -- 스키마: hkgn
 -- 데이터 수: 10개
 -- ============================================
+
+SET search_path TO hkgn, public;
 
 INSERT INTO hkgn.packing_order (packing_no, packing_date, order_no, material_cd, material_nm, packing_qty, unit, container_cd, container_qty, worker_cd, packing_status, remarks, created_at, updated_at) VALUES
 ('PACK202501200001', '2025-01-20', 'SO202501001', 'PRD001', '복층유리 16T (5CL+6A+5CL) 투명', 98, 'M2', 'CNT001', 3, 'W012', 'COMPLETED', '강철틀 포장', '2025-01-20 17:00:00+09', '2025-01-20 18:00:00+09'),

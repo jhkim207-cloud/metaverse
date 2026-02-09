@@ -1,10 +1,19 @@
 -- ============================================
--- 테이블: standard_terms
--- 설명: 표준 용어 (거래 조건, 약어 등 표준 코드)
--- 작성일: 2026-02-07
--- 스키마: hkgn
+-- 표준용어 테이블 (standard_terms)
+-- ============================================
+-- 설명: 거래 조건, 약어 등 표준 코드
+-- 참조: db_dic/dictionary/standards.json
+-- 출처: _execute_all_ddl_merged.sql에서 분리
 -- ============================================
 
+SET search_path TO hkgn, public;
+
+-- 기존 테이블 삭제
+DROP TABLE IF EXISTS hkgn.standard_terms CASCADE;
+
+-- ============================================
+-- standard_terms (표준용어)
+-- ============================================
 CREATE TABLE hkgn.standard_terms (
     -- PK
     id              BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,         -- [식별자] 기본 키
@@ -37,11 +46,15 @@ CREATE TABLE hkgn.standard_terms (
     UNIQUE(term_group, term_code)
 );
 
+-- ============================================
 -- 인덱스
+-- ============================================
 CREATE INDEX idx_standard_terms_group ON hkgn.standard_terms(term_group);
 CREATE INDEX idx_standard_terms_active ON hkgn.standard_terms(is_active);
 
+-- ============================================
 -- 코멘트
+-- ============================================
 COMMENT ON TABLE hkgn.standard_terms IS '표준 용어 - 거래 조건, 약어 등 표준 코드';
 COMMENT ON COLUMN hkgn.standard_terms.id IS '[식별자] 기본 키';
 COMMENT ON COLUMN hkgn.standard_terms.term_group IS '[용어그룹] 용어 그룹 (PAYMENT:결제조건, DELIVERY:배송조건, QUALITY:품질기준)';

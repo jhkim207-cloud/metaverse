@@ -1,10 +1,13 @@
 -- ============================================
--- 테이블: worker
--- 설명: 작업자 마스터 샘플 데이터
--- 작성일: 2026-02-07
+-- 작업자 샘플 데이터 (worker)
+-- ============================================
+-- 설명: 작업자 기준정보 샘플 데이터
+-- 출처: _insert_sample_data_with_id_pk.sql에서 분리
 -- 스키마: hkgn
 -- 데이터 수: 12개
 -- ============================================
+
+SET search_path TO hkgn, public;
 
 INSERT INTO hkgn.worker (worker_cd, worker_nm, dept, position, prod_line, phone, is_active, created_at, updated_at) VALUES
 -- 복층 부서

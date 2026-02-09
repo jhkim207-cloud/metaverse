@@ -34,8 +34,20 @@ tmp/
 temp/
 
 # Local config (sensitive data)
+*.yml
 application-local.yml
 **/application-local.yml
 .mcp.json
 nul
 frontend/nul
+
+# Claude memory (session context)
+.claude/memory.md
+
+# DB reference/temp files
+db_dic/sql/postgres/hkgn/ref/
+
+# Scripts
+*.bat
+*.ps1
+scripts/
