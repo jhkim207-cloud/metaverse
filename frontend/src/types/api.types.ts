@@ -7,6 +7,7 @@ export interface ApiResponse<T> {
   data: T | null;
   message: string | null;
   errorCode: string | null;
+  detail: string | null;
 }
 
 export interface PageRequest {

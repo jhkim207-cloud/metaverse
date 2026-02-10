@@ -37,6 +37,9 @@ CREATE TABLE hkgn.production_result (
     -- 작업자 정보
     worker_cd                   VARCHAR(30)   NULL,                               -- [작업자코드] 생산 담당자 (worker.worker_cd)
 
+    -- 진행 상태
+    result_status               VARCHAR(20)   NOT NULL DEFAULT 'IN_PROGRESS',      -- [실적상태] IN_PROGRESS:진행중, CONFIRMED:확정
+
     -- 비고
     defect_reason               TEXT          NULL,                               -- [불량사유] 불량 발생 사유
     remarks                     TEXT          NULL,                               -- [비고] 실적 특이사항
@@ -54,6 +57,7 @@ CREATE INDEX idx_production_result_plan ON hkgn.production_result(plan_no);
 CREATE INDEX idx_production_result_order ON hkgn.production_result(order_no);
 CREATE INDEX idx_production_result_material ON hkgn.production_result(material_cd);
 CREATE INDEX idx_production_result_worker ON hkgn.production_result(worker_cd);
+CREATE INDEX idx_production_result_status ON hkgn.production_result(result_status);
 
 -- 코멘트 추가
 COMMENT ON TABLE hkgn.production_result IS '생산 실적 - 생산 완료 기록 (양품, 불량, 면적 포함)';
@@ -74,6 +78,7 @@ COMMENT ON COLUMN hkgn.production_result.good_area IS '양품면적 - 양품 면
 COMMENT ON COLUMN hkgn.production_result.defect_area IS '불량면적 - 불량 면적 (평수)';
 COMMENT ON COLUMN hkgn.production_result.total_area IS '총면적 - 총 생산 면적 (양품 + 불량)';
 COMMENT ON COLUMN hkgn.production_result.worker_cd IS '작업자코드 - 생산 담당자 (worker.worker_cd)';
+COMMENT ON COLUMN hkgn.production_result.result_status IS '실적상태 - IN_PROGRESS:진행중, CONFIRMED:확정';
 COMMENT ON COLUMN hkgn.production_result.defect_reason IS '불량사유 - 불량 발생 사유';
 COMMENT ON COLUMN hkgn.production_result.remarks IS '비고 - 실적 특이사항';
 COMMENT ON COLUMN hkgn.production_result.created_at IS '생성일시 - 레코드 생성 시각';

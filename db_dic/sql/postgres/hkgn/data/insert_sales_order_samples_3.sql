@@ -10,7 +10,7 @@
 -- ============================================
 INSERT INTO hkgn.sales_order_header (
     order_no, order_date, delivery_date, customer_cd,
-    order_type, site_cd, site_nm,
+    order_type, order_kind, site_cd, site_nm,
     total_amount, tax_separate, duo_light, remarks,
     order_status
 )
@@ -20,6 +20,7 @@ SELECT
     v.delivery_date,
     bp.bp_cd AS customer_cd,
     v.order_type,
+    v.order_kind,
     v.site_cd,
     v.site_nm,
     v.total_amount,
@@ -28,10 +29,10 @@ SELECT
     v.remarks,
     v.order_status
 FROM (VALUES
-    ('26-0155', '2026-01-29'::DATE, NULL::DATE, '주식회사 엘엑스글라스', '완제품', '1공장', '서초동ABC타워', 0, FALSE, '듀오라이트', '14층', 'PENDING'),
-    ('26-0156', '2026-01-30'::DATE, NULL::DATE, '주식회사 엘엑스글라스', '완제품', '2공장', '강남DEF빌딩', 0, FALSE, '듀오라이트', '15층', 'PENDING'),
-    ('26-0157', '2026-01-31'::DATE, NULL::DATE, '주식회사 엘엑스글라스', '완제품', '1공장', '송파GHI타워', 0, FALSE, '듀오라이트', '16층', 'PENDING')
-) AS v(order_no, order_date, delivery_date, customer_nm, order_type, site_cd, site_nm, total_amount, tax_separate, duo_light, remarks, order_status)
+    ('26-0155', '2026-01-29'::DATE, NULL::DATE, '주식회사 엘엑스글라스', '완제품', 'P', '1공장', '서초동ABC타워', 0, FALSE, '듀오라이트', '14층', 'PENDING'),
+    ('26-0156', '2026-01-30'::DATE, NULL::DATE, '주식회사 엘엑스글라스', '완제품', 'P', '2공장', '강남DEF빌딩', 0, FALSE, '듀오라이트', '15층', 'PENDING'),
+    ('26-0157', '2026-01-31'::DATE, NULL::DATE, '주식회사 엘엑스글라스', '완제품', 'P', '1공장', '송파GHI타워', 0, FALSE, '듀오라이트', '16층', 'PENDING')
+) AS v(order_no, order_date, delivery_date, customer_nm, order_type, order_kind, site_cd, site_nm, total_amount, tax_separate, duo_light, remarks, order_status)
 LEFT JOIN hkgn.business_partner bp ON bp.bp_nm = v.customer_nm;
 
 -- ============================================

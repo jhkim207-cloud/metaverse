@@ -47,6 +47,9 @@ CREATE TABLE hkgn.production_plan (
     unit_price                  NUMERIC(15,2) NULL,                               -- [단가] 단가
     amount                      NUMERIC(15,2) NULL,                               -- [금액] 총 금액
 
+    -- 진행 상태
+    plan_status                 VARCHAR(20)   NOT NULL DEFAULT 'REGISTERED',      -- [계획상태] REGISTERED:등록, CONFIRMED:확정, IN_PROGRESS:진행중, COMPLETED:완료, CANCELLED:취소
+
     -- 비고
     remarks                     TEXT          NULL,                               -- [비고] 비고
 
@@ -65,6 +68,7 @@ CREATE INDEX idx_production_plan_plan_no ON hkgn.production_plan(plan_no);
 CREATE INDEX idx_production_plan_production_date ON hkgn.production_plan(production_date);
 CREATE INDEX idx_production_plan_customer_nm ON hkgn.production_plan(customer_nm);
 CREATE INDEX idx_production_plan_work_request_no ON hkgn.production_plan(work_request_no);
+CREATE INDEX idx_production_plan_status ON hkgn.production_plan(plan_status);
 
 -- 외래키 제약조건 (선택적)
 -- work_request 테이블이 존재하는 경우 활성화
@@ -97,6 +101,7 @@ COMMENT ON COLUMN hkgn.production_plan.pending_area IS '미생산평수 - 미생
 COMMENT ON COLUMN hkgn.production_plan.shipping_date IS '상차예정일 - 상차 예정일';
 COMMENT ON COLUMN hkgn.production_plan.unit_price IS '단가 - 단가';
 COMMENT ON COLUMN hkgn.production_plan.amount IS '금액 - 총 금액';
+COMMENT ON COLUMN hkgn.production_plan.plan_status IS '계획상태 - REGISTERED:등록, CONFIRMED:확정, IN_PROGRESS:진행중, COMPLETED:완료, CANCELLED:취소';
 COMMENT ON COLUMN hkgn.production_plan.remarks IS '비고 - 비고';
 COMMENT ON COLUMN hkgn.production_plan.work_request_no IS '작업의뢰번호 - 작업 의뢰 번호 (work_request.request_no 참조)';
 COMMENT ON COLUMN hkgn.production_plan.created_at IS '생성일시 - 레코드 생성 시각';

@@ -12,7 +12,7 @@
 -- ============================================
 INSERT INTO hkgn.sales_order_header (
     order_no, order_date, delivery_date, customer_cd,
-    order_type, site_cd, site_nm,
+    order_type, order_kind, site_cd, site_nm,
     total_amount, tax_separate, duo_light, remarks,
     order_status
 )
@@ -22,6 +22,7 @@ SELECT
     v.delivery_date,
     bp.bp_cd AS customer_cd,  -- 거래처명으로 자동 매핑
     v.order_type,
+    v.order_kind,
     v.site_cd,
     v.site_nm,
     v.total_amount,
@@ -30,8 +31,8 @@ SELECT
     v.remarks,
     v.order_status
 FROM (VALUES
-    ('26-0154', '2026-01-28'::DATE, NULL::DATE, '주식회사 엘엑스글라스', '완제품', '1공장', '서초동JK타워', 0, FALSE, '듀오라이트', '13층', 'PENDING')
-) AS v(order_no, order_date, delivery_date, customer_nm, order_type, site_cd, site_nm, total_amount, tax_separate, duo_light, remarks, order_status)
+    ('26-0154', '2026-01-28'::DATE, NULL::DATE, '주식회사 엘엑스글라스', '완제품', 'P', '1공장', '서초동JK타워', 0, FALSE, '듀오라이트', '13층', 'PENDING')
+) AS v(order_no, order_date, delivery_date, customer_nm, order_type, order_kind, site_cd, site_nm, total_amount, tax_separate, duo_light, remarks, order_status)
 LEFT JOIN hkgn.business_partner bp ON bp.bp_nm = v.customer_nm;
 
 -- ============================================

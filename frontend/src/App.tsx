@@ -38,12 +38,16 @@ import {
   Warehouse,
 } from 'lucide-react';
 import { DatePicker } from './components/common/DatePicker';
-import { useMenus } from './hooks/useMenus';
 import { WorkflowPage } from './pages/production/WorkflowPage';
 import { WorkflowStepper } from './components/workflow/WorkflowStepper';
 import { StageDetailPanel } from './components/workflow/StageDetailPanel';
 import { SiteDetailPanel } from './components/site/SiteDetailPanel';
 import { useWorkflowCounts } from './hooks/useWorkflow';
+import { HomePage } from './pages/home/HomePage';
+import { DashboardDetail } from './pages/home/DashboardDetail';
+import { TodaySitePanel } from './pages/home/TodaySitePanel';
+import { LoginPage } from './pages/login/LoginPage';
+import type { LoginResponse } from './types/auth.types';
 import type { MenuDto } from './types/menu.types';
 import type { WorkflowItem } from './types/workflow.types';
 import type { SiteMaster } from './types/site.types';
@@ -88,12 +92,12 @@ function getIcon(iconName: string | null): typeof Settings {
   return iconMap[iconName] || Folder;
 }
 
-// 현재 사용자 정보 (추후 인증 Context에서 가져옴)
-const currentUser = {
-  name: '장은결',
-  date: '2025/01/801',
-  avatar: null,
-};
+// 사용자 정보 타입
+interface CurrentUser {
+  name: string;
+  date: string;
+  avatar: string | null;
+}
 
 /** 2레벨 메뉴 렌더링 컴포넌트 */
 function SideMenu({
@@ -176,7 +180,30 @@ function SideMenu({
 }
 
 function App() {
-  const { menus, loading: menuLoading } = useMenus();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState<CurrentUser>({
+    name: '',
+    date: new Date().toLocaleDateString('ko-KR'),
+    avatar: null,
+  });
+  const [menus, setMenus] = useState<MenuDto[]>([]);
+  const [menuLoading] = useState(false);
+
+  const handleLogin = useCallback((loginData: LoginResponse) => {
+    setCurrentUser({
+      name: loginData.displayName || loginData.username,
+      date: new Date().toLocaleDateString('ko-KR'),
+      avatar: null,
+    });
+    setMenus(loginData.menus);
+    setIsAuthenticated(true);
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    setIsAuthenticated(false);
+    setCurrentUser({ name: '', date: '', avatar: null });
+    setMenus([]);
+  }, []);
   const [selectedMenuCode, setSelectedMenuCode] = useState<string | null>(null);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
@@ -185,6 +212,7 @@ function App() {
   const [menuSearchQuery, setMenuSearchQuery] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date(2026, 0, 31));
   const [selectedWorkflowItem, setSelectedWorkflowItem] = useState<WorkflowItem | SiteMaster | null>(null);
+  const [selectedDashboardWidget, setSelectedDashboardWidget] = useState<string | null>(null);
   const { stageCounts } = useWorkflowCounts();
 
   const handleStepperClick = useCallback((stageCode: string) => {
@@ -192,16 +220,12 @@ function App() {
     setSelectedWorkflowItem(null);
   }, []);
 
-  // 메뉴 로드 완료 시 첫 번째 그룹 확장 + 첫 번째 메뉴 선택
+  // 메뉴 로드 완료 시 첫 번째 그룹 확장 (홈 화면 유지)
   useEffect(() => {
-    if (menus.length > 0 && selectedMenuCode === null) {
-      const firstGroup = menus[0];
-      setExpandedGroups(new Set([firstGroup.code]));
-      if (firstGroup.children.length > 0) {
-        setSelectedMenuCode(firstGroup.children[0].code);
-      }
+    if (menus.length > 0 && expandedGroups.size === 0) {
+      setExpandedGroups(new Set([menus[0].code]));
     }
-  }, [menus, selectedMenuCode]);
+  }, [menus, expandedGroups.size]);
 
   const handleGroupToggle = useCallback((code: string) => {
     setExpandedGroups((prev) => {
@@ -217,6 +241,18 @@ function App() {
 
   const handleMenuSelect = useCallback((menu: MenuDto) => {
     setSelectedMenuCode(menu.code);
+    setSelectedDashboardWidget(null);
+  }, []);
+
+  const handleMenuSelectByCode = useCallback((menuCode: string) => {
+    setSelectedMenuCode(menuCode);
+    setSelectedDashboardWidget(null);
+  }, []);
+
+  const handleGoHome = useCallback(() => {
+    setSelectedMenuCode(null);
+    setSelectedWorkflowItem(null);
+    setSelectedDashboardWidget(null);
   }, []);
 
   // Panel resize state
@@ -282,6 +318,11 @@ function App() {
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
   };
 
+  // 미인증 시 로그인 페이지 표시
+  if (!isAuthenticated) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
+
   return (
     <div className="app-root">
       {/* Header - Dark Navy Style (이미지 기반) */}
@@ -301,9 +342,12 @@ function App() {
           zIndex: 10,
         }}
       >
-        {/* 좌측: 로고 */}
+        {/* 좌측: 로고 (클릭 시 홈) */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>
+          <span
+            onClick={handleGoHome}
+            style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', cursor: 'pointer' }}
+          >
             (주)에이치케이 지앤텍
           </span>
         </div>
@@ -360,7 +404,7 @@ function App() {
             }}
           >
             <Plus size={16} />
-            Quick Action
+            HKGNTech AI Agents
           </button>
 
           {/* 알림 · 승인 */}
@@ -437,6 +481,7 @@ function App() {
           {/* 로그아웃 */}
           <button
             type="button"
+            onClick={handleLogout}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -505,10 +550,10 @@ function App() {
         {/* Center Content */}
         <div className="col center">
           <div className="pane center" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            {/* Filter Header - 고정 영역 */}
-            {(() => {
+            {/* Filter Header - 고정 영역 (홈 화면에서는 숨김) */}
+            {selectedMenuCode !== null && (() => {
               const isWf = selectedMenuCode?.startsWith('PROD_') || selectedMenuCode === 'MAIN_WORKFLOW';
-              const activeStageForStepper = (!selectedMenuCode || selectedMenuCode === 'MAIN_WORKFLOW')
+              const activeStageForStepper = selectedMenuCode === 'MAIN_WORKFLOW'
                 ? 'PROD_SALES_ORDER'
                 : selectedMenuCode;
 
@@ -682,11 +727,22 @@ function App() {
             })()}
 
             {/* Main Content - 스크롤 영역 */}
-            <div className="main-view" style={{ padding: 16, flex: 1, overflowY: 'auto' }}>
+            <div className="main-view" style={{ padding: selectedMenuCode === null ? 0 : 16, flex: 1, overflowY: 'auto' }}>
               {(() => {
+                // 홈 화면 (selectedMenuCode === null)
+                if (selectedMenuCode === null) {
+                  return (
+                    <HomePage
+                      userName={currentUser.name}
+                      onMenuSelect={handleMenuSelectByCode}
+                      onWidgetSelect={setSelectedDashboardWidget}
+                    />
+                  );
+                }
+
                 // 생산관리 메뉴 또는 전체 Workflow인 경우 WorkflowPage 렌더링
-                const isProductionMenu = selectedMenuCode?.startsWith('PROD_') || selectedMenuCode === 'MAIN_WORKFLOW';
-                if (isProductionMenu && selectedMenuCode) {
+                const isProductionMenu = selectedMenuCode.startsWith('PROD_') || selectedMenuCode === 'MAIN_WORKFLOW';
+                if (isProductionMenu) {
                   return (
                     <WorkflowPage
                       menuCode={selectedMenuCode}
@@ -736,7 +792,12 @@ function App() {
         {/* Right Panel */}
         <div className="col right" style={{ width: rightWidth }}>
           <div className="pane" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            {(selectedMenuCode?.startsWith('PROD_') || selectedMenuCode === 'MAIN_WORKFLOW') && selectedWorkflowItem ? (
+            {selectedMenuCode === null && selectedDashboardWidget ? (
+              <DashboardDetail
+                widgetKey={selectedDashboardWidget}
+                onClose={() => setSelectedDashboardWidget(null)}
+              />
+            ) : (selectedMenuCode?.startsWith('PROD_') || selectedMenuCode === 'MAIN_WORKFLOW') && selectedWorkflowItem ? (
               isSiteMaster(selectedWorkflowItem) ? (
                 <SiteDetailPanel
                   site={selectedWorkflowItem}
@@ -834,6 +895,7 @@ function App() {
                         : '선택된 항목의 상세 정보가 여기에 표시됩니다.'}
                     </p>
                   </div>
+                  {selectedMenuCode === null && <TodaySitePanel />}
                 </div>
               </>
             )}

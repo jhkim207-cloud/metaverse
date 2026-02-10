@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.biz.management.auth.mapper.AuthMapper">
+
+    <!-- 사용자 조회 (username) -->
+    <select id="findByUsername" resultType="com.biz.management.auth.dto.UserDto">
+        SELECT id,
+               username,
+               password_hash,
+               display_name,
+               employee_id,
+               email,
+               is_active,
+               failed_login_count
+          FROM users
+         WHERE username = #{username}
+    </select>
+
+    <!-- 사용자 역할 코드 목록 -->
+    <select id="findRoleCodesByUserId" resultType="java.lang.String">
+        SELECT r.code
+          FROM user_roles ur
+          JOIN roles r ON r.id = ur.role_id
+         WHERE ur.user_id = #{userId}
+           AND r.is_active = TRUE
+         ORDER BY r.id
+    </select>
+
+    <!-- 사용자 역할 기반 메뉴 조회 (중복 제거) -->
+    <select id="findMenusByUserId" resultType="com.biz.management.menu.dto.MenuDto">
+        SELECT DISTINCT
+               m.id,
+               m.code,
+               m.name,
+               m.parent_id,
+               m.path,
+               m.icon,
+               m.menu_type,
+               m.sort_order,
+               m.is_active,
+               m.depth
+          FROM role_menus rm
+          JOIN menus m ON m.id = rm.menu_id
+          JOIN user_roles ur ON ur.role_id = rm.role_id
+         WHERE ur.user_id = #{userId}
+           AND m.is_active = TRUE
+         ORDER BY m.depth, m.sort_order, m.id
+    </select>
+
+    <!-- 로그인 실패 횟수 증가 -->
+    <update id="incrementFailedLoginCount">
+        UPDATE users
+           SET failed_login_count = failed_login_count + 1,
+               updated_at = now()
+         WHERE id = #{userId}
+    </update>
+
+    <!-- 로그인 실패 횟수 초기화 -->
+    <update id="resetFailedLoginCount">
+        UPDATE users
+           SET failed_login_count = 0,
+               updated_at = now()
+         WHERE id = #{userId}
+    </update>
+
+    <!-- 마지막 로그인 시각 갱신 -->
+    <update id="updateLastLoginAt">
+        UPDATE users
+           SET last_login_at = now(),
+               updated_at = now()
+         WHERE id = #{userId}
+    </update>
+
+</mapper>

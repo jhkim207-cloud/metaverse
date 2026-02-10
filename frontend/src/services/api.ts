@@ -19,6 +19,20 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 
   try {
     const response = await fetch(url, config);
+
+    // non-JSON 응답 처리 (CORS 거부, 프록시 오류 등)
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const text = await response.text();
+      return {
+        success: false,
+        data: null,
+        message: 'API 요청 실패',
+        errorCode: 'NON_JSON_RESPONSE',
+        detail: `HTTP ${response.status}: ${text}`,
+      };
+    }
+
     const data = await response.json();
 
     if (!response.ok) {
@@ -27,6 +41,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
         data: null,
         message: data.message || 'API 요청 실패',
         errorCode: data.errorCode || 'API_ERROR',
+        detail: data.detail || null,
       };
     }
 
@@ -37,6 +52,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
       data: null,
       message: error instanceof Error ? error.message : '네트워크 오류',
       errorCode: 'NETWORK_ERROR',
+      detail: null,
     };
   }
 }
