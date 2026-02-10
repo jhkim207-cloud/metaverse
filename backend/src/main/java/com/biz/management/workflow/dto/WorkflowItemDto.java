@@ -16,6 +16,7 @@ public class WorkflowItemDto {
     private String stageCode;
     private String projectName;
     private String projectPhase;
+    private String siteCd;
 
     public WorkflowItemDto() {}
 
@@ -52,4 +53,7 @@ public class WorkflowItemDto {
 
     public String getProjectPhase() { return projectPhase; }
     public void setProjectPhase(String projectPhase) { this.projectPhase = projectPhase; }
+
+    public String getSiteCd() { return siteCd; }
+    public void setSiteCd(String siteCd) { this.siteCd = siteCd; }
 }

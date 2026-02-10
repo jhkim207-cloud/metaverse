@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HK G&Tech 생산관리 시스템 - 도메인 관계도</title>
+<style>
+  :root {
+    --bg: #0e1117; --panel: #161b22; --panel2: #1c2129;
+    --border: #30363d; --text: #e6edf3; --text2: #8b949e; --text3: #6e7681;
+    --accent: #58a6ff; --green: #3fb950; --red: #f85149; --orange: #d29922;
+    --purple: #bc8cff; --pink: #f778ba; --cyan: #39d2c0; --yellow: #e3b341;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.6;
+    padding: 40px; min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  .header { text-align: center; margin-bottom: 48px; }
+  .header h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+  .header h1 span { color: var(--accent); }
+  .header p { font-size: 15px; color: var(--text2); max-width: 600px; margin: 0 auto; }
+  .header .badge {
+    display: inline-block; margin-top: 12px;
+    padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    background: rgba(88,166,255,0.12); color: var(--accent);
+  }
+
+  /* ── Legend ── */
+  .legend {
+    display: flex; justify-content: center; gap: 28px;
+    margin-bottom: 36px; flex-wrap: wrap;
+  }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text2); }
+  .legend-line {
+    width: 40px; height: 0; border-top: 2px solid var(--text3);
+  }
+  .legend-line.dashed { border-top-style: dashed; }
+  .legend-line.thick { border-top-width: 3px; border-color: var(--accent); }
+  .legend-rel {
+    display: inline-block; padding: 2px 8px; border-radius: 8px;
+    font-size: 11px; font-weight: 700; background: var(--panel2); color: var(--text3);
+  }
+
+  /* ── SVG Canvas ── */
+  .diagram-container {
+    position: relative; width: 100%; max-width: 1400px; margin: 0 auto;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 16px;
+    padding: 40px; overflow-x: auto;
+  }
+  svg { display: block; margin: 0 auto; }
+  svg text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif; }
+
+  /* ── Domain Groups (below diagram) ── */
+  .domains { max-width: 1400px; margin: 48px auto 0; }
+  .domains h2 { font-size: 22px; font-weight: 700; margin-bottom: 24px; text-align: center; }
+
+  .domain-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 16px;
+  }
+  .domain-card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+    padding: 20px 24px; transition: border-color 0.2s;
+  }
+  .domain-card:hover { border-color: var(--accent); }
+  .domain-card .dc-header {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+  }
+  .dc-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .dc-title { font-size: 16px; font-weight: 700; }
+  .dc-desc { font-size: 13px; color: var(--text2); margin-bottom: 12px; }
+
+  .dc-tables {
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .dc-table {
+    padding: 3px 10px; border-radius: 8px; font-size: 11px; font-weight: 600;
+    background: var(--panel2); color: var(--text3); border: 1px solid var(--border);
+  }
+  .dc-rel {
+    margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border);
+    font-size: 12px; color: var(--text3); line-height: 1.8;
+  }
+  .dc-rel strong { color: var(--text2); }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center; margin-top: 48px; padding-top: 24px;
+    border-top: 1px solid var(--border); color: var(--text3); font-size: 12px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════ HEADER ════════════════════════ -->
+<div class="header">
+  <h1>HK G&Tech <span>생산관리 시스템</span></h1>
+  <p>유리 가공 생산 전 과정을 관리하는 통합 시스템입니다.<br>
+     주문부터 출고까지의 워크플로우와 각 도메인의 관계를 보여줍니다.</p>
+  <div class="badge">7개 도메인 &middot; 39개 테이블 &middot; 18개 관계</div>
+</div>
+
+<!-- ════════════════════════ LEGEND ════════════════════════ -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-line thick"></div> 핵심 흐름 (워크플로우)</div>
+  <div class="legend-item"><div class="legend-line"></div> FK 관계</div>
+  <div class="legend-item"><div class="legend-line dashed"></div> 참조 관계 (코드)</div>
+  <div class="legend-item"><span class="legend-rel">1:M</span> 1대다</div>
+  <div class="legend-item"><span class="legend-rel">M:N</span> 다대다</div>
+</div>
+
+<!-- ════════════════════════ DIAGRAM (SVG) ════════════════════════ -->
+<div class="diagram-container">
+<svg viewBox="0 0 1320 820" width="1320" height="820">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 6" refX="10" refY="3" markerWidth="8" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,3 L0,6 Z" fill="#58a6ff"/>
+    </marker>
+    <marker id="arrowGray" viewBox="0 0 10 6" refX="10" refY="3" markerWidth="7" markerHeight="5" orient="auto-start-reverse">
+      <path d="M0,0 L10,3 L0,6 Z" fill="#6e7681"/>
+    </marker>
+    <marker id="arrowDash" viewBox="0 0 10 6" refX="10" refY="3" markerWidth="7" markerHeight="5" orient="auto-start-reverse">
+      <path d="M0,0 L10,3 L0,6 Z" fill="#6e768180"/>
+    </marker>
+    <filter id="glow"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+
+  <!-- ══ DOMAIN GROUP BACKGROUNDS ══ -->
+  <!-- 마스터데이터 -->
+  <rect x="20" y="20" width="280" height="780" rx="14" fill="#39d2c010" stroke="#39d2c040" stroke-width="1"/>
+  <text x="40" y="50" fill="#39d2c0" font-size="13" font-weight="700">마스터데이터</text>
+
+  <!-- 영업/주문 -->
+  <rect x="320" y="20" width="220" height="240" rx="14" fill="#58a6ff10" stroke="#58a6ff40" stroke-width="1"/>
+  <text x="340" y="50" fill="#58a6ff" font-size="13" font-weight="700">영업 / 주문</text>
+
+  <!-- 생산 -->
+  <rect x="560" y="20" width="440" height="440" rx="14" fill="#3fb95010" stroke="#3fb95040" stroke-width="1"/>
+  <text x="580" y="50" fill="#3fb950" font-size="13" font-weight="700">생산</text>
+
+  <!-- 구매/발주 -->
+  <rect x="320" y="280" width="220" height="180" rx="14" fill="#d2992210" stroke="#d2992240" stroke-width="1"/>
+  <text x="340" y="310" fill="#d29922" font-size="13" font-weight="700">구매 / 발주</text>
+
+  <!-- 재고 -->
+  <rect x="320" y="480" width="340" height="200" rx="14" fill="#bc8cff10" stroke="#bc8cff40" stroke-width="1"/>
+  <text x="340" y="510" fill="#bc8cff" font-size="13" font-weight="700">재고 / 자재</text>
+
+  <!-- 출고/물류 -->
+  <rect x="680" y="480" width="320" height="200" rx="14" fill="#f778ba10" stroke="#f778ba40" stroke-width="1"/>
+  <text x="700" y="510" fill="#f778ba" font-size="13" font-weight="700">출고 / 물류</text>
+
+  <!-- 시스템 -->
+  <rect x="1020" y="20" width="280" height="440" rx="14" fill="#e3b34110" stroke="#e3b34140" stroke-width="1"/>
+  <text x="1040" y="50" fill="#e3b341" font-size="13" font-weight="700">시스템 / 공통</text>
+
+  <!-- 생산회의 -->
+  <rect x="1020" y="480" width="280" height="200" rx="14" fill="#f8514910" stroke="#f8514940" stroke-width="1"/>
+  <text x="1040" y="510" fill="#f85149" font-size="13" font-weight="700">생산 회의</text>
+
+  <!-- ══ ENTITY BOXES ══ -->
+
+  <!-- 마스터: 거래처 -->
+  <rect x="40" y="70" width="240" height="68" rx="10" fill="#1c2129" stroke="#39d2c080" stroke-width="1.5"/>
+  <text x="60" y="94" fill="#39d2c0" font-size="14" font-weight="700">거래처</text>
+  <text x="60" y="114" fill="#8b949e" font-size="11">business_partner (1,138건)</text>
+  <text x="60" y="128" fill="#6e7681" font-size="10">고객사, 공급사, 외주업체 통합 관리</text>
+
+  <!-- 마스터: 현장 -->
+  <rect x="40" y="158" width="240" height="68" rx="10" fill="#1c2129" stroke="#39d2c080" stroke-width="1.5"/>
+  <text x="60" y="182" fill="#39d2c0" font-size="14" font-weight="700">현장</text>
+  <text x="60" y="202" fill="#8b949e" font-size="11">site_master (90건) + site_price</text>
+  <text x="60" y="216" fill="#6e7681" font-size="10">시공 현장 정보 및 현장별 단가</text>
+
+  <!-- 마스터: 품목 -->
+  <rect x="40" y="246" width="240" height="68" rx="10" fill="#1c2129" stroke="#39d2c080" stroke-width="1.5"/>
+  <text x="60" y="270" fill="#39d2c0" font-size="14" font-weight="700">품목</text>
+  <text x="60" y="290" fill="#8b949e" font-size="11">item_master (4,179건)</text>
+  <text x="60" y="304" fill="#6e7681" font-size="10">유리 원판, 부자재 등 자재 마스터</text>
+
+  <!-- 마스터: 작업자 -->
+  <rect x="40" y="334" width="240" height="68" rx="10" fill="#1c2129" stroke="#39d2c080" stroke-width="1.5"/>
+  <text x="60" y="358" fill="#39d2c0" font-size="14" font-weight="700">작업자</text>
+  <text x="60" y="378" fill="#8b949e" font-size="11">worker (12명) + assignment_type</text>
+  <text x="60" y="392" fill="#6e7681" font-size="10">생산라인 작업자 및 배치유형 관리</text>
+
+  <!-- 마스터: 공통코드 -->
+  <rect x="40" y="422" width="240" height="56" rx="10" fill="#1c2129" stroke="#39d2c080" stroke-width="1.5"/>
+  <text x="60" y="446" fill="#39d2c0" font-size="14" font-weight="700">공통코드</text>
+  <text x="60" y="462" fill="#8b949e" font-size="11">code_master (상태, 유형 등 코드값)</text>
+
+  <!-- 마스터: 표준용어 -->
+  <rect x="40" y="498" width="240" height="56" rx="10" fill="#1c2129" stroke="#39d2c080" stroke-width="1.5"/>
+  <text x="60" y="522" fill="#39d2c0" font-size="14" font-weight="700">표준용어</text>
+  <text x="60" y="538" fill="#8b949e" font-size="11">standard_terms (컬럼명 표준화)</text>
+
+  <!-- 마스터: 작업자 일일배치 -->
+  <rect x="40" y="574" width="240" height="68" rx="10" fill="#1c2129" stroke="#39d2c080" stroke-width="1.5"/>
+  <text x="60" y="598" fill="#39d2c0" font-size="14" font-weight="700">작업자 일일배치</text>
+  <text x="60" y="618" fill="#8b949e" font-size="11">worker_daily_assignment</text>
+  <text x="60" y="632" fill="#6e7681" font-size="10">작업영역별 작업자 일일 배치 현황</text>
+
+  <!-- 마스터: 재단일보 -->
+  <rect x="40" y="662" width="240" height="68" rx="10" fill="#1c2129" stroke="#39d2c080" stroke-width="1.5"/>
+  <text x="60" y="686" fill="#39d2c0" font-size="14" font-weight="700">재단 일보</text>
+  <text x="60" y="706" fill="#8b949e" font-size="11">cutting_daily_report</text>
+  <text x="60" y="720" fill="#6e7681" font-size="10">재단라인 일일 작업 보고</text>
+
+  <!-- ── 영업/주문 ── -->
+  <rect x="340" y="70" width="180" height="68" rx="10" fill="#1c2129" stroke="#58a6ff80" stroke-width="1.5"/>
+  <text x="360" y="94" fill="#58a6ff" font-size="14" font-weight="700">주문</text>
+  <text x="360" y="114" fill="#8b949e" font-size="11">sales_order_header (60건)</text>
+  <text x="360" y="128" fill="#6e7681" font-size="10">프로젝트/임가공 주문 관리</text>
+
+  <rect x="340" y="158" width="180" height="68" rx="10" fill="#1c2129" stroke="#58a6ff80" stroke-width="1.5"/>
+  <text x="360" y="182" fill="#58a6ff" font-size="14" font-weight="700">주문 상세</text>
+  <text x="360" y="202" fill="#8b949e" font-size="11">sales_order_detail (571건)</text>
+  <text x="360" y="216" fill="#6e7681" font-size="10">주문별 품목/규격/수량</text>
+
+  <!-- ── 구매/발주 ── -->
+  <rect x="340" y="330" width="180" height="56" rx="10" fill="#1c2129" stroke="#d2992280" stroke-width="1.5"/>
+  <text x="360" y="354" fill="#d29922" font-size="14" font-weight="700">발주</text>
+  <text x="360" y="374" fill="#8b949e" font-size="11">purchase_order (5건)</text>
+
+  <rect x="340" y="400" width="180" height="42" rx="10" fill="#1c2129" stroke="#d2992280" stroke-width="1.5"/>
+  <text x="360" y="424" fill="#d29922" font-size="14" font-weight="700">발주 상세</text>
+
+  <!-- 외주 -->
+  <rect x="340" y="70" width="0" height="0"/><!-- placeholder -->
+
+  <!-- ── 생산 ── -->
+  <rect x="580" y="70" width="200" height="68" rx="10" fill="#1c2129" stroke="#3fb95080" stroke-width="1.5"/>
+  <text x="600" y="94" fill="#3fb950" font-size="14" font-weight="700">생산계획</text>
+  <text x="600" y="114" fill="#8b949e" font-size="11">production_plan (25건)</text>
+  <text x="600" y="128" fill="#6e7681" font-size="10">주간/일간 생산계획 수립</text>
+
+  <rect x="800" y="70" width="180" height="68" rx="10" fill="#1c2129" stroke="#3fb95080" stroke-width="1.5"/>
+  <text x="820" y="94" fill="#3fb950" font-size="14" font-weight="700">생산계획 상세</text>
+  <text x="820" y="114" fill="#8b949e" font-size="11">plan_detail (71건)</text>
+  <text x="820" y="128" fill="#6e7681" font-size="10">계획별 품목/호기/라인 배정</text>
+
+  <rect x="580" y="170" width="200" height="68" rx="10" fill="#1c2129" stroke="#3fb95080" stroke-width="1.5"/>
+  <text x="600" y="194" fill="#3fb950" font-size="14" font-weight="700">작업지시</text>
+  <text x="600" y="214" fill="#8b949e" font-size="11">work_request (445건)</text>
+  <text x="600" y="228" fill="#6e7681" font-size="10">생산라인별 작업 지시서</text>
+
+  <rect x="800" y="170" width="180" height="68" rx="10" fill="#1c2129" stroke="#3fb95080" stroke-width="1.5"/>
+  <text x="820" y="194" fill="#3fb950" font-size="14" font-weight="700">외주</text>
+  <text x="820" y="214" fill="#8b949e" font-size="11">subcontract_order</text>
+  <text x="820" y="228" fill="#6e7681" font-size="10">외주 가공 의뢰</text>
+
+  <rect x="580" y="270" width="200" height="68" rx="10" fill="#1c2129" stroke="#3fb95080" stroke-width="1.5"/>
+  <text x="600" y="294" fill="#3fb950" font-size="14" font-weight="700">생산실적</text>
+  <text x="600" y="314" fill="#8b949e" font-size="11">production_result (130건)</text>
+  <text x="600" y="328" fill="#6e7681" font-size="10">작업 완료/불량 수량 실적 기록</text>
+
+  <rect x="800" y="270" width="180" height="68" rx="10" fill="#1c2129" stroke="#3fb95080" stroke-width="1.5"/>
+  <text x="820" y="294" fill="#3fb950" font-size="14" font-weight="700">계획-주문 매핑</text>
+  <text x="820" y="314" fill="#8b949e" font-size="11">plan_order_detail</text>
+  <text x="820" y="328" fill="#6e7681" font-size="10">생산계획 ↔ 주문상세 연결</text>
+
+  <rect x="580" y="370" width="200" height="68" rx="10" fill="#1c2129" stroke="#3fb95080" stroke-width="1.5"/>
+  <text x="600" y="394" fill="#3fb950" font-size="14" font-weight="700">포장</text>
+  <text x="600" y="414" fill="#8b949e" font-size="11">packing_order (262건)</text>
+  <text x="600" y="428" fill="#6e7681" font-size="10">완제품 포장 및 용기 관리</text>
+
+  <!-- ── 재고 ── -->
+  <rect x="340" y="530" width="150" height="68" rx="10" fill="#1c2129" stroke="#bc8cff80" stroke-width="1.5"/>
+  <text x="360" y="554" fill="#bc8cff" font-size="14" font-weight="700">재고</text>
+  <text x="360" y="574" fill="#8b949e" font-size="11">inventory (15건)</text>
+  <text x="360" y="588" fill="#6e7681" font-size="10">자재별 현재고/가용/예약</text>
+
+  <rect x="510" y="530" width="130" height="68" rx="10" fill="#1c2129" stroke="#bc8cff80" stroke-width="1.5"/>
+  <text x="525" y="554" fill="#bc8cff" font-size="14" font-weight="700">입출고이력</text>
+  <text x="525" y="574" fill="#8b949e" font-size="11">inventory_tx</text>
+  <text x="525" y="588" fill="#6e7681" font-size="10">입고/출고/이동/조정</text>
+
+  <rect x="340" y="618" width="150" height="50" rx="10" fill="#1c2129" stroke="#bc8cff80" stroke-width="1.5"/>
+  <text x="360" y="642" fill="#bc8cff" font-size="14" font-weight="700">입고</text>
+  <text x="360" y="656" fill="#8b949e" font-size="11">goods_receipt</text>
+
+  <rect x="510" y="618" width="130" height="50" rx="10" fill="#1c2129" stroke="#bc8cff80" stroke-width="1.5"/>
+  <text x="525" y="642" fill="#bc8cff" font-size="14" font-weight="700">용기재고</text>
+  <text x="525" y="656" fill="#8b949e" font-size="11">container_inv</text>
+
+  <!-- ── 출고/물류 ── -->
+  <rect x="700" y="530" width="140" height="68" rx="10" fill="#1c2129" stroke="#f778ba80" stroke-width="1.5"/>
+  <text x="718" y="554" fill="#f778ba" font-size="14" font-weight="700">출고</text>
+  <text x="718" y="574" fill="#8b949e" font-size="11">delivery_header (58건)</text>
+  <text x="718" y="588" fill="#6e7681" font-size="10">출고 지시서 관리</text>
+
+  <rect x="860" y="530" width="120" height="68" rx="10" fill="#1c2129" stroke="#f778ba80" stroke-width="1.5"/>
+  <text x="878" y="554" fill="#f778ba" font-size="14" font-weight="700">출고 상세</text>
+  <text x="878" y="574" fill="#8b949e" font-size="11">delivery_detail</text>
+  <text x="878" y="588" fill="#6e7681" font-size="10">출고 품목 상세</text>
+
+  <!-- ── 시스템 ── -->
+  <rect x="1040" y="70" width="240" height="56" rx="10" fill="#1c2129" stroke="#e3b34180" stroke-width="1.5"/>
+  <text x="1060" y="94" fill="#e3b341" font-size="14" font-weight="700">사용자</text>
+  <text x="1060" y="110" fill="#8b949e" font-size="11">users + organizations</text>
+
+  <rect x="1040" y="146" width="240" height="56" rx="10" fill="#1c2129" stroke="#e3b34180" stroke-width="1.5"/>
+  <text x="1060" y="170" fill="#e3b341" font-size="14" font-weight="700">역할/권한</text>
+  <text x="1060" y="186" fill="#8b949e" font-size="11">roles, permissions, role_groups</text>
+
+  <rect x="1040" y="222" width="240" height="56" rx="10" fill="#1c2129" stroke="#e3b34180" stroke-width="1.5"/>
+  <text x="1060" y="246" fill="#e3b341" font-size="14" font-weight="700">메뉴</text>
+  <text x="1060" y="262" fill="#8b949e" font-size="11">menus + role_menus</text>
+
+  <rect x="1040" y="298" width="240" height="56" rx="10" fill="#1c2129" stroke="#e3b34180" stroke-width="1.5"/>
+  <text x="1060" y="322" fill="#e3b341" font-size="14" font-weight="700">감사 로그</text>
+  <text x="1060" y="338" fill="#8b949e" font-size="11">audit_logs (사용자 활동 추적)</text>
+
+  <rect x="1040" y="374" width="240" height="56" rx="10" fill="#1c2129" stroke="#e3b34180" stroke-width="1.5"/>
+  <text x="1060" y="398" fill="#e3b341" font-size="14" font-weight="700">주문 업로드</text>
+  <text x="1060" y="414" fill="#8b949e" font-size="11">sales_order_upload (엑셀 일괄등록)</text>
+
+  <!-- ── 생산회의 ── -->
+  <rect x="1040" y="530" width="240" height="56" rx="10" fill="#1c2129" stroke="#f8514980" stroke-width="1.5"/>
+  <text x="1060" y="554" fill="#f85149" font-size="14" font-weight="700">생산 회의</text>
+  <text x="1060" y="570" fill="#8b949e" font-size="11">daily_production_meeting</text>
+
+  <rect x="1040" y="606" width="115" height="50" rx="10" fill="#1c2129" stroke="#f8514980" stroke-width="1.5"/>
+  <text x="1055" y="630" fill="#f85149" font-size="13" font-weight="700">회의 메모</text>
+  <text x="1055" y="646" fill="#8b949e" font-size="10">meeting_note</text>
+
+  <rect x="1165" y="606" width="115" height="50" rx="10" fill="#1c2129" stroke="#f8514980" stroke-width="1.5"/>
+  <text x="1178" y="630" fill="#f85149" font-size="13" font-weight="700">액션아이템</text>
+  <text x="1178" y="646" fill="#8b949e" font-size="10">action_item</text>
+
+  <!-- ══ WORKFLOW ARROWS (핵심 흐름 - 굵은 파란색) ══ -->
+  <!-- 주문 → 생산계획 -->
+  <line x1="520" y1="104" x2="580" y2="104" stroke="#58a6ff" stroke-width="2.5" marker-end="url(#arrow)" filter="url(#glow)"/>
+  <!-- 생산계획 → 작업지시 -->
+  <line x1="680" y1="138" x2="680" y2="170" stroke="#58a6ff" stroke-width="2.5" marker-end="url(#arrow)" filter="url(#glow)"/>
+  <!-- 작업지시 → 생산실적 -->
+  <line x1="680" y1="238" x2="680" y2="270" stroke="#58a6ff" stroke-width="2.5" marker-end="url(#arrow)" filter="url(#glow)"/>
+  <!-- 생산실적 → 포장 -->
+  <line x1="680" y1="338" x2="680" y2="370" stroke="#58a6ff" stroke-width="2.5" marker-end="url(#arrow)" filter="url(#glow)"/>
+  <!-- 포장 → 출고 -->
+  <path d="M680,438 L680,564 L700,564" stroke="#58a6ff" stroke-width="2.5" fill="none" marker-end="url(#arrow)" filter="url(#glow)"/>
+
+  <!-- ══ FK RELATIONSHIPS (회색 실선) ══ -->
+  <!-- 주문header → 주문detail (1:M) -->
+  <line x1="430" y1="138" x2="430" y2="158" stroke="#6e7681" stroke-width="1.2" marker-end="url(#arrowGray)"/>
+  <text x="438" y="152" fill="#6e7681" font-size="9" font-weight="700">1:M</text>
+
+  <!-- 생산계획 → 생산계획상세 (1:M) -->
+  <line x1="780" y1="104" x2="800" y2="104" stroke="#6e7681" stroke-width="1.2" marker-end="url(#arrowGray)"/>
+  <text x="784" y="98" fill="#6e7681" font-size="9" font-weight="700">1:M</text>
+
+  <!-- 발주 → 발주상세 (1:M) -->
+  <line x1="430" y1="386" x2="430" y2="400" stroke="#6e7681" stroke-width="1.2" marker-end="url(#arrowGray)"/>
+  <text x="438" y="396" fill="#6e7681" font-size="9" font-weight="700">1:M</text>
+
+  <!-- 출고 → 출고상세 (1:M) -->
+  <line x1="840" y1="564" x2="860" y2="564" stroke="#6e7681" stroke-width="1.2" marker-end="url(#arrowGray)"/>
+  <text x="844" y="558" fill="#6e7681" font-size="9" font-weight="700">1:M</text>
+
+  <!-- 생산회의 → 메모 (1:M) -->
+  <line x1="1098" y1="586" x2="1098" y2="606" stroke="#6e7681" stroke-width="1.2" marker-end="url(#arrowGray)"/>
+  <text x="1070" y="600" fill="#6e7681" font-size="9" font-weight="700">1:M</text>
+
+  <!-- 생산회의 → 액션아이템 (1:M) -->
+  <line x1="1222" y1="586" x2="1222" y2="606" stroke="#6e7681" stroke-width="1.2" marker-end="url(#arrowGray)"/>
+  <text x="1230" y="600" fill="#6e7681" font-size="9" font-weight="700">1:M</text>
+
+  <!-- 재고 → 입출고이력 (1:M) -->
+  <line x1="490" y1="564" x2="510" y2="564" stroke="#6e7681" stroke-width="1.2" marker-end="url(#arrowGray)"/>
+  <text x="492" y="558" fill="#6e7681" font-size="9" font-weight="700">1:M</text>
+
+  <!-- 주문 → 생산계획 (참조 order_no) -->
+  <path d="M520,90 L550,90 L550,80 L580,80" stroke="#6e7681" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrowDash)"/>
+
+  <!-- 생산계획 → 작업지시 (참조 plan_id) -->
+  <path d="M620,138 L620,145 L620,170" stroke="#6e7681" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="626" y="158" fill="#6e7681" font-size="8">plan_id</text>
+
+  <!-- 생산계획 상세 → 작업지시 (1:M) -->
+  <path d="M800,138 L800,150 L780,150 L780,190 L780,204" stroke="#6e7681" stroke-width="1.2" marker-end="url(#arrowGray)"/>
+  <text x="784" y="176" fill="#6e7681" font-size="9" font-weight="700">1:M</text>
+
+  <!-- 작업지시 → 생산실적 (1:M) -->
+  <line x1="760" y1="238" x2="760" y2="270" stroke="#6e7681" stroke-width="1.2" marker-end="url(#arrowGray)"/>
+  <text x="764" y="258" fill="#6e7681" font-size="9" font-weight="700">1:M</text>
+
+  <!-- 생산회의 → 작업지시 (N:1 참조) -->
+  <path d="M1040,558 L1010,558 L1010,170 L780,170" stroke="#6e7681" stroke-width="1" stroke-dasharray="4,3" fill="none" marker-end="url(#arrowDash)"/>
+  <text x="1014" y="370" fill="#6e7681" font-size="8" transform="rotate(-90,1014,370)">work_request_no</text>
+
+  <!-- 주문 → 발주 (참조 order_no) -->
+  <path d="M430,226 L430,260 L430,330" stroke="#6e7681" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrowDash)"/>
+  <text x="436" y="280" fill="#6e7681" font-size="8">order_no</text>
+
+  <!-- 거래처 → 주문 (참조 customer_cd) -->
+  <path d="M280,100 L310,100 L310,90 L340,90" stroke="#6e7681" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrowDash)"/>
+  <text x="296" y="86" fill="#6e7681" font-size="8">customer_cd</text>
+
+  <!-- 거래처 → 현장 (1:M bp_cd) -->
+  <path d="M160,138 L160,158" stroke="#6e7681" stroke-width="1.2" marker-end="url(#arrowGray)"/>
+  <text x="168" y="152" fill="#6e7681" font-size="9" font-weight="700">1:M</text>
+
+  <!-- 현장 → 주문 (참조 site_cd) -->
+  <path d="M280,192 L310,192 L310,120 L340,120" stroke="#6e7681" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrowDash)"/>
+  <text x="296" y="150" fill="#6e7681" font-size="8">site_cd</text>
+
+  <!-- 품목 → 주문상세 (참조 material_cd) -->
+  <path d="M280,280 L310,280 L310,195 L340,195" stroke="#6e7681" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrowDash)"/>
+
+  <!-- 작업자 → 일일배치 (1:M) -->
+  <path d="M160,402 L160,574" stroke="#6e7681" stroke-width="1.2" marker-end="url(#arrowGray)"/>
+  <text x="168" y="500" fill="#6e7681" font-size="9" font-weight="700">1:M</text>
+
+  <!-- 생산계획-주문 매핑 (M:N) -->
+  <path d="M890,270 L890,226 L864,226" stroke="#bc8cff60" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="895" y="252" fill="#bc8cff" font-size="9" font-weight="700">M:N</text>
+
+  <!-- 사용자 → 역할 (M:N) -->
+  <path d="M1160,126 L1160,146" stroke="#6e7681" stroke-width="1.2" marker-end="url(#arrowGray)"/>
+  <text x="1168" y="140" fill="#6e7681" font-size="9" font-weight="700">M:N</text>
+
+  <!-- 역할 → 메뉴 (M:N) -->
+  <path d="M1160,202 L1160,222" stroke="#6e7681" stroke-width="1.2" marker-end="url(#arrowGray)"/>
+  <text x="1168" y="216" fill="#6e7681" font-size="9" font-weight="700">M:N</text>
+
+  <!-- ══ FLOW STEP LABELS ══ -->
+  <rect x="526" y="88" width="48" height="18" rx="9" fill="#58a6ff30"/>
+  <text x="536" y="100" fill="#58a6ff" font-size="9" font-weight="700">STEP1</text>
+
+  <rect x="686" y="142" width="48" height="18" rx="9" fill="#58a6ff30"/>
+  <text x="696" y="154" fill="#58a6ff" font-size="9" font-weight="700">STEP2</text>
+
+  <rect x="686" y="242" width="48" height="18" rx="9" fill="#58a6ff30"/>
+  <text x="696" y="254" fill="#58a6ff" font-size="9" font-weight="700">STEP3</text>
+
+  <rect x="686" y="342" width="48" height="18" rx="9" fill="#58a6ff30"/>
+  <text x="696" y="354" fill="#58a6ff" font-size="9" font-weight="700">STEP4</text>
+
+  <rect x="686" y="444" width="48" height="18" rx="9" fill="#58a6ff30"/>
+  <text x="696" y="456" fill="#58a6ff" font-size="9" font-weight="700">STEP5</text>
+
+</svg>
+</div>
+
+<!-- ════════════════════════ DOMAIN DETAIL CARDS ════════════════════════ -->
+<div class="domains">
+  <h2>도메인 상세 설명</h2>
+  <div class="domain-grid">
+
+    <!-- 마스터데이터 -->
+    <div class="domain-card">
+      <div class="dc-header">
+        <div class="dc-icon" style="background:rgba(57,210,192,0.12);color:#39d2c0">&#x1F4CB;</div>
+        <div class="dc-title">마스터데이터</div>
+      </div>
+      <div class="dc-desc">
+        시스템의 기준 정보를 관리합니다. 거래처(고객/공급사), 시공 현장, 유리/부자재 품목, 작업자 정보 등
+        모든 업무의 기초가 되는 데이터입니다.
+      </div>
+      <div class="dc-tables">
+        <span class="dc-table">business_partner</span>
+        <span class="dc-table">site_master</span>
+        <span class="dc-table">site_price</span>
+        <span class="dc-table">item_master</span>
+        <span class="dc-table">worker</span>
+        <span class="dc-table">worker_assignment_type</span>
+        <span class="dc-table">worker_daily_assignment</span>
+        <span class="dc-table">code_master</span>
+        <span class="dc-table">standard_terms</span>
+        <span class="dc-table">cutting_daily_report</span>
+      </div>
+      <div class="dc-rel">
+        <strong>거래처 → 현장</strong> : 1:M (하나의 거래처에 여러 현장)<br>
+        <strong>작업자 → 일일배치</strong> : 1:M (작업자별 날짜마다 배치)<br>
+        <strong>거래처 → 주문</strong> : 1:M (customer_cd로 참조)
+      </div>
+    </div>
+
+    <!-- 영업/주문 -->
+    <div class="domain-card">
+      <div class="dc-header">
+        <div class="dc-icon" style="background:rgba(88,166,255,0.12);color:#58a6ff">&#x1F4DD;</div>
+        <div class="dc-title">영업 / 주문</div>
+      </div>
+      <div class="dc-desc">
+        고객으로부터 받은 유리 가공 주문을 등록하고 관리합니다.
+        프로젝트(건축 현장) 주문와 임가공(단발성) 주문로 구분되며,
+        주문 확정 후 생산계획으로 이어집니다.
+      </div>
+      <div class="dc-tables">
+        <span class="dc-table">sales_order_header</span>
+        <span class="dc-table">sales_order_detail</span>
+        <span class="dc-table">sales_order_upload</span>
+      </div>
+      <div class="dc-rel">
+        <strong>주문헤더 → 주문상세</strong> : 1:M (하나의 주문에 여러 품목 라인)<br>
+        <strong>주문 → 생산계획</strong> : M:N (plan_order_detail 매핑 테이블)<br>
+        <strong>주문 → 출고</strong> : 1:M (주문번호로 출고 연결)
+      </div>
+    </div>
+
+    <!-- 생산 -->
+    <div class="domain-card">
+      <div class="dc-header">
+        <div class="dc-icon" style="background:rgba(63,185,80,0.12);color:#3fb950">&#x1F3ED;</div>
+        <div class="dc-title">생산</div>
+      </div>
+      <div class="dc-desc">
+        주문를 기반으로 생산계획을 수립하고, 작업지시를 내려 실제 생산을 진행합니다.
+        복층1호기/2호기, 재단/강화 라인에 작업을 배정하고, 생산 완료 후 실적을 기록합니다.
+        완제품은 포장 공정을 거쳐 출고 준비됩니다.
+      </div>
+      <div class="dc-tables">
+        <span class="dc-table">production_plan</span>
+        <span class="dc-table">production_plan_detail</span>
+        <span class="dc-table">production_plan_order_detail</span>
+        <span class="dc-table">work_request</span>
+        <span class="dc-table">production_result</span>
+        <span class="dc-table">subcontract_order</span>
+        <span class="dc-table">packing_order</span>
+      </div>
+      <div class="dc-rel">
+        <strong>생산계획 → 계획상세</strong> : 1:M (FK plan_id)<br>
+        <strong>계획상세 → 작업지시</strong> : 1:M (계획상세 기준으로 작업지시 생성)<br>
+        <strong>작업지시 → 생산실적</strong> : 1:M (work_request_no 참조)<br>
+        <strong>생산계획 ↔ 주문상세</strong> : M:N (plan_order_detail)
+      </div>
+    </div>
+
+    <!-- 구매/발주 -->
+    <div class="domain-card">
+      <div class="dc-header">
+        <div class="dc-icon" style="background:rgba(210,153,34,0.12);color:#d29922">&#x1F4E6;</div>
+        <div class="dc-title">구매 / 발주</div>
+      </div>
+      <div class="dc-desc">
+        생산에 필요한 원자재(유리 원판, 부자재)를 공급사에 발주합니다.
+        발주 후 입고(goods_receipt)가 완료되면 재고에 반영됩니다.
+      </div>
+      <div class="dc-tables">
+        <span class="dc-table">purchase_order</span>
+        <span class="dc-table">purchase_order_detail</span>
+        <span class="dc-table">goods_receipt</span>
+      </div>
+      <div class="dc-rel">
+        <strong>발주 → 발주상세</strong> : 1:M (po_no로 연결)<br>
+        <strong>발주 → 입고</strong> : 1:M (po_no 참조)<br>
+        <strong>주문 → 발주</strong> : 1:M (주문에 따른 자재 발주)
+      </div>
+    </div>
+
+    <!-- 재고 -->
+    <div class="domain-card">
+      <div class="dc-header">
+        <div class="dc-icon" style="background:rgba(188,140,255,0.12);color:#bc8cff">&#x1F4E5;</div>
+        <div class="dc-title">재고 / 자재</div>
+      </div>
+      <div class="dc-desc">
+        유리 원판과 부자재의 현재고, 가용수량, 예약수량을 실시간 관리합니다.
+        입고/출고/이동/조정 이력을 모두 추적하며, 최소/최대 재고 기준으로 경고합니다.
+        유리 운반용 용기(컨테이너)의 위치와 재고도 관리합니다.
+      </div>
+      <div class="dc-tables">
+        <span class="dc-table">inventory</span>
+        <span class="dc-table">inventory_transaction</span>
+        <span class="dc-table">goods_receipt</span>
+        <span class="dc-table">container_inventory</span>
+      </div>
+      <div class="dc-rel">
+        <strong>재고 → 입출고이력</strong> : 1:M (material_cd 기준)<br>
+        <strong>발주 → 입고 → 재고</strong> : 입고 시 재고 증가<br>
+        <strong>출고 → 재고</strong> : 출고 시 재고 차감
+      </div>
+    </div>
+
+    <!-- 출고/물류 -->
+    <div class="domain-card">
+      <div class="dc-header">
+        <div class="dc-icon" style="background:rgba(247,120,186,0.12);color:#f778ba">&#x1F69A;</div>
+        <div class="dc-title">출고 / 물류</div>
+      </div>
+      <div class="dc-desc">
+        포장 완료된 제품을 현장으로 출고합니다.
+        출고 지시서를 생성하고, 운송사/차량 배정 후 실출고를 처리합니다.
+        주문번호와 현장코드로 어떤 현장에 배송되는지 추적합니다.
+      </div>
+      <div class="dc-tables">
+        <span class="dc-table">delivery_header</span>
+        <span class="dc-table">delivery_detail</span>
+      </div>
+      <div class="dc-rel">
+        <strong>출고헤더 → 출고상세</strong> : 1:M (delivery_no로 연결)<br>
+        <strong>주문 → 출고</strong> : 1:M (order_no 참조)<br>
+        <strong>출고 → 재고</strong> : 출고 시 재고 차감
+      </div>
+    </div>
+
+    <!-- 시스템 -->
+    <div class="domain-card">
+      <div class="dc-header">
+        <div class="dc-icon" style="background:rgba(227,179,65,0.12);color:#e3b341">&#x2699;&#xFE0F;</div>
+        <div class="dc-title">시스템 / 공통</div>
+      </div>
+      <div class="dc-desc">
+        사용자 계정, 부서/조직, 역할 및 메뉴 권한을 관리합니다.
+        모든 사용자 활동은 감사 로그에 기록되며,
+        역할 그룹을 통해 권한을 상속받을 수 있습니다.
+      </div>
+      <div class="dc-tables">
+        <span class="dc-table">users</span>
+        <span class="dc-table">roles</span>
+        <span class="dc-table">permissions</span>
+        <span class="dc-table">organizations</span>
+        <span class="dc-table">menus</span>
+        <span class="dc-table">role_menus</span>
+        <span class="dc-table">user_roles</span>
+        <span class="dc-table">role_groups</span>
+        <span class="dc-table">role_group_members</span>
+        <span class="dc-table">role_group_inheritance</span>
+        <span class="dc-table">audit_logs</span>
+      </div>
+      <div class="dc-rel">
+        <strong>사용자 ↔ 역할</strong> : M:N (user_roles 매핑)<br>
+        <strong>역할 ↔ 메뉴</strong> : M:N (role_menus 매핑)<br>
+        <strong>조직 → 사용자</strong> : 1:M (organization_id)
+      </div>
+    </div>
+
+    <!-- 생산 회의 -->
+    <div class="domain-card">
+      <div class="dc-header">
+        <div class="dc-icon" style="background:rgba(248,81,73,0.12);color:#f85149">&#x1F4AC;</div>
+        <div class="dc-title">생산 회의</div>
+      </div>
+      <div class="dc-desc">
+        매일 아침 진행하는 생산 회의를 기록합니다.
+        작업지시 현황 리뷰, 이슈 논의, 액션아이템 할당 등을
+        체계적으로 관리하며, 미완료 항목은 다음 회의로 이월됩니다.
+      </div>
+      <div class="dc-tables">
+        <span class="dc-table">daily_production_meeting</span>
+        <span class="dc-table">daily_meeting_note</span>
+        <span class="dc-table">daily_meeting_action_item</span>
+      </div>
+      <div class="dc-rel">
+        <strong>회의 → 메모</strong> : 1:M (meeting_id)<br>
+        <strong>회의 → 액션아이템</strong> : 1:M (meeting_id)<br>
+        <strong>액션아이템 → 작업지시</strong> : N:1 (work_request_no 참조)
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════ WORKFLOW SUMMARY ════════════════════════ -->
+<div class="domains" style="margin-top:36px">
+  <h2>핵심 워크플로우 (생산 흐름)</h2>
+  <div style="max-width:1000px;margin:0 auto;display:flex;align-items:center;gap:0;flex-wrap:wrap;justify-content:center">
+    <div style="text-align:center;padding:16px 20px">
+      <div style="width:56px;height:56px;border-radius:14px;background:rgba(88,166,255,0.15);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:22px">&#x1F4DD;</div>
+      <div style="font-size:14px;font-weight:700;color:#58a6ff">주문</div>
+      <div style="font-size:11px;color:#8b949e;margin-top:2px">고객 주문 접수</div>
+    </div>
+    <div style="color:#58a6ff;font-size:22px;font-weight:300;padding:0 4px">&#x279C;</div>
+    <div style="text-align:center;padding:16px 20px">
+      <div style="width:56px;height:56px;border-radius:14px;background:rgba(63,185,80,0.15);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:22px">&#x1F4C5;</div>
+      <div style="font-size:14px;font-weight:700;color:#3fb950">생산계획</div>
+      <div style="font-size:11px;color:#8b949e;margin-top:2px">주간/일간 계획</div>
+    </div>
+    <div style="color:#58a6ff;font-size:22px;font-weight:300;padding:0 4px">&#x279C;</div>
+    <div style="text-align:center;padding:16px 20px">
+      <div style="width:56px;height:56px;border-radius:14px;background:rgba(63,185,80,0.15);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:22px">&#x1F4CB;</div>
+      <div style="font-size:14px;font-weight:700;color:#3fb950">작업지시</div>
+      <div style="font-size:11px;color:#8b949e;margin-top:2px">라인별 작업 배정</div>
+    </div>
+    <div style="color:#58a6ff;font-size:22px;font-weight:300;padding:0 4px">&#x279C;</div>
+    <div style="text-align:center;padding:16px 20px">
+      <div style="width:56px;height:56px;border-radius:14px;background:rgba(63,185,80,0.15);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:22px">&#x2699;&#xFE0F;</div>
+      <div style="font-size:14px;font-weight:700;color:#3fb950">생산실적</div>
+      <div style="font-size:11px;color:#8b949e;margin-top:2px">완료/불량 기록</div>
+    </div>
+    <div style="color:#58a6ff;font-size:22px;font-weight:300;padding:0 4px">&#x279C;</div>
+    <div style="text-align:center;padding:16px 20px">
+      <div style="width:56px;height:56px;border-radius:14px;background:rgba(247,120,186,0.15);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:22px">&#x1F4E6;</div>
+      <div style="font-size:14px;font-weight:700;color:#f778ba">포장</div>
+      <div style="font-size:11px;color:#8b949e;margin-top:2px">완제품 포장</div>
+    </div>
+    <div style="color:#58a6ff;font-size:22px;font-weight:300;padding:0 4px">&#x279C;</div>
+    <div style="text-align:center;padding:16px 20px">
+      <div style="width:56px;height:56px;border-radius:14px;background:rgba(247,120,186,0.15);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:22px">&#x1F69A;</div>
+      <div style="font-size:14px;font-weight:700;color:#f778ba">출고</div>
+      <div style="font-size:11px;color:#8b949e;margin-top:2px">현장 배송</div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  HK G&Tech 생산관리 시스템 &copy; 2026 &middot; 도메인 관계도 &middot; 생성일: 2026-02-10
+</div>
+
+</body>
+</html>

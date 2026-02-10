@@ -1,8 +1,6 @@
 @echo off
-chcp 65001 > nul
-setlocal enabledelayedexpansion
 
-:: 프로젝트 루트 디렉토리 (배치파일 위치 기준)
+:: Project root directory
 set "PROJECT_ROOT=%~dp0"
 set "PROJECT_ROOT=%PROJECT_ROOT:~0,-1%"
 
@@ -48,15 +46,23 @@ if /i "%MODE%"=="backend" goto :backend
 if /i "%MODE%"=="frontend" goto :frontend
 if /i "%MODE%"=="all" goto :all
 
-echo Usage: start.bat [all|backend|frontend] [backend_port] [frontend_port]
+echo Usage: start.bat [all^|backend^|frontend] [backend_port] [frontend_port]
 goto :eof
 
 :all
 echo Starting both backend and frontend...
 echo.
-echo [1/2] Starting Backend (background)...
+
+:: Kill existing Java process on backend port
+call :kill_port %BACKEND_PORT% "backend"
+
+:: Kill existing Node process on frontend port
+call :kill_port %FRONTEND_PORT% "frontend"
+
+echo.
+echo [1/2] Starting Backend (same window, background)...
 cd /d "%PROJECT_ROOT%\backend"
-start "" /b mvnw.cmd spring-boot:run -Dspring-boot.run.arguments=--server.port=%BACKEND_PORT% -Dspring-boot.run.profiles=local > NUL 2>&1
+start /b "" cmd /c "call mvnw.cmd spring-boot:run -Dspring-boot.run.arguments=--server.port=%BACKEND_PORT%"
 cd /d "%PROJECT_ROOT%"
 
 echo Waiting for backend to be ready...
@@ -70,13 +76,15 @@ set /a RETRY_COUNT+=1
 :: Check if backend is responding
 curl -s -o NUL -w "" http://localhost:%BACKEND_PORT%/api/v1/health >NUL 2>&1
 if %ERRORLEVEL%==0 (
-    echo Backend is ready!
+    echo.
+    echo   Backend is ready!
     goto :start_frontend
 )
 
 if %RETRY_COUNT% GEQ %MAX_RETRIES% (
-    echo Warning: Backend health check timed out after 120 seconds.
-    echo Starting frontend anyway...
+    echo.
+    echo   Warning: Backend health check timed out after 120 seconds.
+    echo   Starting frontend anyway...
     goto :start_frontend
 )
 
@@ -87,24 +95,63 @@ goto :wait_backend
 echo.
 echo [2/2] Starting Frontend...
 echo ========================================
-echo Backend: http://localhost:%BACKEND_PORT%
-echo Frontend: http://localhost:%FRONTEND_PORT%
+echo   Backend:  http://localhost:%BACKEND_PORT%
+echo   Frontend: http://localhost:%FRONTEND_PORT%
 echo ========================================
 echo.
+echo   To stop: Ctrl+C (both backend and frontend will stop)
+echo.
 cd /d "%PROJECT_ROOT%\frontend"
-npm install && npm run dev -- --port %FRONTEND_PORT%
+call npm install >nul 2>&1 && call npm run dev -- --port %FRONTEND_PORT%
 cd /d "%PROJECT_ROOT%"
 goto :eof
 
 :backend
 echo Starting backend only...
+
+:: Kill existing process
+call :kill_port %BACKEND_PORT% "backend"
+
 cd /d "%PROJECT_ROOT%\backend"
-mvnw.cmd spring-boot:run -Dspring-boot.run.arguments=--server.port=%BACKEND_PORT% -Dspring-boot.run.profiles=local
+call mvnw.cmd spring-boot:run -Dspring-boot.run.arguments=--server.port=%BACKEND_PORT%
 goto :eof
 
 :frontend
 echo Starting frontend only...
 cd /d "%PROJECT_ROOT%\frontend"
-npm install
-npm run dev -- --port %FRONTEND_PORT%
+call npm install
+call npm run dev -- --port %FRONTEND_PORT%
+goto :eof
+
+:: --- Subroutine: kill process on a given port ---
+:: Usage: call :kill_port [port] [label]
+:kill_port
+set "_PORT=%~1"
+set "_LABEL=%~2"
+echo Checking for existing %_LABEL% process on port %_PORT%...
+set "_FOUND=0"
+for /f "tokens=5" %%p in ('netstat -ano 2^>nul ^| findstr "LISTENING" ^| findstr ":%_PORT% "') do (
+    if not "%%p"=="0" if not "%%p"=="" (
+        set "_FOUND=1"
+        echo   Killing PID=%%p on port %_PORT%...
+        taskkill /PID %%p /F >nul 2>&1
+        taskkill /PID %%p /T /F >nul 2>&1
+    )
+)
+if "%_FOUND%"=="0" (
+    echo   Port %_PORT% is free.
+    goto :eof
+)
+echo   Waiting for port %_PORT% to be released...
+set "_WAIT=0"
+:_kp_wait
+timeout /t 1 /nobreak >nul
+set /a _WAIT+=1
+netstat -ano 2>nul | findstr "LISTENING" | findstr ":%_PORT% " >nul 2>&1
+if errorlevel 1 (
+    echo   Port %_PORT% released.
+    goto :eof
+)
+if %_WAIT% LSS 10 goto :_kp_wait
+echo   Warning: port %_PORT% still occupied after 10s
 goto :eof

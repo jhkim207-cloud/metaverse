@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.biz.management.site.mapper.InventoryMapper">
+
+    <sql id="inventoryColumns">
+        id, inventory_type, material_cd, material_nm,
+        width_mm, height_mm,
+        current_qty, available_qty, reserved_qty, unit, area_pyeong,
+        min_qty, max_qty,
+        supplier_cd, supplier_nm,
+        warehouse_cd, location,
+        TO_CHAR(snapshot_date, 'YYYY-MM-DD') AS snapshot_date
+    </sql>
+
+    <select id="findAll" resultType="com.biz.management.site.dto.InventoryDto">
+        SELECT <include refid="inventoryColumns"/>
+          FROM hkgn.inventory
+         ORDER BY inventory_type, material_cd, width_mm, height_mm
+    </select>
+
+    <select id="search" resultType="com.biz.management.site.dto.InventoryDto">
+        SELECT <include refid="inventoryColumns"/>
+          FROM hkgn.inventory
+         WHERE 1=1
+        <if test="inventoryType != null and inventoryType != ''">
+           AND inventory_type = #{inventoryType}
+        </if>
+        <if test="keyword != null and keyword != ''">
+           AND (
+               material_cd ILIKE '%' || #{keyword} || '%'
+            OR material_nm ILIKE '%' || #{keyword} || '%'
+            OR supplier_nm ILIKE '%' || #{keyword} || '%'
+            OR location    ILIKE '%' || #{keyword} || '%'
+           )
+        </if>
+         ORDER BY inventory_type, material_cd, width_mm, height_mm
+    </select>
+
+    <select id="findRecentTransactions" resultType="com.biz.management.site.dto.InventoryTransactionDto">
+        SELECT id, transaction_no,
+               TO_CHAR(transaction_date, 'YYYY-MM-DD') AS transaction_date,
+               transaction_type, material_cd, material_nm,
+               width_mm, height_mm,
+               quantity, unit, area_pyeong,
+               before_qty, after_qty,
+               from_location, to_location,
+               site_cd, site_nm, vehicle_no,
+               ref_doc_type, ref_doc_no, remarks
+          FROM hkgn.inventory_transaction
+         ORDER BY transaction_date DESC, id DESC
+         LIMIT #{limit}
+    </select>
+
+    <select id="findTransactionsByMaterial" resultType="com.biz.management.site.dto.InventoryTransactionDto">
+        SELECT id, transaction_no,
+               TO_CHAR(transaction_date, 'YYYY-MM-DD') AS transaction_date,
+               transaction_type, material_cd, material_nm,
+               width_mm, height_mm,
+               quantity, unit, area_pyeong,
+               before_qty, after_qty,
+               from_location, to_location,
+               site_cd, site_nm, vehicle_no,
+               ref_doc_type, ref_doc_no, remarks
+          FROM hkgn.inventory_transaction
+         WHERE material_cd = #{materialCd}
+         ORDER BY transaction_date DESC, id DESC
+    </select>
+
+</mapper>

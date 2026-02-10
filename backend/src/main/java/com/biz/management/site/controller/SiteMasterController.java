@@ -43,4 +43,24 @@ public class SiteMasterController {
             return ApiResponse.error(e.getMessage(), "DUPLICATE_SITE_CD");
         }
     }
+
+    @PutMapping("/{id}")
+    public ApiResponse<Void> update(@PathVariable Long id, @Valid @RequestBody SiteMasterCreateRequest request) {
+        try {
+            siteMasterService.update(id, request);
+            return ApiResponse.success(null, "현장이 수정되었습니다.");
+        } catch (IllegalArgumentException e) {
+            return ApiResponse.error(e.getMessage(), "UPDATE_FAILED");
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> delete(@PathVariable Long id) {
+        try {
+            siteMasterService.delete(id);
+            return ApiResponse.success(null, "현장이 삭제되었습니다.");
+        } catch (IllegalArgumentException e) {
+            return ApiResponse.error(e.getMessage(), "DELETE_FAILED");
+        }
+    }
 }

@@ -2,7 +2,7 @@
  * WorkflowPage - 생산 워크플로우 메인 페이지
  *
  * Grid/칸반 전환 뷰 (스테퍼는 App.tsx 필터 헤더에서 렌더링)
- * PROD_PROJECT 단계: site_master 그리드(10행) + 하단 거래처 탭 Form
+ * PROD_PROJECT 단계: site_master 그리드 + 하단 견적/거래처 탭
  * 기타 단계: 기존 workflow 데이터 표시
  */
 
@@ -10,16 +10,25 @@ import { useState, useMemo, useCallback, useRef, useEffect, CSSProperties } from
 import { AgGridReact } from 'ag-grid-react';
 import type { ColDef, GridReadyEvent } from 'ag-grid-community';
 import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
-import { Plus, Building2, User, Phone, Mail, MapPin, FileText, CreditCard, Briefcase } from 'lucide-react';
+import { Plus, Building2, User, Phone, Mail, MapPin, FileText, CreditCard, Briefcase, Receipt, ClipboardList } from 'lucide-react';
 import { SegmentedControl } from '../../components/ui/SegmentedControl';
 import { KanbanBoard } from '../../components/workflow/KanbanBoard';
+import { OrderSplitView } from '../../components/workflow/OrderSplitView';
+import { ProductionPlanView } from '../../components/workflow/ProductionPlanView';
+import { SubcontractListView } from '../../components/workflow/SubcontractListView';
+import { WorkOrderView } from '../../components/workflow/WorkOrderView';
+import { ProductionResultView } from '../../components/workflow/ProductionResultView';
+import { PackagingListView } from '../../components/workflow/PackagingListView';
+import { DeliveryShippingView } from '../../components/workflow/DeliveryShippingView';
+import { InventoryView } from '../../components/workflow/InventoryView';
 import { Skeleton } from '../../components/ui/Skeleton';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { ProjectCreateModal } from '../../components/site/ProjectCreateModal';
+import { SiteInfoForm } from '../../components/site/SiteInfoForm';
 import { useStageItems } from '../../hooks/useWorkflow';
-import { siteApi, bpApi } from '../../services/siteApi';
+import { siteApi, bpApi, sitePriceApi } from '../../services/siteApi';
 import type { WorkflowItem } from '../../types/workflow.types';
-import type { SiteMaster, BusinessPartner } from '../../types/site.types';
+import type { SiteMaster, BusinessPartner, SitePrice } from '../../types/site.types';
 import { WORKFLOW_STAGES, STATUS_CONFIG, PRIORITY_CONFIG } from '../../constants/workflow';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -31,30 +40,49 @@ const VIEW_OPTIONS = [
 
 interface WorkflowPageProps {
   menuCode: string;
+  mode: 'monitor' | 'manage';
+  filterStage?: string;
   onItemSelect: (item: WorkflowItem | SiteMaster | null) => void;
 }
 
-export function WorkflowPage({ menuCode, onItemSelect }: WorkflowPageProps) {
+export function WorkflowPage({ menuCode, mode, filterStage, onItemSelect }: WorkflowPageProps) {
   const activeStage = useMemo(() => {
-    if (menuCode === 'PROD_WORKFLOW' || menuCode === 'MAIN_WORKFLOW') return 'PROD_SALES_ORDER';
+    // monitor 모드: 스테퍼에서 선택한 filterStage 사용
+    if (mode === 'monitor' && filterStage) return filterStage;
+    if (!WORKFLOW_STAGES.find(s => s.code === menuCode)) return 'PROD_ORDER';
     const found = WORKFLOW_STAGES.find(s => s.code === menuCode);
-    return found ? menuCode : 'PROD_SALES_ORDER';
-  }, [menuCode]);
+    return found ? menuCode : 'PROD_ORDER';
+  }, [menuCode, mode, filterStage]);
 
   const isProjectStage = activeStage === 'PROD_PROJECT';
+  const isSubcontractStage = activeStage === 'PROD_SUBCONTRACT';
+  const isOrderStage = activeStage === 'PROD_ORDER';
+  const isPlanStage = activeStage === 'PROD_PLAN';
+  const isWorkOrderStage = activeStage === 'PROD_WORK_ORDER';
+  const isResultStage = activeStage === 'PROD_RESULT';
+  const isPackagingStage = activeStage === 'PROD_PACKAGING';
+  const isShippingStage = activeStage === 'PROD_SHIPPING';
+  const isInventoryStage = activeStage === 'PROD_INVENTORY';
 
   const [viewMode, setViewMode] = useState<string>('grid');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const gridRef = useRef<AgGridReact>(null);
 
-  // site_master 데이터 (프로젝트 단계 전용)
+  // site_master 데이터 (현장 단계 전용)
   const [sites, setSites] = useState<SiteMaster[]>([]);
   const [sitesLoading, setSitesLoading] = useState(false);
   const [selectedSite, setSelectedSite] = useState<SiteMaster | null>(null);
 
+  // 견적단가 데이터
+  const [prices, setPrices] = useState<SitePrice[]>([]);
+  const [pricesLoading, setPricesLoading] = useState(false);
+
   // 거래처 데이터
   const [bp, setBp] = useState<BusinessPartner | null>(null);
   const [bpLoading, setBpLoading] = useState(false);
+
+  // 하단 탭 상태
+  const [activeTab, setActiveTab] = useState<'site' | 'price' | 'bp'>('site');
 
   const fetchSites = useCallback(async () => {
     setSitesLoading(true);
@@ -84,7 +112,32 @@ export function WorkflowPage({ menuCode, onItemSelect }: WorkflowPageProps) {
     return () => { cancelled = true; };
   }, [isProjectStage]);
 
-  // 프로젝트 선택 시 거래처 조회
+  // 현장 선택 시 견적단가 조회
+  useEffect(() => {
+    if (!selectedSite?.siteCd) {
+      setPrices([]);
+      return;
+    }
+    let cancelled = false;
+    setPricesLoading(true);
+    sitePriceApi.findBySiteCd(selectedSite.siteCd).then(response => {
+      if (cancelled) return;
+      if (response.success && response.data) {
+        setPrices(response.data);
+      } else {
+        setPrices([]);
+      }
+      setPricesLoading(false);
+    }).catch(() => {
+      if (!cancelled) {
+        setPrices([]);
+        setPricesLoading(false);
+      }
+    });
+    return () => { cancelled = true; };
+  }, [selectedSite?.siteCd]);
+
+  // 현장 선택 시 거래처 조회
   useEffect(() => {
     if (!selectedSite?.bpCd) {
       setBp(null);
@@ -115,8 +168,8 @@ export function WorkflowPage({ menuCode, onItemSelect }: WorkflowPageProps) {
     setBp(null);
   }, [activeStage]);
 
-  // 기존 workflow 데이터 (프로젝트 외 단계)
-  const { items, loading: itemsLoading } = useStageItems(isProjectStage ? null : activeStage);
+  // 기존 workflow 데이터 (현장 외 단계)
+  const { items, loading: itemsLoading } = useStageItems(isProjectStage || isSubcontractStage || isWorkOrderStage || isResultStage || isPackagingStage || isShippingStage || isInventoryStage ? null : activeStage);
 
   const activeStageName = useMemo(
     () => WORKFLOW_STAGES.find(s => s.code === activeStage)?.name ?? '',
@@ -136,6 +189,37 @@ export function WorkflowPage({ menuCode, onItemSelect }: WorkflowPageProps) {
       onItemSelect(event.data);
     }
   }, [onItemSelect]);
+
+  // SiteInfoForm 콜백: 수정 완료
+  const handleSiteSaved = useCallback((updated: SiteMaster) => {
+    setSites(prev => prev.map(s => s.id === updated.id ? updated : s));
+    setSelectedSite(updated);
+    // AG Grid 행 플래시 (안전하게 감싸기)
+    try {
+      const api = gridRef.current?.api;
+      if (api) {
+        const rowNode = api.getRowNode(String(updated.id));
+        if (rowNode) {
+          rowNode.setData(updated);
+          api.flashCells({ rowNodes: [rowNode] });
+        }
+      }
+    } catch {
+      // flashCells 미지원 시 무시
+    }
+  }, []);
+
+  // SiteInfoForm 콜백: 삭제 완료
+  const handleSiteDeleted = useCallback((id: number) => {
+    setSites(prev => prev.filter(s => s.id !== id));
+    setSelectedSite(null);
+    onItemSelect(null);
+  }, [onItemSelect]);
+
+  // SiteInfoForm 콜백: 신규 등록 완료
+  const handleSiteCreated = useCallback(() => {
+    fetchSites();
+  }, [fetchSites]);
 
   const handleWorkflowRowClicked = useCallback((event: { data?: WorkflowItem }) => {
     if (event.data) onItemSelect(event.data);
@@ -194,22 +278,26 @@ export function WorkflowPage({ menuCode, onItemSelect }: WorkflowPageProps) {
       {/* Toolbar */}
       <div style={toolbarStyle}>
         <div style={toolbarLeftStyle}>
-          <h3 style={stageNameStyle}>{activeStageName}</h3>
-          <span style={itemCountStyle}>
-            {currentLoading ? '...' : `${currentItems.length}건`}
-          </span>
-          {isProjectStage && (
+          {mode === 'monitor' && (
+            <h3 style={stageNameStyle}>{activeStageName}</h3>
+          )}
+          {!isOrderStage && !isPlanStage && !isSubcontractStage && !isWorkOrderStage && !isResultStage && !isPackagingStage && !isShippingStage && !isInventoryStage && (
+            <span style={itemCountStyle}>
+              {currentLoading ? '...' : `${currentItems.length}건`}
+            </span>
+          )}
+          {false && isProjectStage && (
             <button
               type="button"
               onClick={() => setIsCreateModalOpen(true)}
               style={addBtnStyle}
             >
               <Plus size={15} />
-              프로젝트 등록
+              현장 등록
             </button>
           )}
         </div>
-        {!isProjectStage && (
+        {!isProjectStage && !isOrderStage && !isPlanStage && !isSubcontractStage && !isWorkOrderStage && !isResultStage && !isPackagingStage && !isShippingStage && !isInventoryStage && (
           <SegmentedControl
             options={VIEW_OPTIONS}
             value={viewMode}
@@ -221,7 +309,23 @@ export function WorkflowPage({ menuCode, onItemSelect }: WorkflowPageProps) {
 
       {/* 콘텐츠 영역 */}
       <div style={contentStyle}>
-        {currentLoading ? (
+        {isInventoryStage ? (
+          <InventoryView />
+        ) : isShippingStage ? (
+          <DeliveryShippingView />
+        ) : isPackagingStage ? (
+          <PackagingListView />
+        ) : isResultStage ? (
+          <ProductionResultView />
+        ) : isWorkOrderStage ? (
+          <WorkOrderView />
+        ) : isPlanStage ? (
+          <ProductionPlanView />
+        ) : isSubcontractStage ? (
+          <SubcontractListView />
+        ) : isOrderStage ? (
+          <OrderSplitView />
+        ) : currentLoading ? (
           <div style={{ padding: 16 }}>
             <Skeleton variant="rounded" width="100%" height={200} />
           </div>
@@ -229,7 +333,7 @@ export function WorkflowPage({ menuCode, onItemSelect }: WorkflowPageProps) {
           <EmptyState
             title={`${activeStageName}에 항목이 없습니다`}
             message={isProjectStage
-              ? '등록된 프로젝트(현장)가 없습니다. 프로젝트 등록 버튼으로 추가해주세요.'
+              ? '등록된 현장이 없습니다.'
               : '해당 단계에 등록된 업무 항목이 없습니다.'
             }
           />
@@ -277,34 +381,82 @@ export function WorkflowPage({ menuCode, onItemSelect }: WorkflowPageProps) {
               )}
             </div>
 
-            {/* 프로젝트 단계: 하단 거래처 탭 */}
+            {/* 현장 단계: 하단 견적/거래처 탭 */}
             {isProjectStage && (
               <div style={bpSectionStyle}>
                 <div style={bpTabBarStyle}>
-                  <div style={bpTabActiveStyle}>
+                  <button
+                    type="button"
+                    style={activeTab === 'site' ? bpTabActiveStyle : tabInactiveStyle}
+                    onClick={() => setActiveTab('site')}
+                  >
+                    <ClipboardList size={13} />
+                    현장정보
+                  </button>
+                  <button
+                    type="button"
+                    style={activeTab === 'price' ? bpTabActiveStyle : tabInactiveStyle}
+                    onClick={() => setActiveTab('price')}
+                  >
+                    <Receipt size={13} />
+                    견적 단가
+                    {prices.length > 0 && (
+                      <span style={tabBadgeStyle}>{prices.length}</span>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    style={activeTab === 'bp' ? bpTabActiveStyle : tabInactiveStyle}
+                    onClick={() => setActiveTab('bp')}
+                  >
                     <Building2 size={13} />
                     거래처 정보
-                  </div>
+                  </button>
                 </div>
                 <div style={bpContentStyle}>
-                  {!selectedSite ? (
-                    <div style={bpEmptyStyle}>
-                      프로젝트를 선택하면 거래처 정보가 표시됩니다.
-                    </div>
-                  ) : !selectedSite.bpCd ? (
-                    <div style={bpEmptyStyle}>
-                      선택한 프로젝트에 거래처코드가 등록되지 않았습니다.
-                    </div>
-                  ) : bpLoading ? (
-                    <div style={{ padding: 16 }}>
-                      <Skeleton variant="rounded" width="100%" height={100} />
-                    </div>
-                  ) : !bp ? (
-                    <div style={bpEmptyStyle}>
-                      거래처 정보를 찾을 수 없습니다. (코드: {selectedSite.bpCd})
-                    </div>
+                  {activeTab === 'site' ? (
+                    <SiteInfoForm
+                      selectedSite={selectedSite}
+                      onSaved={handleSiteSaved}
+                      onDeleted={handleSiteDeleted}
+                      onCreated={handleSiteCreated}
+                    />
+                  ) : activeTab === 'price' ? (
+                    !selectedSite ? (
+                      <div style={bpEmptyStyle}>
+                        현장을 선택하면 견적 단가가 표시됩니다.
+                      </div>
+                    ) : pricesLoading ? (
+                      <div style={{ padding: 16 }}>
+                        <Skeleton variant="rounded" width="100%" height={100} />
+                      </div>
+                    ) : prices.length === 0 ? (
+                      <div style={bpEmptyStyle}>
+                        등록된 견적 단가가 없습니다. (현장: {selectedSite.siteCd})
+                      </div>
+                    ) : (
+                      <PriceGrid prices={prices} />
+                    )
                   ) : (
-                    <BpForm bp={bp} />
+                    !selectedSite ? (
+                      <div style={bpEmptyStyle}>
+                        현장을 선택하면 거래처 정보가 표시됩니다.
+                      </div>
+                    ) : !selectedSite.bpCd ? (
+                      <div style={bpEmptyStyle}>
+                        선택한 현장에 거래처코드가 등록되지 않았습니다.
+                      </div>
+                    ) : bpLoading ? (
+                      <div style={{ padding: 16 }}>
+                        <Skeleton variant="rounded" width="100%" height={100} />
+                      </div>
+                    ) : !bp ? (
+                      <div style={bpEmptyStyle}>
+                        거래처 정보를 찾을 수 없습니다. (코드: {selectedSite.bpCd})
+                      </div>
+                    ) : (
+                      <BpForm bp={bp} />
+                    )
                   )}
                 </div>
               </div>
@@ -320,6 +472,52 @@ export function WorkflowPage({ menuCode, onItemSelect }: WorkflowPageProps) {
       />
     </div>
   );
+}
+
+/* ─── 견적단가 Grid 컴포넌트 ─── */
+
+function PriceGrid({ prices }: { prices: SitePrice[] }) {
+  const gridRef = useRef<AgGridReact>(null);
+
+  const columnDefs = useMemo<ColDef<SitePrice>[]>(() => [
+    { headerName: '사양', field: 'spec', flex: 2, minWidth: 200 },
+    { headerName: '비고', field: 'remark', width: 90 },
+    { headerName: '입찰가', field: 'bidPrice', width: 100, type: 'rightAligned', valueFormatter: numFmt },
+    { headerName: '가공가', field: 'procPrice', width: 100, type: 'rightAligned', valueFormatter: numFmt },
+    { headerName: '가공비', field: 'processingCost', width: 90, type: 'rightAligned', valueFormatter: numFmt },
+    { headerName: '아르곤', field: 'argonCost', width: 80, type: 'rightAligned', valueFormatter: numFmt },
+    { headerName: '단열', field: 'insulCost', width: 70, type: 'rightAligned', valueFormatter: numFmt },
+    { headerName: '접합', field: 'structCost', width: 70, type: 'rightAligned', valueFormatter: numFmt },
+    { headerName: '면취', field: 'edgeCost', width: 70, type: 'rightAligned', valueFormatter: numFmt },
+    { headerName: '식각', field: 'etchingCost', width: 70, type: 'rightAligned', valueFormatter: numFmt },
+    { headerName: '단차', field: 'stepCost', width: 70, type: 'rightAligned', valueFormatter: numFmt },
+    { headerName: '이형', field: 'deformCost', width: 70, type: 'rightAligned', valueFormatter: numFmt },
+    { headerName: '강화1', field: 'temper1Cost', width: 75, type: 'rightAligned', valueFormatter: numFmt },
+    { headerName: '강화2', field: 'temper2Cost', width: 75, type: 'rightAligned', valueFormatter: numFmt },
+    { headerName: '강화3', field: 'temper3Cost', width: 75, type: 'rightAligned', valueFormatter: numFmt },
+    { headerName: '합계', field: 'totalProcessingCost', width: 100, type: 'rightAligned', valueFormatter: numFmt },
+  ], []);
+
+  const defaultColDef = useMemo<ColDef>(() => ({ sortable: true, resizable: true }), []);
+
+  return (
+    <div className="ag-theme-quartz" style={{ width: '100%', height: '100%' }}>
+      <AgGridReact<SitePrice>
+        ref={gridRef}
+        rowData={prices}
+        columnDefs={columnDefs}
+        defaultColDef={defaultColDef}
+        domLayout="autoHeight"
+        suppressCellFocus
+        getRowId={(params) => String(params.data.id)}
+      />
+    </div>
+  );
+}
+
+function numFmt(params: { value: number | null }) {
+  if (params.value == null || params.value === 0) return '-';
+  return params.value.toLocaleString();
 }
 
 /* ─── 거래처 Form 컴포넌트 ─── */
@@ -476,6 +674,32 @@ const bpTabActiveStyle: CSSProperties = {
   background: 'var(--panel)',
   marginBottom: -1,
   cursor: 'default',
+  border: 'none',
+  borderBlockEnd: '2px solid var(--accent)',
+};
+
+const tabInactiveStyle: CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 6,
+  padding: '9px 18px',
+  fontSize: 13,
+  fontWeight: 500,
+  color: 'var(--text-secondary)',
+  background: 'transparent',
+  border: 'none',
+  marginBottom: -1,
+  cursor: 'pointer',
+};
+
+const tabBadgeStyle: CSSProperties = {
+  fontSize: 11,
+  fontWeight: 600,
+  padding: '1px 7px',
+  borderRadius: 10,
+  background: 'color-mix(in srgb, var(--accent) 15%, transparent)',
+  color: 'var(--accent)',
+  marginLeft: 2,
 };
 
 const bpContentStyle: CSSProperties = {

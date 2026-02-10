@@ -41,9 +41,11 @@ import {
 } from 'lucide-react';
 import { DatePicker } from './components/common/DatePicker';
 import { WorkflowPage } from './pages/production/WorkflowPage';
+import { DailyMeetingPage } from './pages/production/DailyMeetingPage';
 import { WorkflowStepper } from './components/workflow/WorkflowStepper';
 import { StageDetailPanel } from './components/workflow/StageDetailPanel';
 import { SiteDetailPanel } from './components/site/SiteDetailPanel';
+import { WorkerAssignmentPanel } from './components/workflow/WorkerAssignmentPanel';
 import { useWorkflowCounts } from './hooks/useWorkflow';
 import { HomePage } from './pages/home/HomePage';
 import { DashboardDetail } from './pages/home/DashboardDetail';
@@ -55,6 +57,8 @@ import type { LoginResponse } from './types/auth.types';
 import type { MenuDto } from './types/menu.types';
 import type { WorkflowItem } from './types/workflow.types';
 import type { SiteMaster } from './types/site.types';
+import { WORKFLOW_STAGES } from './constants/workflow';
+import { format } from 'date-fns';
 
 /** SiteMaster인지 판별하는 타입 가드 */
 function isSiteMaster(item: WorkflowItem | SiteMaster): item is SiteMaster {
@@ -240,10 +244,11 @@ function App() {
   const [aiMenuOpen, setAiMenuOpen] = useState(false);
   const [aiModalType, setAiModalType] = useState<'delivery' | 'nl2sql' | null>(null);
   const aiMenuRef = useRef<HTMLDivElement>(null);
+  const [workflowFilterStage, setWorkflowFilterStage] = useState<string>('PROD_ORDER');
   const { stageCounts } = useWorkflowCounts();
 
   const handleStepperClick = useCallback((stageCode: string) => {
-    setSelectedMenuCode(stageCode);
+    setWorkflowFilterStage(stageCode);
     setSelectedWorkflowItem(null);
   }, []);
 
@@ -651,115 +656,137 @@ function App() {
           <div className="pane center" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {/* Filter Header - 고정 영역 (홈 화면에서는 숨김) */}
             {selectedMenuCode !== null && (() => {
-              const isWf = selectedMenuCode?.startsWith('PROD_') || selectedMenuCode === 'MAIN_WORKFLOW';
-              const activeStageForStepper = selectedMenuCode === 'MAIN_WORKFLOW'
-                ? 'PROD_SALES_ORDER'
-                : selectedMenuCode;
+              const isMainWorkflow = selectedMenuCode === 'MAIN_WORKFLOW';
+              const isProductionMenu = selectedMenuCode?.startsWith('PROD_') && !isMainWorkflow;
+              const prodStageName = isProductionMenu
+                ? (WORKFLOW_STAGES.find(s => s.code === selectedMenuCode)?.name ?? '')
+                : '';
 
-              return isWf ? (
-                <div
-                  style={{
-                    flexShrink: 0,
-                    background: 'var(--panel)',
-                    backdropFilter: 'var(--blur-md) var(--saturate)',
-                    WebkitBackdropFilter: 'var(--blur-md) var(--saturate)',
-                    borderBottom: '1px solid var(--border)',
-                  }}
-                >
-                  <WorkflowStepper
-                    activeStage={activeStageForStepper}
-                    onStageClick={handleStepperClick}
-                    stageCounts={stageCounts}
-                  />
-                </div>
-              ) : (
-                <div
-                  style={{
-                    flexShrink: 0,
-                    background: 'var(--panel)',
-                    backdropFilter: 'var(--blur-md) var(--saturate)',
-                    WebkitBackdropFilter: 'var(--blur-md) var(--saturate)',
-                    borderBottom: '1px solid var(--border)',
-                    padding: '12px 20px',
-                  }}
-                >
-                  <h3
-                    style={{
-                      fontSize: 16,
-                      fontWeight: 600,
-                      color: 'var(--text)',
-                      margin: '0 0 12px 0',
-                    }}
-                  >
+              const filterSelectStyle = {
+                padding: '6px 12px',
+                fontSize: 13,
+                background: 'var(--input-bg)',
+                border: '1px solid var(--border-input)',
+                borderRadius: 6,
+                color: 'var(--text)',
+                cursor: 'pointer',
+              };
+              const filterLabelStyle = { fontSize: 13, color: 'var(--text-secondary)' };
+              const filterRowStyle = { display: 'flex' as const, alignItems: 'center' as const, gap: 8 };
+              const navBtnStyle = {
+                width: 32, height: 32,
+                display: 'flex' as const, alignItems: 'center' as const, justifyContent: 'center' as const,
+                background: 'var(--btn-bg)', border: '1px solid var(--btn-border)',
+                borderRadius: 6, color: 'var(--text-secondary)', cursor: 'pointer',
+              };
+              const headerPanelStyle = {
+                flexShrink: 0,
+                background: 'var(--panel)',
+                backdropFilter: 'var(--blur-md) var(--saturate)',
+                WebkitBackdropFilter: 'var(--blur-md) var(--saturate)',
+                borderBottom: '1px solid var(--border)',
+              };
+
+              // --- MAIN_WORKFLOW: 스테퍼 표시 ---
+              if (isMainWorkflow) {
+                return (
+                  <div style={headerPanelStyle}>
+                    <WorkflowStepper
+                      activeStage={workflowFilterStage}
+                      onStageClick={handleStepperClick}
+                      stageCounts={stageCounts}
+                    />
+                  </div>
+                );
+              }
+
+              // --- PROD_* 생산관리: 검색 필터 헤더 ---
+              if (isProductionMenu) {
+                return (
+                  <div style={{ ...headerPanelStyle, padding: '12px 20px' }}>
+                    <h3 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px 0' }}>
+                      {prodStageName}
+                    </h3>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                      <div style={filterRowStyle}>
+                        <span style={filterLabelStyle}>조회기간:</span>
+                        <select aria-label="조회기간" style={filterSelectStyle}>
+                          <option>주간</option><option>월간</option><option>분기</option>
+                        </select>
+                      </div>
+                      <div style={filterRowStyle}>
+                        <span style={filterLabelStyle}>구분:</span>
+                        <select aria-label="구분" style={filterSelectStyle}>
+                          <option>소유자</option><option>부서</option><option>팀</option>
+                        </select>
+                      </div>
+                      <div style={filterRowStyle}>
+                        <span style={filterLabelStyle}>소유자:</span>
+                        <select aria-label="소유자" style={{ ...filterSelectStyle, minWidth: 120 }}>
+                          <option>전체</option>
+                        </select>
+                      </div>
+                      <span style={filterLabelStyle}>현재선택: 전체</span>
+                      <div style={filterRowStyle}>
+                        <span style={filterLabelStyle}>기준일자:</span>
+                        <DatePicker
+                          selected={selectedDate}
+                          onChange={(date) => setSelectedDate(date)}
+                          placeholder="날짜 선택"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        style={{
+                          padding: '6px 20px', fontSize: 13, fontWeight: 500,
+                          background: 'var(--accent)', border: 'none', borderRadius: 6,
+                          color: 'var(--on-accent)', cursor: 'pointer',
+                        }}
+                      >
+                        조회
+                      </button>
+                      <div style={{ flex: 1 }} />
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        <button type="button" aria-label="이전" style={navBtnStyle}>
+                          <ChevronLeft size={16} />
+                        </button>
+                        <button type="button" aria-label="다음" style={navBtnStyle}>
+                          <ChevronRight size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              // --- 기타 메뉴: TM현황 ---
+              return (
+                <div style={{ ...headerPanelStyle, padding: '12px 20px' }}>
+                  <h3 style={{ fontSize: 16, fontWeight: 600, color: 'var(--text)', margin: '0 0 12px 0' }}>
                     TM현황
                   </h3>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 12,
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>조회기간:</span>
-                      <select
-                        aria-label="조회기간"
-                        style={{
-                          padding: '6px 12px',
-                          fontSize: 13,
-                          background: 'var(--input-bg)',
-                          border: '1px solid var(--border-input)',
-                          borderRadius: 6,
-                          color: 'var(--text)',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        <option>주간</option>
-                        <option>월간</option>
-                        <option>분기</option>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                    <div style={filterRowStyle}>
+                      <span style={filterLabelStyle}>조회기간:</span>
+                      <select aria-label="조회기간" style={filterSelectStyle}>
+                        <option>주간</option><option>월간</option><option>분기</option>
                       </select>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>구분:</span>
-                      <select
-                        aria-label="구분"
-                        style={{
-                          padding: '6px 12px',
-                          fontSize: 13,
-                          background: 'var(--input-bg)',
-                          border: '1px solid var(--border-input)',
-                          borderRadius: 6,
-                          color: 'var(--text)',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        <option>소유자</option>
-                        <option>부서</option>
-                        <option>팀</option>
+                    <div style={filterRowStyle}>
+                      <span style={filterLabelStyle}>구분:</span>
+                      <select aria-label="구분" style={filterSelectStyle}>
+                        <option>소유자</option><option>부서</option><option>팀</option>
                       </select>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>소유자:</span>
-                      <select
-                        aria-label="소유자"
-                        style={{
-                          padding: '6px 12px',
-                          fontSize: 13,
-                          background: 'var(--input-bg)',
-                          border: '1px solid var(--border-input)',
-                          borderRadius: 6,
-                          color: 'var(--text)',
-                          cursor: 'pointer',
-                          minWidth: 120,
-                        }}
-                      >
+                    <div style={filterRowStyle}>
+                      <span style={filterLabelStyle}>소유자:</span>
+                      <select aria-label="소유자" style={{ ...filterSelectStyle, minWidth: 120 }}>
                         <option>전체</option>
                       </select>
                     </div>
-                    <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>현재선택: 전체</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>기준일자:</span>
+                    <span style={filterLabelStyle}>현재선택: 전체</span>
+                    <div style={filterRowStyle}>
+                      <span style={filterLabelStyle}>기준일자:</span>
                       <DatePicker
                         selected={selectedDate}
                         onChange={(date) => setSelectedDate(date)}
@@ -769,54 +796,19 @@ function App() {
                     <button
                       type="button"
                       style={{
-                        padding: '6px 20px',
-                        fontSize: 13,
-                        fontWeight: 500,
-                        background: 'var(--accent)',
-                        border: 'none',
-                        borderRadius: 6,
-                        color: 'var(--on-accent)',
-                        cursor: 'pointer',
+                        padding: '6px 20px', fontSize: 13, fontWeight: 500,
+                        background: 'var(--accent)', border: 'none', borderRadius: 6,
+                        color: 'var(--on-accent)', cursor: 'pointer',
                       }}
                     >
                       조회
                     </button>
                     <div style={{ flex: 1 }} />
                     <div style={{ display: 'flex', gap: 4 }}>
-                      <button
-                        type="button"
-                        aria-label="이전"
-                        style={{
-                          width: 32,
-                          height: 32,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          background: 'var(--btn-bg)',
-                          border: '1px solid var(--btn-border)',
-                          borderRadius: 6,
-                          color: 'var(--text-secondary)',
-                          cursor: 'pointer',
-                        }}
-                      >
+                      <button type="button" aria-label="이전" style={navBtnStyle}>
                         <ChevronLeft size={16} />
                       </button>
-                      <button
-                        type="button"
-                        aria-label="다음"
-                        style={{
-                          width: 32,
-                          height: 32,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          background: 'var(--btn-bg)',
-                          border: '1px solid var(--btn-border)',
-                          borderRadius: 6,
-                          color: 'var(--text-secondary)',
-                          cursor: 'pointer',
-                        }}
-                      >
+                      <button type="button" aria-label="다음" style={navBtnStyle}>
                         <ChevronRight size={16} />
                       </button>
                     </div>
@@ -839,12 +831,27 @@ function App() {
                   );
                 }
 
-                // 생산관리 메뉴 또는 전체 Workflow인 경우 WorkflowPage 렌더링
-                const isProductionMenu = selectedMenuCode.startsWith('PROD_') || selectedMenuCode === 'MAIN_WORKFLOW';
-                if (isProductionMenu) {
+                // MAIN_WORKFLOW: 모니터링 모드 (진행 중인 건만, 스테퍼 필터링)
+                if (selectedMenuCode === 'MAIN_WORKFLOW') {
                   return (
                     <WorkflowPage
                       menuCode={selectedMenuCode}
+                      mode="monitor"
+                      filterStage={workflowFilterStage}
+                      onItemSelect={setSelectedWorkflowItem}
+                    />
+                  );
+                }
+                // PROD_DAILY_MEETING: 별도 페이지
+                if (selectedMenuCode === 'PROD_DAILY_MEETING') {
+                  return <DailyMeetingPage />;
+                }
+                // PROD_*: 관리 모드 (전체 이력)
+                if (selectedMenuCode?.startsWith('PROD_') && selectedMenuCode) {
+                  return (
+                    <WorkflowPage
+                      menuCode={selectedMenuCode}
+                      mode="manage"
                       onItemSelect={setSelectedWorkflowItem}
                     />
                   );
@@ -882,124 +889,132 @@ function App() {
           </div>
         </div>
 
-        {/* Right Resizer */}
-        <div
-          className={`resizer ${activeResizer === 'right' ? 'active' : ''}`}
-          onMouseDown={() => handleMouseDown('right')}
-        />
+        {/* Right Resizer (hidden for PROD_PLAN) */}
+        {selectedMenuCode !== 'PROD_PLAN' && (
+          <div
+            className={`resizer ${activeResizer === 'right' ? 'active' : ''}`}
+            onMouseDown={() => handleMouseDown('right')}
+          />
+        )}
 
-        {/* Right Panel */}
-        <div className="col right" style={{ width: rightWidth }}>
-          <div className="pane" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            {selectedMenuCode === null && selectedDashboardWidget ? (
-              <DashboardDetail
-                widgetKey={selectedDashboardWidget}
-                onClose={() => setSelectedDashboardWidget(null)}
-              />
-            ) : (selectedMenuCode?.startsWith('PROD_') || selectedMenuCode === 'MAIN_WORKFLOW') && selectedWorkflowItem ? (
-              isSiteMaster(selectedWorkflowItem) ? (
-                <SiteDetailPanel
-                  site={selectedWorkflowItem}
-                  onClose={() => setSelectedWorkflowItem(null)}
+        {/* Right Panel (hidden for PROD_PLAN) */}
+        {selectedMenuCode !== 'PROD_PLAN' && (
+          <div className="col right" style={{ width: rightWidth }}>
+            <div className="pane" style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              {selectedMenuCode === null && selectedDashboardWidget ? (
+                <DashboardDetail
+                  widgetKey={selectedDashboardWidget}
+                  onClose={() => setSelectedDashboardWidget(null)}
+                />
+              ) : (selectedMenuCode?.startsWith('PROD_') || selectedMenuCode === 'MAIN_WORKFLOW') && selectedWorkflowItem ? (
+                isSiteMaster(selectedWorkflowItem) ? (
+                  <SiteDetailPanel
+                    site={selectedWorkflowItem}
+                    onClose={() => setSelectedWorkflowItem(null)}
+                  />
+                ) : (
+                  <StageDetailPanel
+                    item={selectedWorkflowItem}
+                    onClose={() => setSelectedWorkflowItem(null)}
+                  />
+                )
+              ) : selectedMenuCode === 'PROD_WORK_ORDER' ? (
+                <WorkerAssignmentPanel
+                  targetDate={selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd')}
                 />
               ) : (
-                <StageDetailPanel
-                  item={selectedWorkflowItem}
-                  onClose={() => setSelectedWorkflowItem(null)}
-                />
-              )
-            ) : (
-              <>
-                {/* Filter Header - 고정 영역 */}
-                <div
-                  style={{
-                    flexShrink: 0,
-                    background: 'var(--panel)',
-                    backdropFilter: 'var(--blur-md) var(--saturate)',
-                    WebkitBackdropFilter: 'var(--blur-md) var(--saturate)',
-                    borderBottom: '1px solid var(--border)',
-                    padding: '12px 20px',
-                  }}
-                >
-                  {/* Title Row */}
-                  <h3
-                    style={{
-                      fontSize: 16,
-                      fontWeight: 600,
-                      color: 'var(--text)',
-                      margin: '0 0 12px 0',
-                    }}
-                  >
-                    상세 정보
-                  </h3>
-                  {/* Filter Row */}
+                <>
+                  {/* Filter Header - 고정 영역 */}
                   <div
                     style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 12,
-                      flexWrap: 'wrap',
+                      flexShrink: 0,
+                      background: 'var(--panel)',
+                      backdropFilter: 'var(--blur-md) var(--saturate)',
+                      WebkitBackdropFilter: 'var(--blur-md) var(--saturate)',
+                      borderBottom: '1px solid var(--border)',
+                      padding: '12px 20px',
                     }}
                   >
-                    {/* 구분 */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>구분:</span>
-                      <select
-                        aria-label="구분"
-                        style={{
-                          padding: '6px 12px',
-                          fontSize: 13,
-                          background: 'var(--input-bg)',
-                          border: '1px solid var(--border-input)',
-                          borderRadius: 6,
-                          color: 'var(--text)',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        <option>전체</option>
-                        <option>진행중</option>
-                        <option>완료</option>
-                      </select>
-                    </div>
+                    {/* Title Row */}
+                    <h3
+                      style={{
+                        fontSize: 16,
+                        fontWeight: 600,
+                        color: 'var(--text)',
+                        margin: '0 0 12px 0',
+                      }}
+                    >
+                      상세 정보
+                    </h3>
+                    {/* Filter Row */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 12,
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      {/* 구분 */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>구분:</span>
+                        <select
+                          aria-label="구분"
+                          style={{
+                            padding: '6px 12px',
+                            fontSize: 13,
+                            background: 'var(--input-bg)',
+                            border: '1px solid var(--border-input)',
+                            borderRadius: 6,
+                            color: 'var(--text)',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <option>전체</option>
+                          <option>진행중</option>
+                          <option>완료</option>
+                        </select>
+                      </div>
 
-                    {/* 정렬 */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>정렬:</span>
-                      <select
-                        aria-label="정렬"
-                        style={{
-                          padding: '6px 12px',
-                          fontSize: 13,
-                          background: 'var(--input-bg)',
-                          border: '1px solid var(--border-input)',
-                          borderRadius: 6,
-                          color: 'var(--text)',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        <option>최신순</option>
-                        <option>오래된순</option>
-                        <option>이름순</option>
-                      </select>
+                      {/* 정렬 */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>정렬:</span>
+                        <select
+                          aria-label="정렬"
+                          style={{
+                            padding: '6px 12px',
+                            fontSize: 13,
+                            background: 'var(--input-bg)',
+                            border: '1px solid var(--border-input)',
+                            borderRadius: 6,
+                            color: 'var(--text)',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <option>최신순</option>
+                          <option>오래된순</option>
+                          <option>이름순</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Content */}
-                <div style={{ padding: 16, flex: 1, overflowY: 'auto' }}>
-                  <div className="card" style={{ padding: 16 }}>
-                    <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-                      {(selectedMenuCode?.startsWith('PROD_') || selectedMenuCode === 'MAIN_WORKFLOW')
-                        ? '좌측 그리드 또는 칸반에서 항목을 선택하세요.'
-                        : '선택된 항목의 상세 정보가 여기에 표시됩니다.'}
-                    </p>
+                  {/* Content */}
+                  <div style={{ padding: 16, flex: 1, overflowY: 'auto' }}>
+                    <div className="card" style={{ padding: 16 }}>
+                      <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                        {(selectedMenuCode?.startsWith('PROD_') || selectedMenuCode === 'MAIN_WORKFLOW')
+                          ? '좌측 그리드 또는 칸반에서 항목을 선택하세요.'
+                          : '선택된 항목의 상세 정보가 여기에 표시됩니다.'}
+                      </p>
+                    </div>
                   </div>
                   {selectedMenuCode === null && <TodaySitePanel />}
-                </div>
-              </>
-            )}
+                </>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Mobile Menu Drawer */}

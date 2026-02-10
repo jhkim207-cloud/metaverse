@@ -12,6 +12,7 @@ CREATE TABLE hkgn.work_request (
     -- 의뢰 정보
     request_no                  VARCHAR(50)   NOT NULL,                           -- [의뢰번호] 작업 의뢰 번호
     request_date                DATE          NOT NULL,                           -- [의뢰일자] 작업 의뢰 일자
+    plan_id                     BIGINT        NULL,                               -- [생산계획ID] 생산계획 참조
     order_no                    VARCHAR(50)   NULL,                               -- [주문번호] 수주 번호 참조
 
     -- 주문/거래처 정보

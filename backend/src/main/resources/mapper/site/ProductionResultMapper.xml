@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.biz.management.site.mapper.ProductionResultMapper">
+
+    <select id="findWorkOrdersWithResults" resultType="com.biz.management.site.dto.WorkOrderWithResultDto">
+        SELECT w.id,
+               w.request_no,
+               TO_CHAR(w.request_date, 'YYYY-MM-DD') AS request_date,
+               w.order_no,
+               w.customer_nm,
+               w.supplier_nm,
+               w.site_nm,
+               w.work_category,
+               w.approval_status,
+               w.memo,
+               w.remarks,
+               w.product_category,
+               w.material_nm,
+               w.thickness,
+               w.unit_type,
+               w.width,
+               w.height,
+               w.quantity,
+               w.unrequested_quantity,
+               w.requested_quantity,
+               w.area,
+               COALESCE(r.good_qty_sum, 0) AS good_qty_sum,
+               COALESCE(r.defect_qty_sum, 0) AS defect_qty_sum,
+               CASE
+                   WHEN COALESCE(r.result_count, 0) = 0 THEN 'NONE'
+                   WHEN COALESCE(r.good_qty_sum, 0) >= w.quantity THEN 'COMPLETED'
+                   ELSE 'PARTIAL'
+               END AS result_status,
+               COALESCE(r.result_count, 0) AS result_count
+          FROM hkgn.work_request w
+          LEFT JOIN (
+               SELECT work_request_no,
+                      SUM(good_qty) AS good_qty_sum,
+                      SUM(defect_qty) AS defect_qty_sum,
+                      COUNT(*) AS result_count
+                 FROM hkgn.production_result
+                GROUP BY work_request_no
+          ) r ON r.work_request_no = w.request_no
+        <if test="requestDate != null and requestDate != ''">
+         WHERE w.request_date = TO_DATE(#{requestDate}, 'YYYY-MM-DD')
+        </if>
+         ORDER BY w.request_date DESC, w.site_nm, w.id
+    </select>
+
+    <select id="findByWorkRequestId" resultType="com.biz.management.site.dto.ProductionResultDto">
+        SELECT pr.id,
+               pr.production_result_no AS production_no,
+               TO_CHAR(pr.production_date, 'YYYY-MM-DD') AS production_date,
+               pr.plan_no,
+               pr.plan_line_no,
+               pr.order_no,
+               w.id AS work_request_id,
+               pr.work_request_no,
+               pr.material_cd,
+               pr.material_nm,
+               pr.good_qty,
+               pr.defect_qty,
+               pr.total_qty,
+               pr.unit,
+               pr.good_area,
+               pr.defect_area,
+               pr.total_area,
+               pr.worker_cd,
+               pr.defect_reason,
+               pr.remarks
+          FROM hkgn.production_result pr
+          JOIN hkgn.work_request w ON w.request_no = pr.work_request_no
+         WHERE w.id = #{workRequestId}
+         ORDER BY pr.id DESC
+    </select>
+
+    <select id="findById" resultType="com.biz.management.site.dto.ProductionResultDto">
+        SELECT id,
+               production_result_no AS production_no,
+               TO_CHAR(production_date, 'YYYY-MM-DD') AS production_date,
+               plan_no,
+               plan_line_no,
+               order_no,
+               NULL AS work_request_id,
+               work_request_no,
+               material_cd,
+               material_nm,
+               good_qty,
+               defect_qty,
+               total_qty,
+               unit,
+               good_area,
+               defect_area,
+               total_area,
+               worker_cd,
+               defect_reason,
+               remarks
+          FROM hkgn.production_result
+         WHERE id = #{id}
+    </select>
+
+    <select id="getDailySummary" resultType="com.biz.management.site.dto.ProductionSummaryDto">
+        SELECT COUNT(*) AS total_count,
+               COUNT(*) FILTER (WHERE COALESCE(r.good_qty_sum, 0) >= w.quantity) AS completed_count,
+               COUNT(*) FILTER (WHERE COALESCE(r.good_qty_sum, 0) > 0 AND COALESCE(r.good_qty_sum, 0) &lt; w.quantity) AS partial_count,
+               COUNT(*) FILTER (WHERE COALESCE(r.good_qty_sum, 0) = 0) AS pending_count,
+               COUNT(*) FILTER (WHERE COALESCE(r.defect_qty_sum, 0) > 0) AS defect_count,
+               CASE WHEN COUNT(*) > 0
+                    THEN ROUND(COUNT(*) FILTER (WHERE COALESCE(r.good_qty_sum, 0) >= w.quantity) * 100.0 / COUNT(*), 1)
+                    ELSE 0
+               END AS completion_rate
+          FROM hkgn.work_request w
+          LEFT JOIN (
+               SELECT work_request_no,
+                      SUM(good_qty) AS good_qty_sum,
+                      SUM(defect_qty) AS defect_qty_sum
+                 FROM hkgn.production_result
+                GROUP BY work_request_no
+          ) r ON r.work_request_no = w.request_no
+        <if test="requestDate != null and requestDate != ''">
+         WHERE w.request_date = TO_DATE(#{requestDate}, 'YYYY-MM-DD')
+        </if>
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO hkgn.production_result (
+            production_result_no, production_date, plan_no, plan_line_no, order_no,
+            work_request_no,
+            material_cd, material_nm,
+            good_qty, defect_qty, total_qty, unit,
+            good_area, defect_area, total_area,
+            worker_cd, defect_reason, remarks
+        ) VALUES (
+            #{productionNo},
+            TO_DATE(#{productionDate}, 'YYYY-MM-DD'),
+            #{planNo}, #{planLineNo}, #{orderNo},
+            #{workRequestNo},
+            #{materialCd}, #{materialNm},
+            #{goodQty}, #{defectQty}, #{totalQty}, #{unit},
+            #{goodArea}, #{defectArea}, #{totalArea},
+            #{workerCd}, #{defectReason}, #{remarks}
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE hkgn.production_result
+           SET good_qty = #{goodQty},
+               defect_qty = #{defectQty},
+               total_qty = #{totalQty},
+               good_area = #{goodArea},
+               defect_area = #{defectArea},
+               total_area = #{totalArea},
+               defect_reason = #{defectReason},
+               remarks = #{remarks},
+               updated_at = now()
+         WHERE id = #{id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM hkgn.production_result WHERE id = #{id}
+    </delete>
+
+    <select id="sumByWorkRequestId" resultType="map">
+        SELECT COALESCE(SUM(pr.good_qty), 0) AS good_qty_sum,
+               COALESCE(SUM(pr.defect_qty), 0) AS defect_qty_sum,
+               COUNT(*) AS result_count
+          FROM hkgn.production_result pr
+          JOIN hkgn.work_request w ON w.request_no = pr.work_request_no
+         WHERE w.id = #{workRequestId}
+    </select>
+
+</mapper>

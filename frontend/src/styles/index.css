@@ -256,6 +256,11 @@ button {
   font: inherit;
 }
 
+button:focus,
+button:focus-visible {
+  outline: none !important;
+}
+
 .app-root {
   height: 100%;
   display: flex;

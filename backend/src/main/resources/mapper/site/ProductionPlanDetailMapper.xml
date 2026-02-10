@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.biz.management.site.mapper.ProductionPlanDetailMapper">
+
+    <select id="findByPlanId" resultType="com.biz.management.site.dto.ProductionPlanDetailDto">
+        SELECT id,
+               plan_id,
+               order_detail_id,
+               process_status,
+               order_no,
+               line_seq,
+               material_cd,
+               material_nm,
+               product_category,
+               width,
+               height,
+               thickness,
+               unit_type,
+               quantity,
+               area,
+               unit,
+               unit_price,
+               amount,
+               dong,
+               ho,
+               floor,
+               window_type,
+               location_detail,
+               TO_CHAR(delivery_date, 'YYYY-MM-DD') AS delivery_date,
+               remarks
+          FROM hkgn.production_plan_detail
+         WHERE plan_id = #{planId}
+         ORDER BY line_seq, id
+    </select>
+
+    <select id="findByIds" resultType="com.biz.management.site.dto.ProductionPlanDetailDto">
+        SELECT id,
+               plan_id,
+               order_detail_id,
+               process_status,
+               order_no,
+               line_seq,
+               material_cd,
+               material_nm,
+               product_category,
+               width,
+               height,
+               thickness,
+               unit_type,
+               quantity,
+               area,
+               unit,
+               unit_price,
+               amount,
+               dong,
+               ho,
+               floor,
+               window_type,
+               location_detail,
+               TO_CHAR(delivery_date, 'YYYY-MM-DD') AS delivery_date,
+               remarks
+          FROM hkgn.production_plan_detail
+         WHERE id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+         ORDER BY plan_id, line_seq, id
+    </select>
+
+</mapper>

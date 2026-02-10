@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.biz.management.site.mapper.ProductionPlanMapper">
+
+    <select id="findByDateRange" resultType="com.biz.management.site.dto.ProductionPlanDto">
+        SELECT id,
+               plan_no,
+               TO_CHAR(production_date, 'YYYY-MM-DD') AS production_date,
+               TO_CHAR(start_date, 'YYYY-MM-DD') AS start_date,
+               TO_CHAR(end_date, 'YYYY-MM-DD') AS end_date,
+               machine_no,
+               category,
+               customer_nm,
+               site_nm,
+               location,
+               thickness,
+               product_type,
+               material_nm,
+               quantity,
+               area,
+               options,
+               completed_quantity,
+               completed_area,
+               defect_quantity,
+               defect_area,
+               pending_quantity,
+               pending_area,
+               shipping_date,
+               unit_price,
+               amount,
+               plan_status,
+               remarks,
+               work_request_no,
+               TO_CHAR(planned_start_date, 'YYYY-MM-DD') AS planned_start_date,
+               TO_CHAR(planned_end_date, 'YYYY-MM-DD') AS planned_end_date,
+               site_cd
+          FROM production_plan
+         WHERE start_date &lt;= TO_DATE(#{endDate}, 'YYYY-MM-DD')
+           AND end_date &gt;= TO_DATE(#{startDate}, 'YYYY-MM-DD')
+         ORDER BY machine_no, start_date, id
+    </select>
+
+    <select id="findBySiteNm" resultType="com.biz.management.site.dto.ProductionPlanDto">
+        SELECT id,
+               plan_no,
+               TO_CHAR(production_date, 'YYYY-MM-DD') AS production_date,
+               TO_CHAR(start_date, 'YYYY-MM-DD') AS start_date,
+               TO_CHAR(end_date, 'YYYY-MM-DD') AS end_date,
+               machine_no,
+               category,
+               customer_nm,
+               site_nm,
+               location,
+               thickness,
+               product_type,
+               material_nm,
+               quantity,
+               area,
+               options,
+               completed_quantity,
+               completed_area,
+               defect_quantity,
+               defect_area,
+               pending_quantity,
+               pending_area,
+               shipping_date,
+               unit_price,
+               amount,
+               plan_status,
+               remarks,
+               work_request_no,
+               TO_CHAR(planned_start_date, 'YYYY-MM-DD') AS planned_start_date,
+               TO_CHAR(planned_end_date, 'YYYY-MM-DD') AS planned_end_date,
+               site_cd
+          FROM production_plan
+         WHERE site_nm = #{siteNm}
+         ORDER BY start_date DESC, id DESC
+    </select>
+
+    <select id="findUncompletedByTargetDate" resultType="com.biz.management.site.dto.ProductionPlanDto">
+        SELECT id,
+               plan_no,
+               TO_CHAR(production_date, 'YYYY-MM-DD') AS production_date,
+               TO_CHAR(start_date, 'YYYY-MM-DD') AS start_date,
+               TO_CHAR(end_date, 'YYYY-MM-DD') AS end_date,
+               machine_no,
+               category,
+               customer_nm,
+               site_nm,
+               location,
+               thickness,
+               product_type,
+               material_nm,
+               quantity,
+               area,
+               options,
+               completed_quantity,
+               completed_area,
+               defect_quantity,
+               defect_area,
+               pending_quantity,
+               pending_area,
+               shipping_date,
+               unit_price,
+               amount,
+               plan_status,
+               remarks,
+               work_request_no,
+               TO_CHAR(planned_start_date, 'YYYY-MM-DD') AS planned_start_date,
+               TO_CHAR(planned_end_date, 'YYYY-MM-DD') AS planned_end_date,
+               site_cd
+          FROM production_plan
+         WHERE plan_status IN ('REGISTERED', 'IN_PROGRESS')
+         ORDER BY site_nm, start_date, id
+    </select>
+
+    <select id="findById" resultType="com.biz.management.site.dto.ProductionPlanDto">
+        SELECT id,
+               plan_no,
+               TO_CHAR(production_date, 'YYYY-MM-DD') AS production_date,
+               TO_CHAR(start_date, 'YYYY-MM-DD') AS start_date,
+               TO_CHAR(end_date, 'YYYY-MM-DD') AS end_date,
+               machine_no,
+               category,
+               customer_nm,
+               site_nm,
+               location,
+               thickness,
+               product_type,
+               material_nm,
+               quantity,
+               area,
+               options,
+               completed_quantity,
+               completed_area,
+               defect_quantity,
+               defect_area,
+               pending_quantity,
+               pending_area,
+               shipping_date,
+               unit_price,
+               amount,
+               plan_status,
+               remarks,
+               work_request_no,
+               TO_CHAR(planned_start_date, 'YYYY-MM-DD') AS planned_start_date,
+               TO_CHAR(planned_end_date, 'YYYY-MM-DD') AS planned_end_date,
+               site_cd
+          FROM production_plan
+         WHERE id = #{id}
+    </select>
+
+    <update id="updateSchedule">
+        UPDATE production_plan
+           SET start_date = TO_DATE(#{startDate}, 'YYYY-MM-DD'),
+               end_date = TO_DATE(#{endDate}, 'YYYY-MM-DD'),
+               machine_no = #{machineNo},
+               updated_at = now()
+         WHERE id = #{id}
+    </update>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO production_plan (
+            plan_no, production_date, start_date, end_date, machine_no,
+            category, customer_nm, site_nm, site_cd, location,
+            thickness, product_type, material_nm,
+            quantity, area, options,
+            plan_status, remarks, work_request_no,
+            planned_start_date, planned_end_date
+        ) VALUES (
+            #{planNo},
+            TO_DATE(#{startDate}, 'YYYY-MM-DD'),
+            TO_DATE(#{startDate}, 'YYYY-MM-DD'),
+            TO_DATE(#{endDate}, 'YYYY-MM-DD'),
+            #{machineNo},
+            #{category}, #{customerNm}, #{siteNm}, #{siteCd}, #{location},
+            #{thickness}, #{productType}, #{materialNm},
+            #{quantity}, #{area}, #{options},
+            COALESCE(#{planStatus}, 'REGISTERED'),
+            #{remarks}, #{workRequestNo},
+            TO_DATE(#{plannedStartDate}, 'YYYY-MM-DD'),
+            TO_DATE(#{plannedEndDate}, 'YYYY-MM-DD')
+        )
+    </insert>
+
+    <insert id="insertPlanOrderDetail">
+        INSERT INTO production_plan_order_detail (plan_id, detail_id, assigned_quantity)
+        VALUES (#{planId}, #{detailId}, #{assignedQuantity})
+    </insert>
+
+    <insert id="insertPlanDetail">
+        INSERT INTO production_plan_detail (
+            plan_id, order_detail_id, order_no, line_seq,
+            material_cd, material_nm, product_category,
+            width, height, thickness, unit_type,
+            quantity, area, unit, unit_price, amount,
+            dong, ho, floor, window_type, location_detail,
+            delivery_date, remarks, process_status
+        ) VALUES (
+            #{planId}, #{orderDetailId}, #{orderNo}, #{lineSeq},
+            #{materialCd}, #{materialNm}, #{productCategory},
+            #{width}, #{height}, #{thickness}, #{unitType},
+            #{quantity}, #{area}, #{unit}, #{unitPrice}, #{amount},
+            #{dong}, #{ho}, #{floor}, #{windowType}, #{locationDetail},
+            TO_DATE(#{deliveryDate}, 'YYYY-MM-DD'), #{remarks}, 'PENDING'
+        )
+    </insert>
+
+</mapper>

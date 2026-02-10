@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.biz.management.site.mapper.WorkOrderMapper">
+
+    <sql id="workRequestColumns">
+        id, request_no, TO_CHAR(request_date, 'YYYY-MM-DD') AS request_date,
+        plan_id, order_no, customer_nm, supplier_nm, site_nm,
+        work_category, approval_status, memo, remarks,
+        product_category, material_nm, thickness, unit_type,
+        width, height, quantity, unrequested_quantity, requested_quantity, area
+    </sql>
+
+    <select id="findAll" resultType="com.biz.management.site.dto.WorkOrderDto">
+        SELECT <include refid="workRequestColumns"/>
+          FROM hkgn.work_request
+         ORDER BY request_date DESC, id DESC
+    </select>
+
+    <select id="findByRequestDate" resultType="com.biz.management.site.dto.WorkOrderDto">
+        SELECT <include refid="workRequestColumns"/>
+          FROM hkgn.work_request
+         WHERE request_date = TO_DATE(#{requestDate}, 'YYYY-MM-DD')
+         ORDER BY id
+    </select>
+
+    <select id="findById" resultType="com.biz.management.site.dto.WorkOrderDto">
+        SELECT <include refid="workRequestColumns"/>
+          FROM hkgn.work_request
+         WHERE id = #{id}
+    </select>
+
+    <select id="findByPlanId" resultType="com.biz.management.site.dto.WorkOrderDto">
+        SELECT <include refid="workRequestColumns"/>
+          FROM hkgn.work_request
+         WHERE plan_id = #{planId}
+         ORDER BY id
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO hkgn.work_request (
+            request_no, request_date, plan_id, order_no,
+            customer_nm, site_nm,
+            work_category, approval_status,
+            product_category, material_nm, thickness,
+            unit_type, width, height,
+            quantity, requested_quantity, unrequested_quantity,
+            area, remarks
+        ) VALUES (
+            #{requestNo},
+            TO_DATE(#{requestDate}, 'YYYY-MM-DD'),
+            #{planId},
+            #{orderNo},
+            #{customerNm}, #{siteNm},
+            #{workCategory}, #{approvalStatus},
+            #{productCategory}, #{materialNm}, #{thickness},
+            #{unitType}, #{width}, #{height},
+            #{quantity}, #{requestedQuantity}, #{unrequestedQuantity},
+            #{area}, #{remarks}
+        )
+    </insert>
+
+    <select id="findByRequestNo" resultType="com.biz.management.site.dto.WorkOrderDto">
+        SELECT <include refid="workRequestColumns"/>
+          FROM hkgn.work_request
+         WHERE request_no = #{requestNo}
+         LIMIT 1
+    </select>
+
+    <update id="updateApprovalStatus">
+        UPDATE hkgn.work_request
+           SET approval_status = #{approvalStatus},
+               updated_at = now()
+         WHERE id = #{id}
+    </update>
+
+    <update id="batchUpdateApprovalStatus">
+        UPDATE hkgn.work_request
+           SET approval_status = #{approvalStatus},
+               updated_at = now()
+         WHERE id IN
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+</mapper>

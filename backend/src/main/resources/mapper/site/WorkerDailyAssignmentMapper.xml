@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.biz.management.site.mapper.WorkerDailyAssignmentMapper">
+
+    <select id="findByWorkDate" resultType="com.biz.management.site.dto.WorkerDailyAssignmentDto">
+        SELECT
+            wda.id,
+            TO_CHAR(wda.work_date, 'YYYY-MM-DD') AS work_date,
+            wda.assignment_type_cd,
+            wat.assignment_type_nm,
+            wda.work_area,
+            wda.position,
+            wda.worker_nm,
+            wda.worker_cd,
+            wda.plan_no,
+            wda.work_request_no,
+            wda.assignment_remarks,
+            w.dept,
+            w.prod_line
+        FROM hkgn.worker_daily_assignment wda
+        LEFT JOIN hkgn.worker_assignment_type wat
+            ON wda.assignment_type_cd = wat.assignment_type_cd
+        LEFT JOIN hkgn.worker w
+            ON wda.worker_cd = w.worker_cd
+        WHERE wda.work_date = TO_DATE(#{workDate}, 'YYYY-MM-DD')
+        ORDER BY
+            CASE wda.work_area
+                WHEN '복층1호기' THEN 1
+                WHEN '복층2호기' THEN 2
+                WHEN '재단/강화' THEN 3
+                ELSE 4
+            END,
+            wda.id
+    </select>
+
+    <select id="findAllAssignmentTypes" resultType="com.biz.management.site.dto.WorkerAssignmentTypeDto">
+        SELECT
+            id,
+            assignment_type_cd,
+            assignment_type_nm,
+            description,
+            sort_order,
+            is_active
+        FROM hkgn.worker_assignment_type
+        WHERE is_active = true
+        ORDER BY sort_order
+    </select>
+
+    <select id="findAvailableDates" resultType="java.lang.String">
+        SELECT DISTINCT TO_CHAR(work_date, 'YYYY-MM-DD') AS work_date
+        FROM hkgn.worker_daily_assignment
+        ORDER BY work_date DESC
+    </select>
+
+</mapper>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.biz.management.meeting.mapper.DailyMeetingMapper">
+
+    <sql id="meetingColumns">
+        id, TO_CHAR(meeting_date, 'YYYY-MM-DD') AS meeting_date,
+        meeting_no, status, title,
+        TO_CHAR(start_time, 'HH24:MI') AS start_time,
+        TO_CHAR(end_time, 'HH24:MI') AS end_time,
+        attendees, carryforward_notes, general_notes,
+        total_work_orders, total_quantity, total_area, assigned_count
+    </sql>
+
+    <select id="findByMeetingDate" resultType="com.biz.management.meeting.dto.DailyMeetingDto">
+        SELECT <include refid="meetingColumns"/>
+          FROM hkgn.daily_production_meeting
+         WHERE meeting_date = TO_DATE(#{meetingDate}, 'YYYY-MM-DD')
+    </select>
+
+    <select id="findById" resultType="com.biz.management.meeting.dto.DailyMeetingDto">
+        SELECT <include refid="meetingColumns"/>
+          FROM hkgn.daily_production_meeting
+         WHERE id = #{id}
+    </select>
+
+    <select id="findRecent" resultType="com.biz.management.meeting.dto.DailyMeetingDto">
+        SELECT <include refid="meetingColumns"/>
+          FROM hkgn.daily_production_meeting
+         ORDER BY meeting_date DESC
+         LIMIT #{limit}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO hkgn.daily_production_meeting (
+            meeting_date, meeting_no, status, title,
+            attendees, general_notes,
+            total_work_orders, total_quantity, total_area, assigned_count
+        ) VALUES (
+            TO_DATE(#{meetingDate}, 'YYYY-MM-DD'),
+            #{meetingNo}, #{status}, #{title},
+            #{attendees}, #{generalNotes},
+            #{totalWorkOrders}, #{totalQuantity}, #{totalArea}, #{assignedCount}
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE hkgn.daily_production_meeting
+           SET title = #{title},
+               attendees = #{attendees},
+               carryforward_notes = #{carryforwardNotes},
+               general_notes = #{generalNotes},
+               updated_at = now()
+         WHERE id = #{id}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE hkgn.daily_production_meeting
+           SET status = #{status},
+               <if test="startTime != null">
+               start_time = #{startTime}::TIME,
+               </if>
+               <if test="endTime != null">
+               end_time = #{endTime}::TIME,
+               </if>
+               updated_at = now()
+         WHERE id = #{id}
+    </update>
+
+    <update id="updateMetrics">
+        UPDATE hkgn.daily_production_meeting
+           SET total_work_orders = #{totalWorkOrders},
+               total_quantity = #{totalQuantity},
+               total_area = #{totalArea},
+               assigned_count = #{assignedCount},
+               updated_at = now()
+         WHERE id = #{id}
+    </update>
+
+</mapper>

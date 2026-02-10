@@ -22,4 +22,5 @@ export interface WorkflowItem {
   stageCode: string;
   projectName: string | null;
   projectPhase: string | null;
+  siteCd: string | null;
 }

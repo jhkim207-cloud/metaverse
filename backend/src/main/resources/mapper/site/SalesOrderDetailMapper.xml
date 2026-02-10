@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.biz.management.site.mapper.SalesOrderDetailMapper">
+
+    <select id="findByHeaderId" resultType="com.biz.management.site.dto.SalesOrderDetailDto">
+        SELECT id,
+               order_header_id,
+               order_no,
+               line_seq,
+               material_cd,
+               material_nm,
+               product_category,
+               width,
+               height,
+               thickness,
+               unit_type,
+               quantity,
+               area,
+               unit,
+               unit_price,
+               amount,
+               dong,
+               ho,
+               floor,
+               window_type,
+               location_detail,
+               TO_CHAR(delivery_date, 'YYYY-MM-DD') AS delivery_date,
+               production_status,
+               delivery_status,
+               remarks
+          FROM sales_order_detail
+         WHERE order_header_id = #{headerId}
+         ORDER BY line_seq ASC
+    </select>
+
+    <select id="findByIds" resultType="com.biz.management.site.dto.SalesOrderDetailDto">
+        SELECT id,
+               order_header_id,
+               order_no,
+               line_seq,
+               material_cd,
+               material_nm,
+               product_category,
+               width,
+               height,
+               thickness,
+               unit_type,
+               quantity,
+               area,
+               unit,
+               unit_price,
+               amount,
+               dong,
+               ho,
+               floor,
+               window_type,
+               location_detail,
+               TO_CHAR(delivery_date, 'YYYY-MM-DD') AS delivery_date,
+               production_status,
+               delivery_status,
+               remarks
+          FROM sales_order_detail
+         WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+         ORDER BY line_seq ASC
+    </select>
+
+    <update id="updateProductionStatus">
+        UPDATE sales_order_detail
+           SET production_status = #{status},
+               updated_at = now()
+         WHERE id = #{id}
+    </update>
+
+    <insert id="insertBatch">
+        INSERT INTO sales_order_detail (
+            order_header_id, order_no, line_seq,
+            material_cd, material_nm, product_category,
+            width, height, thickness, unit_type,
+            quantity, area, unit, unit_price, amount,
+            dong, ho, floor, window_type, location_detail,
+            delivery_date, remarks
+        ) VALUES
+        <foreach collection="details" item="d" index="idx" separator=",">
+            (#{headerId}, #{orderNo}, ${idx} + 1,
+             #{d.materialCd}, #{d.materialNm}, #{d.productCategory},
+             #{d.width}, #{d.height}, #{d.thickness}, #{d.unitType},
+             #{d.quantity}, #{d.area}, #{d.unit}, #{d.unitPrice}, #{d.amount},
+             #{d.dong}, #{d.ho}, #{d.floor}, #{d.windowType}, #{d.locationDetail},
+             <choose>
+                 <when test="d.deliveryDate != null and d.deliveryDate != ''">
+                     CAST(#{d.deliveryDate} AS DATE)
+                 </when>
+                 <otherwise>NULL</otherwise>
+             </choose>,
+             #{d.remarks})
+        </foreach>
+    </insert>
+
+    <delete id="deleteByHeaderId">
+        DELETE FROM sales_order_detail WHERE order_header_id = #{headerId}
+    </delete>
+
+</mapper>

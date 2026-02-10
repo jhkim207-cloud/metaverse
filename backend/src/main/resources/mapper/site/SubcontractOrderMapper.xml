@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.biz.management.site.mapper.SubcontractOrderMapper">
+
+    <select id="findAll" resultType="com.biz.management.site.dto.SubcontractOrderDto">
+        SELECT id,
+               subcontract_no,
+               line_seq,
+               TO_CHAR(subcontract_date, 'YYYY-MM-DD') AS subcontract_date,
+               subcontract_type,
+               subcontractor_cd,
+               subcontractor_nm,
+               order_no,
+               site_nm,
+               location,
+               material_cd,
+               material_nm,
+               product_type,
+               thickness,
+               order_qty,
+               unit,
+               area_m2,
+               area_pyeong,
+               unit_price,
+               total_amount,
+               TO_CHAR(requested_receipt_date, 'YYYY-MM-DD') AS requested_receipt_date,
+               TO_CHAR(actual_receipt_date, 'YYYY-MM-DD') AS actual_receipt_date,
+               TO_CHAR(receipt_changed_date, 'YYYY-MM-DD') AS receipt_changed_date,
+               receipt_location,
+               completed_qty,
+               subcontract_status,
+               remarks
+          FROM subcontract_order
+         ORDER BY subcontract_date DESC, subcontract_no, line_seq
+    </select>
+
+</mapper>

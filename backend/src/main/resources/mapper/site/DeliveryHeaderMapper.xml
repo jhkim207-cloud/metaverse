@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.biz.management.site.mapper.DeliveryHeaderMapper">
+
+    <sql id="headerColumns">
+        h.id,
+        h.delivery_no,
+        TO_CHAR(h.delivery_date, 'YYYY-MM-DD') AS delivery_date,
+        TO_CHAR(h.actual_date, 'YYYY-MM-DD')   AS actual_date,
+        h.order_no,
+        h.customer_cd,
+        h.site_cd,
+        h.transaction_type,
+        h.special_notes,
+        h.delivery_address,
+        h.vehicle_no,
+        h.driver_nm,
+        h.driver_phone,
+        h.shipping_company,
+        h.shipping_cost,
+        h.shipping_tax,
+        h.delivery_status,
+        h.remarks,
+        COALESCE(d.cnt, 0)          AS detail_count,
+        COALESCE(d.total_amt, 0)    AS total_amount
+    </sql>
+
+    <sql id="detailAgg">
+        LEFT JOIN (
+            SELECT delivery_no,
+                   COUNT(*)              AS cnt,
+                   SUM(total_amount)     AS total_amt
+              FROM hkgn.delivery_detail
+             GROUP BY delivery_no
+        ) d ON d.delivery_no = h.delivery_no
+    </sql>
+
+    <select id="findAll" resultType="com.biz.management.site.dto.DeliveryHeaderDto">
+        SELECT <include refid="headerColumns"/>
+          FROM hkgn.delivery_header h
+               <include refid="detailAgg"/>
+         ORDER BY h.delivery_date DESC, h.delivery_no DESC
+    </select>
+
+    <select id="search" resultType="com.biz.management.site.dto.DeliveryHeaderDto">
+        SELECT <include refid="headerColumns"/>
+          FROM hkgn.delivery_header h
+               <include refid="detailAgg"/>
+         WHERE 1=1
+        <if test="status != null and status != ''">
+           AND h.delivery_status = #{status}
+        </if>
+        <if test="keyword != null and keyword != ''">
+           AND (
+               h.delivery_no   ILIKE '%' || #{keyword} || '%'
+            OR h.order_no      ILIKE '%' || #{keyword} || '%'
+            OR h.customer_cd   ILIKE '%' || #{keyword} || '%'
+            OR h.site_cd       ILIKE '%' || #{keyword} || '%'
+            OR h.special_notes ILIKE '%' || #{keyword} || '%'
+           )
+        </if>
+        <if test="dateFrom != null and dateFrom != ''">
+           AND h.delivery_date &gt;= TO_DATE(#{dateFrom}, 'YYYY-MM-DD')
+        </if>
+        <if test="dateTo != null and dateTo != ''">
+           AND h.delivery_date &lt;= TO_DATE(#{dateTo}, 'YYYY-MM-DD')
+        </if>
+         ORDER BY h.delivery_date DESC, h.delivery_no DESC
+    </select>
+
+</mapper>

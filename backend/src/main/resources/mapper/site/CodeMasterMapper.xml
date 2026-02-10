@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.biz.management.site.mapper.CodeMasterMapper">
+
+    <select id="findByGroupCode" resultType="com.biz.management.site.dto.CodeMasterDto">
+        SELECT id,
+               group_code,
+               group_name,
+               code_id,
+               code_name,
+               sort_order,
+               description,
+               extra_data,
+               is_active
+          FROM code_master
+         WHERE group_code = #{groupCode}
+           AND is_active = true
+         ORDER BY sort_order ASC
+    </select>
+
+</mapper>

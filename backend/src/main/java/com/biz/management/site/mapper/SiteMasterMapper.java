@@ -17,4 +17,10 @@ public interface SiteMasterMapper {
     boolean existsBySiteCd(@Param("siteCd") String siteCd);
 
     void insert(SiteMasterCreateRequest request);
+
+    boolean existsBySiteCdExcludeId(@Param("siteCd") String siteCd, @Param("id") Long id);
+
+    void update(@Param("id") Long id, @Param("req") SiteMasterCreateRequest request);
+
+    void softDelete(@Param("id") Long id);
 }

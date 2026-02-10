@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.biz.management.site.mapper.SalesOrderHeaderMapper">
+
+    <select id="findAll" resultType="com.biz.management.site.dto.SalesOrderHeaderDto">
+        SELECT h.id,
+               h.order_no,
+               TO_CHAR(h.order_date, 'YYYY-MM-DD') AS order_date,
+               TO_CHAR(h.delivery_date, 'YYYY-MM-DD') AS delivery_date,
+               h.customer_cd,
+               h.order_type,
+               h.site_cd,
+               h.site_nm,
+               h.site_address,
+               h.total_amount,
+               h.tax_amount,
+               h.tax_separate,
+               h.duo_light,
+               h.remarks,
+               h.order_status,
+               h.is_urgent,
+               bp.bp_nm AS customer_nm,
+               (SELECT COUNT(*) FROM sales_order_detail d WHERE d.order_header_id = h.id) AS detail_count
+          FROM sales_order_header h
+          LEFT JOIN business_partner bp ON bp.bp_cd = h.customer_cd
+         ORDER BY h.order_date DESC, h.id DESC
+    </select>
+
+    <select id="findBySiteNm" resultType="com.biz.management.site.dto.SalesOrderHeaderDto">
+        SELECT h.id,
+               h.order_no,
+               TO_CHAR(h.order_date, 'YYYY-MM-DD') AS order_date,
+               TO_CHAR(h.delivery_date, 'YYYY-MM-DD') AS delivery_date,
+               h.customer_cd,
+               h.order_type,
+               h.site_cd,
+               h.site_nm,
+               h.site_address,
+               h.total_amount,
+               h.tax_amount,
+               h.tax_separate,
+               h.duo_light,
+               h.remarks,
+               h.order_status,
+               h.is_urgent,
+               bp.bp_nm AS customer_nm,
+               (SELECT COUNT(*) FROM sales_order_detail d WHERE d.order_header_id = h.id) AS detail_count
+          FROM sales_order_header h
+          LEFT JOIN business_partner bp ON bp.bp_cd = h.customer_cd
+         WHERE h.site_nm = #{siteNm}
+         ORDER BY h.order_date DESC, h.id DESC
+    </select>
+
+    <select id="findById" resultType="com.biz.management.site.dto.SalesOrderHeaderDto">
+        SELECT h.id,
+               h.order_no,
+               TO_CHAR(h.order_date, 'YYYY-MM-DD') AS order_date,
+               TO_CHAR(h.delivery_date, 'YYYY-MM-DD') AS delivery_date,
+               h.customer_cd,
+               h.order_type,
+               h.site_cd,
+               h.site_nm,
+               h.site_address,
+               h.total_amount,
+               h.tax_amount,
+               h.tax_separate,
+               h.duo_light,
+               h.remarks,
+               h.order_status,
+               h.is_urgent,
+               bp.bp_nm AS customer_nm,
+               (SELECT COUNT(*) FROM sales_order_detail d WHERE d.order_header_id = h.id) AS detail_count
+          FROM sales_order_header h
+          LEFT JOIN business_partner bp ON bp.bp_cd = h.customer_cd
+         WHERE h.id = #{id}
+    </select>
+
+    <select id="nextOrderNo" resultType="string">
+        SELECT CONCAT(TO_CHAR(now(), 'YY'), '-',
+               LPAD(COALESCE(
+                   (SELECT CAST(SPLIT_PART(MAX(order_no), '-', 2) AS INTEGER) + 1
+                      FROM sales_order_header
+                     WHERE order_no LIKE CONCAT(TO_CHAR(now(), 'YY'), '-%')),
+                   1)::TEXT, 4, '0'))
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="req.id" keyColumn="id">
+        INSERT INTO sales_order_header (
+            order_no, order_date, delivery_date, customer_cd, order_type,
+            site_cd, site_nm, site_address,
+            tax_separate, duo_light, remarks, order_status, is_urgent
+        ) VALUES (
+            #{orderNo},
+            CAST(#{req.orderDate} AS DATE),
+            <choose>
+                <when test="req.deliveryDate != null and req.deliveryDate != ''">
+                    CAST(#{req.deliveryDate} AS DATE)
+                </when>
+                <otherwise>NULL</otherwise>
+            </choose>,
+            #{req.customerCd},
+            #{req.orderType},
+            #{req.siteCd},
+            #{req.siteNm},
+            #{req.siteAddress},
+            COALESCE(#{req.taxSeparate}, FALSE),
+            #{req.duoLight},
+            #{req.remarks},
+            'PENDING',
+            COALESCE(#{req.isUrgent}, FALSE)
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE sales_order_header
+           SET order_date     = CAST(#{req.orderDate} AS DATE),
+               delivery_date  =
+               <choose>
+                   <when test="req.deliveryDate != null and req.deliveryDate != ''">
+                       CAST(#{req.deliveryDate} AS DATE)
+                   </when>
+                   <otherwise>NULL</otherwise>
+               </choose>,
+               customer_cd    = #{req.customerCd},
+               order_type     = #{req.orderType},
+               site_cd        = #{req.siteCd},
+               site_nm        = #{req.siteNm},
+               site_address   = #{req.siteAddress},
+               tax_separate   = COALESCE(#{req.taxSeparate}, FALSE),
+               duo_light      = #{req.duoLight},
+               remarks        = #{req.remarks},
+               is_urgent      = COALESCE(#{req.isUrgent}, FALSE),
+               updated_at     = now()
+         WHERE id = #{id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM sales_order_header WHERE id = #{id}
+    </delete>
+
+    <update id="updateTotalAmount">
+        UPDATE sales_order_header
+           SET total_amount = (SELECT COALESCE(SUM(amount), 0) FROM sales_order_detail WHERE order_header_id = #{id}),
+               updated_at = now()
+         WHERE id = #{id}
+    </update>
+
+</mapper>

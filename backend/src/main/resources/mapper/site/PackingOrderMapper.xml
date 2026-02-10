@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.biz.management.site.mapper.PackingOrderMapper">
+
+    <select id="findAll" resultType="com.biz.management.site.dto.PackingOrderDto">
+        SELECT id,
+               packing_no,
+               TO_CHAR(packing_date, 'YYYY-MM-DD') AS packing_date,
+               order_no,
+               material_cd,
+               material_nm,
+               packing_qty,
+               unit,
+               container_cd,
+               container_qty,
+               worker_cd,
+               packing_status,
+               remarks
+          FROM hkgn.packing_order
+         ORDER BY packing_date DESC, packing_no
+    </select>
+
+</mapper>

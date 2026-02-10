@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.biz.management.meeting.mapper.DailyMeetingActionItemMapper">
+
+    <sql id="actionColumns">
+        ai.id, ai.meeting_id, ai.title, ai.description,
+        ai.assignee, TO_CHAR(ai.due_date, 'YYYY-MM-DD') AS due_date,
+        ai.priority, ai.status, ai.work_request_no,
+        ai.resolution_note, TO_CHAR(ai.resolved_at, 'YYYY-MM-DD HH24:MI') AS resolved_at,
+        TO_CHAR(m.meeting_date, 'YYYY-MM-DD') AS meeting_date
+    </sql>
+
+    <select id="findByMeetingId" resultType="com.biz.management.meeting.dto.MeetingActionItemDto">
+        SELECT <include refid="actionColumns"/>
+          FROM hkgn.daily_meeting_action_item ai
+          JOIN hkgn.daily_production_meeting m ON m.id = ai.meeting_id
+         WHERE ai.meeting_id = #{meetingId}
+         ORDER BY
+            CASE ai.priority WHEN 'HIGH' THEN 1 WHEN 'MEDIUM' THEN 2 ELSE 3 END,
+            ai.created_at DESC
+    </select>
+
+    <select id="findAllUnresolved" resultType="com.biz.management.meeting.dto.MeetingActionItemDto">
+        SELECT <include refid="actionColumns"/>
+          FROM hkgn.daily_meeting_action_item ai
+          JOIN hkgn.daily_production_meeting m ON m.id = ai.meeting_id
+         WHERE ai.status IN ('OPEN', 'IN_PROGRESS')
+         ORDER BY
+            CASE ai.priority WHEN 'HIGH' THEN 1 WHEN 'MEDIUM' THEN 2 ELSE 3 END,
+            ai.due_date NULLS LAST,
+            ai.created_at DESC
+    </select>
+
+    <select id="findById" resultType="com.biz.management.meeting.dto.MeetingActionItemDto">
+        SELECT <include refid="actionColumns"/>
+          FROM hkgn.daily_meeting_action_item ai
+          JOIN hkgn.daily_production_meeting m ON m.id = ai.meeting_id
+         WHERE ai.id = #{id}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO hkgn.daily_meeting_action_item (
+            meeting_id, title, description, assignee,
+            due_date, priority, status, work_request_no
+        ) VALUES (
+            #{meetingId}, #{title}, #{description}, #{assignee},
+            <choose>
+                <when test="dueDate != null and dueDate != ''">TO_DATE(#{dueDate}, 'YYYY-MM-DD')</when>
+                <otherwise>NULL</otherwise>
+            </choose>,
+            #{priority}, #{status}, #{workRequestNo}
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE hkgn.daily_meeting_action_item
+           SET title = #{title},
+               description = #{description},
+               assignee = #{assignee},
+               due_date = <choose>
+                   <when test="dueDate != null and dueDate != ''">TO_DATE(#{dueDate}, 'YYYY-MM-DD')</when>
+                   <otherwise>NULL</otherwise>
+               </choose>,
+               priority = #{priority},
+               status = #{status},
+               work_request_no = #{workRequestNo},
+               resolution_note = #{resolutionNote},
+               resolved_at = CASE WHEN #{status} = 'DONE' AND resolved_at IS NULL THEN now() ELSE resolved_at END,
+               updated_at = now()
+         WHERE id = #{id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM hkgn.daily_meeting_action_item WHERE id = #{id}
+    </delete>
+
+    <select id="countUnresolved" resultType="int">
+        SELECT COUNT(*)
+          FROM hkgn.daily_meeting_action_item
+         WHERE status IN ('OPEN', 'IN_PROGRESS')
+    </select>
+
+</mapper>

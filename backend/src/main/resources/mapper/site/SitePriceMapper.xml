@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.biz.management.site.mapper.SitePriceMapper">
+
+    <select id="findBySiteCd" resultType="com.biz.management.site.dto.SitePriceDto">
+        SELECT id,
+               site_cd,
+               site_nm,
+               customer_nm,
+               spec,
+               remark,
+               bid_price,
+               proc_price,
+               processing_cost,
+               argon_cost,
+               insul_cost,
+               struct_cost,
+               edge_cost,
+               etching_cost,
+               step_cost,
+               deform_cost,
+               temper1_cost,
+               temper2_cost,
+               temper3_cost,
+               total_processing_cost
+          FROM site_price
+         WHERE site_cd = #{siteCd}
+         ORDER BY id
+    </select>
+
+</mapper>

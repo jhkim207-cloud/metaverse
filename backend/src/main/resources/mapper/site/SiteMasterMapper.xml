@@ -42,4 +42,29 @@
         VALUES (#{siteCd}, #{siteNm}, #{constructorNm}, #{bpCd}, #{address}, #{remark})
     </insert>
 
+    <select id="existsBySiteCdExcludeId" resultType="boolean">
+        SELECT EXISTS(
+            SELECT 1 FROM site_master WHERE site_cd = #{siteCd} AND id != #{id}
+        )
+    </select>
+
+    <update id="update">
+        UPDATE site_master
+           SET site_cd        = #{req.siteCd},
+               site_nm        = #{req.siteNm},
+               constructor_nm = #{req.constructorNm},
+               bp_cd          = #{req.bpCd},
+               address        = #{req.address},
+               remark         = #{req.remark},
+               updated_at     = now()
+         WHERE id = #{id}
+    </update>
+
+    <update id="softDelete">
+        UPDATE site_master
+           SET is_active  = FALSE,
+               updated_at = now()
+         WHERE id = #{id}
+    </update>
+
 </mapper>

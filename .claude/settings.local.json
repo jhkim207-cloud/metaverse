@@ -72,7 +72,10 @@
       "Bash(git status:*)",
       "Bash(gh repo create:*)",
       "Bash(git remote set-url:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(del:*)",
+      "Bash(git rebase:*)",
+      "Bash(GIT_EDITOR=true git rebase:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
