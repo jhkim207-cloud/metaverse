@@ -1,0 +1,316 @@
+# AI Agent 출고(매출) 분석 테이블 설정
+# 이 파일에서 분석 대상 테이블과 SQL 쿼리를 관리합니다.
+# 새 테이블 추가 시 tables 배열에 항목을 추가하세요.
+
+tables:
+  # 출고 요약 (거래처별)
+  - name: delivery_by_customer
+    displayName: 거래처별 출고 요약
+    enabled: true
+    dateColumn: delivery_date
+    limit: 50
+    sql: |
+      SELECT
+          dh.customer_cd,
+          bp.bp_nm AS customer_name,
+          COUNT(DISTINCT dh.delivery_no) AS delivery_count,
+          SUM(dd.total_amount) AS total_amount,
+          SUM(dd.amount) AS supply_amount,
+          SUM(dd.tax) AS tax_amount,
+          SUM(dd.delivery_qty) AS total_qty,
+          SUM(dd.area) AS total_area
+      FROM hkgn.delivery_header dh
+      JOIN hkgn.delivery_detail dd ON dd.delivery_no = dh.delivery_no
+      LEFT JOIN hkgn.business_partner bp ON bp.bp_cd = dh.customer_cd
+      WHERE dh.delivery_date >= :startDate
+          AND dh.delivery_date <= :endDate
+      GROUP BY dh.customer_cd, bp.bp_nm
+      ORDER BY total_amount DESC
+      LIMIT :limit
+    fields:
+      - column: customer_name
+        label: 거래처명
+        fallback: customer_cd
+      - column: delivery_count
+        label: 출고건수
+      - column: total_qty
+        label: 총수량
+      - column: total_area
+        label: 총면적
+      - column: supply_amount
+        label: 공급가액
+      - column: tax_amount
+        label: 세액
+      - column: total_amount
+        label: 총출고금액
+
+  # 출고 요약 (현장별)
+  - name: delivery_by_site
+    displayName: 현장별 출고 요약
+    enabled: true
+    dateColumn: delivery_date
+    limit: 50
+    sql: |
+      SELECT
+          dh.site_cd,
+          soh.site_nm,
+          dh.customer_cd,
+          bp.bp_nm AS customer_name,
+          COUNT(DISTINCT dh.delivery_no) AS delivery_count,
+          SUM(dd.total_amount) AS total_amount,
+          SUM(dd.delivery_qty) AS total_qty,
+          SUM(dd.area) AS total_area
+      FROM hkgn.delivery_header dh
+      JOIN hkgn.delivery_detail dd ON dd.delivery_no = dh.delivery_no
+      LEFT JOIN hkgn.sales_order_header soh ON soh.order_no = dh.order_no
+      LEFT JOIN hkgn.business_partner bp ON bp.bp_cd = dh.customer_cd
+      WHERE dh.delivery_date >= :startDate
+          AND dh.delivery_date <= :endDate
+      GROUP BY dh.site_cd, soh.site_nm, dh.customer_cd, bp.bp_nm
+      ORDER BY total_amount DESC
+      LIMIT :limit
+    fields:
+      - column: site_nm
+        label: 현장명
+        fallback: site_cd
+      - column: customer_name
+        label: 거래처명
+        fallback: customer_cd
+      - column: delivery_count
+        label: 출고건수
+      - column: total_qty
+        label: 총수량
+      - column: total_area
+        label: 총면적
+      - column: total_amount
+        label: 총출고금액
+
+  # 출고 요약 (자재별)
+  - name: delivery_by_material
+    displayName: 자재별 출고 요약
+    enabled: true
+    dateColumn: delivery_date
+    limit: 50
+    sql: |
+      SELECT
+          dd.material_cd,
+          dd.material_nm,
+          dd.category,
+          COUNT(DISTINCT dd.delivery_no) AS delivery_count,
+          SUM(dd.delivery_qty) AS total_qty,
+          SUM(dd.area) AS total_area,
+          SUM(dd.amount) AS supply_amount,
+          SUM(dd.total_amount) AS total_amount,
+          AVG(dd.unit_price) AS avg_unit_price
+      FROM hkgn.delivery_detail dd
+      JOIN hkgn.delivery_header dh ON dh.delivery_no = dd.delivery_no
+      WHERE dh.delivery_date >= :startDate
+          AND dh.delivery_date <= :endDate
+      GROUP BY dd.material_cd, dd.material_nm, dd.category
+      ORDER BY total_amount DESC
+      LIMIT :limit
+    fields:
+      - column: material_nm
+        label: 자재명
+        fallback: material_cd
+      - column: category
+        label: 구분
+      - column: delivery_count
+        label: 출고건수
+      - column: total_qty
+        label: 총수량
+      - column: total_area
+        label: 총면적
+      - column: supply_amount
+        label: 공급가액
+      - column: total_amount
+        label: 총출고금액
+      - column: avg_unit_price
+        label: 평균단가
+
+  # 월별 출고 추이
+  - name: delivery_monthly_trend
+    displayName: 월별 출고 추이
+    enabled: true
+    dateColumn: delivery_date
+    limit: 24
+    sql: |
+      SELECT
+          TO_CHAR(dh.delivery_date, 'YYYY-MM') AS year_month,
+          COUNT(DISTINCT dh.delivery_no) AS delivery_count,
+          SUM(dd.delivery_qty) AS total_qty,
+          SUM(dd.area) AS total_area,
+          SUM(dd.total_amount) AS total_amount
+      FROM hkgn.delivery_header dh
+      JOIN hkgn.delivery_detail dd ON dd.delivery_no = dh.delivery_no
+      WHERE dh.delivery_date >= :startDate
+          AND dh.delivery_date <= :endDate
+      GROUP BY TO_CHAR(dh.delivery_date, 'YYYY-MM')
+      ORDER BY year_month DESC
+      LIMIT :limit
+    fields:
+      - column: year_month
+        label: 년월
+      - column: delivery_count
+        label: 출고건수
+      - column: total_qty
+        label: 총수량
+      - column: total_area
+        label: 총면적
+      - column: total_amount
+        label: 총출고금액
+
+  # 최근 출고 내역
+  - name: delivery_recent
+    displayName: 최근 출고 내역
+    enabled: true
+    dateColumn: delivery_date
+    limit: 20
+    sql: |
+      SELECT
+          dh.delivery_no,
+          dh.delivery_date,
+          dh.order_no,
+          bp.bp_nm AS customer_name,
+          soh.site_nm,
+          dh.delivery_status,
+          dd.material_nm,
+          dd.category,
+          dd.delivery_qty,
+          dd.unit,
+          dd.area,
+          dd.total_amount
+      FROM hkgn.delivery_header dh
+      JOIN hkgn.delivery_detail dd ON dd.delivery_no = dh.delivery_no
+      LEFT JOIN hkgn.business_partner bp ON bp.bp_cd = dh.customer_cd
+      LEFT JOIN hkgn.sales_order_header soh ON soh.order_no = dh.order_no
+      WHERE dh.delivery_date >= :startDate
+          AND dh.delivery_date <= :endDate
+      ORDER BY dh.delivery_date DESC, dh.delivery_no DESC
+      LIMIT :limit
+    fields:
+      - column: delivery_no
+        label: 출고번호
+      - column: delivery_date
+        label: 출고일
+      - column: order_no
+        label: 수주번호
+      - column: customer_name
+        label: 거래처명
+      - column: site_nm
+        label: 현장명
+        optional: true
+      - column: delivery_status
+        label: 출고상태
+      - column: material_nm
+        label: 자재명
+      - column: category
+        label: 구분
+      - column: delivery_qty
+        label: 출고수량
+      - column: unit
+        label: 단위
+      - column: area
+        label: 면적
+      - column: total_amount
+        label: 총금액
+
+  # 자재명 검색 (searchable)
+  - name: delivery_by_material_search
+    displayName: 자재 검색 결과
+    enabled: true
+    dateColumn: delivery_date
+    limit: 100
+    searchable: true
+    searchColumn: material_nm
+    sql: |
+      SELECT
+          dh.delivery_date,
+          dh.delivery_no,
+          bp.bp_nm AS customer_name,
+          dd.material_nm,
+          dd.category,
+          dd.thickness,
+          dd.width,
+          dd.height,
+          dd.delivery_qty,
+          dd.unit,
+          dd.area,
+          dd.unit_price,
+          dd.total_amount
+      FROM hkgn.delivery_detail dd
+      JOIN hkgn.delivery_header dh ON dh.delivery_no = dd.delivery_no
+      LEFT JOIN hkgn.business_partner bp ON bp.bp_cd = dh.customer_cd
+      WHERE dh.delivery_date >= :startDate
+          AND dh.delivery_date <= :endDate
+          AND dd.material_nm ILIKE :searchKeyword
+      ORDER BY dh.delivery_date DESC, dd.total_amount DESC
+      LIMIT :limit
+    fields:
+      - column: delivery_date
+        label: 출고일
+      - column: delivery_no
+        label: 출고번호
+      - column: customer_name
+        label: 거래처명
+      - column: material_nm
+        label: 자재명
+      - column: category
+        label: 구분
+      - column: thickness
+        label: 두께
+      - column: width
+        label: 가로
+      - column: height
+        label: 세로
+      - column: delivery_qty
+        label: 출고수량
+      - column: unit
+        label: 단위
+      - column: area
+        label: 면적
+      - column: unit_price
+        label: 단가
+      - column: total_amount
+        label: 총금액
+
+  # 자재별 출고 요약 검색 (searchable)
+  - name: delivery_material_summary_search
+    displayName: 자재별 출고 요약 (검색)
+    enabled: true
+    dateColumn: delivery_date
+    limit: 50
+    searchable: true
+    searchColumn: material_nm
+    sql: |
+      SELECT
+          dd.material_nm,
+          dd.category,
+          COUNT(DISTINCT dh.customer_cd) AS customer_count,
+          COUNT(DISTINCT dd.delivery_no) AS delivery_count,
+          SUM(dd.delivery_qty) AS total_qty,
+          SUM(dd.area) AS total_area,
+          SUM(dd.total_amount) AS total_amount
+      FROM hkgn.delivery_detail dd
+      JOIN hkgn.delivery_header dh ON dh.delivery_no = dd.delivery_no
+      WHERE dh.delivery_date >= :startDate
+          AND dh.delivery_date <= :endDate
+          AND dd.material_nm ILIKE :searchKeyword
+      GROUP BY dd.material_nm, dd.category
+      ORDER BY total_amount DESC
+      LIMIT :limit
+    fields:
+      - column: material_nm
+        label: 자재명
+      - column: category
+        label: 구분
+      - column: customer_count
+        label: 거래처수
+      - column: delivery_count
+        label: 출고건수
+      - column: total_qty
+        label: 총수량
+      - column: total_area
+        label: 총면적
+      - column: total_amount
+        label: 총출고금액

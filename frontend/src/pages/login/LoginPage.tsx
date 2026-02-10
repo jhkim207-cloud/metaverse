@@ -11,7 +11,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   const [employeeId, setEmployeeId] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [errorDetail, setErrorDetail] = useState('');

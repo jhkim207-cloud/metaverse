@@ -3,7 +3,7 @@
 ## Context
 
 HKGNTech AI Agents 헤더 버튼에 2개 AI 기능을 추가한다:
-1. **매출 분석 - Gemini**: 자연어 질문으로 출고(delivery) 데이터를 Gemini AI가 분석하여 SSE 스트리밍 응답
+1. **출고(매출) 분석 - Gemini**: 자연어 질문으로 출고(delivery) 데이터를 Gemini AI가 분석하여 SSE 스트리밍 응답
 2. **자연어 SQL (NL2SQL)**: 자연어를 SQL로 변환하여 실행, Fallback: Gemini 실패 시 GPT-4O 자동 전환
 
 biz_platform 프로젝트의 `SalesAnalysisAIController.java`와 `NL2SQLController.java`를 참조하여 동일한 아키텍처로 구축하되, HKGN 프로젝트의 도메인(delivery_header, delivery_detail)에 맞게 적용한다.
@@ -32,7 +32,7 @@ biz_platform 프로젝트의 `SalesAnalysisAIController.java`와 `NL2SQLControll
 | # | 파일 | 변경 내용 |
 |---|------|----------|
 | 11 | `backend/pom.xml` | `google-genai` 의존성 추가 |
-| 12 | `frontend/src/App.tsx` | AI Agents 드롭다운 메뉴 + 라우팅 추가 |
+| 12 | `frontend/src/App.tsx` | AI Agents 드롭다운 메뉴 + 모달 추가 |
 
 ---
 
@@ -64,13 +64,16 @@ biz_platform 프로젝트의 `SalesAnalysisAIController.java`와 `NL2SQLControll
 biz_platform의 `sales-ai-tables.yml` 패턴을 따라 delivery_header + delivery_detail 기반 쿼리 템플릿 정의:
 
 - **delivery_by_customer**: 거래처별 출고 요약 (delivery_header JOIN business_partner)
+- **delivery_by_site**: 현장별 출고 요약 (delivery_header JOIN sales_order_header → site_nm)
 - **delivery_by_material**: 자재별 출고 요약 (delivery_detail 기준)
 - **delivery_monthly_trend**: 월별 출고 추이
 - **delivery_recent**: 최근 출고 내역 (header + detail JOIN)
 - **delivery_by_material_search**: 자재명 검색 (searchable=true)
 - **delivery_material_summary_search**: 자재별 출고 요약 검색 (searchable=true)
 
-모든 쿼리는 `hkgn.delivery_header`, `hkgn.delivery_detail`, `hkgn.business_partner`, `hkgn.site_master` 테이블 사용. 날짜 필터 컬럼은 `delivery_date`.
+**delivery_by_site 조인 경로**: `delivery_header.order_no → sales_order_header.order_no → site_nm`
+
+모든 쿼리는 `hkgn.delivery_header`, `hkgn.delivery_detail`, `hkgn.business_partner`, `hkgn.sales_order_header` 테이블 사용. 날짜 필터 컬럼은 `delivery_date`.
 
 ---
 
@@ -258,21 +261,32 @@ SSECallbacks 인터페이스:
 
 ## Step 10: App.tsx 수정
 
+### UI 동작 방식: 드롭다운 → 모달 창
+1. "HKGNTech AI Agents" 버튼 클릭 → **드롭다운 메뉴** 표시
+2. 메뉴 항목 클릭 → **모달(팝업) 창**이 화면 중앙에 열림
+3. 모달 안에서 AI 기능 사용 (현재 화면 유지, 뒤에 반투명 오버레이)
+4. 모달 닫기: X 버튼 또는 오버레이 클릭
+
 ### 변경 내용:
-1. **AI Agents 드롭다운 메뉴** 추가 (현재는 단순 버튼):
-   - "HKGNTech AI Agents" 버튼 클릭 시 드롭다운 표시
-   - 메뉴 항목: "매출 분석 - Gemini", "자연어 SQL (NL2SQL)"
-   - 선택 시 해당 페이지로 라우팅
+1. **드롭다운 메뉴 추가**:
+   - "HKGNTech AI Agents" 버튼에 `onClick` → `aiMenuOpen` 토글
+   - 메뉴 항목: "출고(매출) 분석 - Gemini" (Bot 아이콘), "자연어 SQL (NL2SQL)" (Database 아이콘)
+   - 바깥 클릭 시 드롭다운 닫힘
 
-2. **상태 추가**: `aiMenuOpen` (드롭다운 열림/닫힘)
+2. **모달 렌더링**:
+   - 상태: `aiModalType: 'delivery' | 'nl2sql' | null`
+   - 드롭다운 항목 클릭 시 `aiModalType` 설정 → 모달 열림
+   - 모달 크기: `width: 90vw, maxWidth: 1200px, height: 80vh`
+   - 오버레이: `position: fixed, background: rgba(0,0,0,0.5), zIndex: 1000`
+   - 모달 본체: `background: var(--panel-1), borderRadius: 12, overflow: hidden`
+   - 모달 헤더: 제목 + X 닫기 버튼
+   - 모달 콘텐츠: `aiModalType === 'delivery'` → `<DeliveryAnalysisPage />`, `aiModalType === 'nl2sql'` → `<NL2SQLPage />`
 
-3. **라우팅 추가**: 센터 패널 렌더링 분기에 AI 페이지 케이스 추가:
-   ```
-   selectedMenuCode === 'AI_DELIVERY_ANALYSIS' → <DeliveryAnalysisPage />
-   selectedMenuCode === 'AI_NL2SQL' → <NL2SQLPage />
-   ```
+3. **상태 추가**:
+   - `aiMenuOpen: boolean` (드롭다운 열림/닫힘)
+   - `aiModalType: 'delivery' | 'nl2sql' | null` (모달 타입)
 
-4. **import 추가**: DeliveryAnalysisPage, NL2SQLPage, Bot/Database 아이콘
+4. **import 추가**: DeliveryAnalysisPage, NL2SQLPage, Bot/Database/X 아이콘
 
 ---
 
@@ -287,9 +301,29 @@ SSECallbacks 인터페이스:
 6. ai.types.ts (프론트 타입)
 7. aiApi.ts (API 서비스)
 8. useDeliveryAnalysis.ts + useNL2SQL.ts (훅)
-9. DeliveryAnalysisPage.tsx + NL2SQLPage.tsx (페이지)
-10. App.tsx (라우팅 + 드롭다운)
+9. DeliveryAnalysisPage.tsx + NL2SQLPage.tsx (모달 내부 콘텐츠)
+10. App.tsx (드롭다운 + 모달)
 ```
+
+---
+
+## 사전 작업: GreetingBanner 사용자 이름 동적 표시
+
+현재 `GreetingBanner.tsx`에 `관리자`가 하드코딩되어 있으므로 로그인한 사용자 이름으로 변경한다.
+
+### 수정 파일 3개:
+
+1. **`frontend/src/pages/home/GreetingBanner.tsx`**
+   - props로 `userName: string` 받기
+   - line 4: `const userName = '관리자'` 제거 → props 사용
+   - line 29: 우측 배지도 `userName`으로 변경
+
+2. **`frontend/src/pages/home/HomePage.tsx`**
+   - `HomePageProps`에 `userName: string` 추가
+   - `<GreetingBanner userName={userName} />` 으로 전달
+
+3. **`frontend/src/App.tsx`**
+   - `<HomePage>` 호출 시 `userName={currentUser.name}` 추가 (line 735~739 부근)
 
 ---
 
@@ -303,5 +337,7 @@ SSECallbacks 인터페이스:
    - `GET /api/v1/nl2sql/schema` → DB 스키마 반환 확인
    - `POST /api/v1/nl2sql/query` with `{"question": "출고 완료된 건 목록"}` → SQL 생성 + 결과 반환 확인
 4. **Frontend**:
-   - AI Agents 드롭다운에서 두 메뉴 클릭 → 각 페이지 렌더링 확인
-   - 질문 입력 → SSE 스트리밍 동작 확인
+   - AI Agents 버튼 클릭 → 드롭다운 메뉴 2개 항목 표시 확인
+   - 드롭다운 항목 클릭 → 모달 창 열림 확인 (현재 화면 유지)
+   - 모달 안에서 질문 입력 → SSE 스트리밍 동작 확인
+   - 모달 X 버튼 / 오버레이 클릭 → 모달 닫힘 확인

@@ -36,6 +36,8 @@ import {
   HardHat,
   AlertTriangle,
   Warehouse,
+  Bot,
+  Database,
 } from 'lucide-react';
 import { DatePicker } from './components/common/DatePicker';
 import { WorkflowPage } from './pages/production/WorkflowPage';
@@ -47,6 +49,8 @@ import { HomePage } from './pages/home/HomePage';
 import { DashboardDetail } from './pages/home/DashboardDetail';
 import { TodaySitePanel } from './pages/home/TodaySitePanel';
 import { LoginPage } from './pages/login/LoginPage';
+import { DeliveryAnalysisPage } from './pages/ai/DeliveryAnalysisPage';
+import { NL2SQLPage } from './pages/ai/NL2SQLPage';
 import type { LoginResponse } from './types/auth.types';
 import type { MenuDto } from './types/menu.types';
 import type { WorkflowItem } from './types/workflow.types';
@@ -179,40 +183,63 @@ function SideMenu({
   );
 }
 
+const AUTH_STORAGE_KEY = 'hkgn_auth';
+
+function loadAuthFromStorage(): { user: CurrentUser; menus: MenuDto[] } | null {
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed?.user?.name && Array.isArray(parsed?.menus)) {
+      return { user: { ...parsed.user, date: new Date().toLocaleDateString('ko-KR') }, menus: parsed.menus };
+    }
+  } catch { /* corrupted data */ }
+  localStorage.removeItem(AUTH_STORAGE_KEY);
+  return null;
+}
+
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentUser, setCurrentUser] = useState<CurrentUser>({
-    name: '',
-    date: new Date().toLocaleDateString('ko-KR'),
-    avatar: null,
-  });
-  const [menus, setMenus] = useState<MenuDto[]>([]);
+  const saved = loadAuthFromStorage();
+  const [isAuthenticated, setIsAuthenticated] = useState(!!saved);
+  const [currentUser, setCurrentUser] = useState<CurrentUser>(
+    saved?.user ?? { name: '', date: new Date().toLocaleDateString('ko-KR'), avatar: null },
+  );
+  const [menus, setMenus] = useState<MenuDto[]>(saved?.menus ?? []);
   const [menuLoading] = useState(false);
 
   const handleLogin = useCallback((loginData: LoginResponse) => {
-    setCurrentUser({
+    const user: CurrentUser = {
       name: loginData.displayName || loginData.username,
       date: new Date().toLocaleDateString('ko-KR'),
       avatar: null,
-    });
+    };
+    setCurrentUser(user);
     setMenus(loginData.menus);
     setIsAuthenticated(true);
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ user, menus: loginData.menus }));
   }, []);
 
   const handleLogout = useCallback(() => {
     setIsAuthenticated(false);
     setCurrentUser({ name: '', date: '', avatar: null });
     setMenus([]);
+    localStorage.removeItem(AUTH_STORAGE_KEY);
   }, []);
   const [selectedMenuCode, setSelectedMenuCode] = useState<string | null>(null);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const saved = localStorage.getItem('hkgn_theme');
+    return saved === 'light' ? 'light' : 'dark';
+  });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [backendStatus, setBackendStatus] = useState<'loading' | 'ok' | 'error'>('loading');
   const [menuSearchQuery, setMenuSearchQuery] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date(2026, 0, 31));
   const [selectedWorkflowItem, setSelectedWorkflowItem] = useState<WorkflowItem | SiteMaster | null>(null);
   const [selectedDashboardWidget, setSelectedDashboardWidget] = useState<string | null>(null);
+  const [aiMenuOpen, setAiMenuOpen] = useState(false);
+  const [aiModalType, setAiModalType] = useState<'delivery' | 'nl2sql' | null>(null);
+  const aiMenuRef = useRef<HTMLDivElement>(null);
   const { stageCounts } = useWorkflowCounts();
 
   const handleStepperClick = useCallback((stageCode: string) => {
@@ -305,6 +332,7 @@ function App() {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('hkgn_theme', theme);
   }, [theme]);
 
   useEffect(() => {
@@ -313,6 +341,18 @@ function App() {
       .then(() => setBackendStatus('ok'))
       .catch(() => setBackendStatus('error'));
   }, []);
+
+  // AI 메뉴 바깥 클릭 시 닫기
+  useEffect(() => {
+    if (!aiMenuOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (aiMenuRef.current && !aiMenuRef.current.contains(e.target as Node)) {
+        setAiMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [aiMenuOpen]);
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
@@ -386,26 +426,85 @@ function App() {
 
         {/* 우측: Quick Action + 알림 + 테마 토글 + 사용자 정보 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          {/* Quick Action 버튼 */}
-          <button
-            type="button"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '8px 16px',
-              background: 'var(--accent)',
-              border: 'none',
-              borderRadius: 8,
-              color: 'var(--on-accent)',
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
-          >
-            <Plus size={16} />
-            HKGNTech AI Agents
-          </button>
+          {/* AI Agents 드롭다운 */}
+          <div ref={aiMenuRef} style={{ position: 'relative' }}>
+            <button
+              type="button"
+              onClick={() => setAiMenuOpen((prev) => !prev)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '8px 16px',
+                background: 'var(--accent)',
+                border: 'none',
+                borderRadius: 8,
+                color: 'var(--on-accent)',
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              <Bot size={16} />
+              HKGNTech AI Agents
+              <ChevronDown size={14} style={{ transform: aiMenuOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+            </button>
+            {aiMenuOpen && (
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                right: 0,
+                marginTop: 6,
+                background: 'var(--panel-solid)',
+                border: '1px solid var(--border)',
+                borderRadius: 10,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.24)',
+                zIndex: 100,
+                minWidth: 220,
+                overflow: 'hidden',
+              }}>
+                <button
+                  type="button"
+                  onClick={() => { setAiModalType('delivery'); setAiMenuOpen(false); }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    width: '100%', padding: '12px 16px',
+                    background: 'transparent', border: 'none',
+                    color: 'var(--text)', fontSize: 13, cursor: 'pointer',
+                    textAlign: 'left',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--panel-2)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                >
+                  <Bot size={18} style={{ color: 'var(--accent)' }} />
+                  <div>
+                    <div style={{ fontWeight: 600 }}>출고(매출) 분석</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>Gemini AI</div>
+                  </div>
+                </button>
+                <div style={{ height: 1, background: 'var(--border)' }} />
+                <button
+                  type="button"
+                  onClick={() => { setAiModalType('nl2sql'); setAiMenuOpen(false); }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    width: '100%', padding: '12px 16px',
+                    background: 'transparent', border: 'none',
+                    color: 'var(--text)', fontSize: 13, cursor: 'pointer',
+                    textAlign: 'left',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--panel-2)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                >
+                  <Database size={18} style={{ color: 'var(--accent)' }} />
+                  <div>
+                    <div style={{ fontWeight: 600 }}>자연어 SQL</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>NL2SQL (Gemini + GPT-4O)</div>
+                  </div>
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* 알림 · 승인 */}
           <button
@@ -938,6 +1037,80 @@ function App() {
                 setMobileMenuOpen(false);
               }}
             />
+          </div>
+        </div>
+      )}
+
+      {/* AI Modal */}
+      {aiModalType && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          {/* Overlay */}
+          <div
+            onClick={() => setAiModalType(null)}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'rgba(0,0,0,0.5)',
+              backdropFilter: 'blur(4px)',
+            }}
+          />
+          {/* Modal */}
+          <div style={{
+            position: 'relative',
+            width: '90vw',
+            maxWidth: 1200,
+            height: '80vh',
+            background: 'var(--panel-solid)',
+            borderRadius: 16,
+            border: '1px solid var(--border)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.24)',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+          }}>
+            {/* Modal Header */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '14px 20px',
+              borderBottom: '1px solid var(--border)',
+              flexShrink: 0,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                {aiModalType === 'delivery' ? <Bot size={20} style={{ color: 'var(--accent)' }} /> : <Database size={20} style={{ color: 'var(--accent)' }} />}
+                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: 'var(--text)' }}>
+                  {aiModalType === 'delivery' ? '출고(매출) 분석 - Gemini' : '자연어 SQL (NL2SQL)'}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAiModalType(null)}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: 32, height: 32, borderRadius: 8,
+                  background: 'transparent', border: 'none',
+                  color: 'var(--text-secondary)', cursor: 'pointer',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--panel-2)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            {/* Modal Content */}
+            <div style={{ flex: 1, overflow: 'hidden' }}>
+              {aiModalType === 'delivery' ? <DeliveryAnalysisPage /> : <NL2SQLPage />}
+            </div>
           </div>
         </div>
       )}

@@ -76,6 +76,12 @@
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-crypto</artifactId>
     </dependency>
+    <!-- Gemini AI SDK -->
+    <dependency>
+      <groupId>com.google.genai</groupId>
+      <artifactId>google-genai</artifactId>
+      <version>1.0.0</version>
+    </dependency>
   </dependencies>
 
   <build>
