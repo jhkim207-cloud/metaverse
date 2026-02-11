@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.biz.management.production.mapper.ProductionDashboardMapper">
+
+    <!-- 오늘의 호기별 생산 실적 -->
+    <select id="findDailyProductionByMachine" resultType="com.biz.management.production.dto.ProductionStatsDto">
+        SELECT pp.machine_no,
+               COALESCE(SUM(pr.good_qty), 0)   AS good_qty,
+               COALESCE(SUM(pr.defect_qty), 0)  AS defect_qty,
+               COALESCE(SUM(pr.total_qty), 0)   AS total_qty,
+               COALESCE(SUM(pr.good_area), 0)   AS good_area,
+               COALESCE(SUM(pr.defect_area), 0) AS defect_area,
+               COALESCE(SUM(pr.total_area), 0)  AS total_area
+          FROM production_plan pp
+          LEFT JOIN production_result pr ON pp.plan_no = pr.plan_no
+         WHERE pp.production_date = #{date}::DATE
+         GROUP BY pp.machine_no
+         ORDER BY pp.machine_no
+    </select>
+
+    <!-- 오늘의 양품/불량 집계 -->
+    <select id="findDailyDefectSummary" resultType="com.biz.management.production.dto.ProductionStatsDto">
+        SELECT COALESCE(SUM(good_qty), 0)   AS good_qty,
+               COALESCE(SUM(defect_qty), 0)  AS defect_qty,
+               COALESCE(SUM(total_qty), 0)   AS total_qty
+          FROM production_result
+         WHERE production_date = #{date}::DATE
+    </select>
+
+    <!-- 오늘의 재단 로스율 -->
+    <select id="findDailyCuttingLoss" resultType="com.biz.management.production.dto.CuttingStatsDto">
+        SELECT COALESCE(SUM(used_area), 0)                                    AS used_area,
+               COALESCE(SUM(loss_area), 0)                                    AS loss_area,
+               COALESCE(SUM(used_area), 0) + COALESCE(SUM(loss_area), 0)     AS total_area,
+               CASE WHEN (COALESCE(SUM(used_area), 0) + COALESCE(SUM(loss_area), 0)) > 0
+                    THEN ROUND(COALESCE(SUM(loss_area), 0) * 100.0
+                         / (COALESCE(SUM(used_area), 0) + COALESCE(SUM(loss_area), 0)), 1)
+                    ELSE 0
+               END AS loss_rate
+          FROM cutting_daily_report
+         WHERE report_date = #{date}::DATE
+    </select>
+
+    <!-- 주간 생산 추이 -->
+    <select id="findWeeklyTrend" resultType="com.biz.management.production.dto.ProductionStatsDto">
+        SELECT TO_CHAR(production_date, 'MM/DD') AS machine_no,
+               COALESCE(SUM(good_qty), 0)   AS good_qty,
+               COALESCE(SUM(defect_qty), 0)  AS defect_qty,
+               COALESCE(SUM(total_qty), 0)   AS total_qty
+          FROM production_result
+         WHERE production_date BETWEEN #{startDate}::DATE AND #{endDate}::DATE
+         GROUP BY production_date
+         ORDER BY production_date
+    </select>
+
+    <!-- 용기 현황 (위치유형별 집계) -->
+    <select id="findContainerStatus" resultType="com.biz.management.production.dto.ContainerStatsDto">
+        SELECT location_type,
+               COALESCE(SUM(quantity), 0) AS quantity
+          FROM container_inventory
+         GROUP BY location_type
+         ORDER BY location_type
+    </select>
+
+</mapper>

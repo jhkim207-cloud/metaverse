@@ -6,7 +6,7 @@
  * 기타 단계: 기존 workflow 데이터 표시
  */
 
-import { useState, useMemo, useCallback, useRef, useEffect, CSSProperties } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect, lazy, Suspense, CSSProperties } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import type { ColDef, GridReadyEvent } from 'ag-grid-community';
 import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
@@ -31,11 +31,17 @@ import type { WorkflowItem } from '../../types/workflow.types';
 import type { SiteMaster, BusinessPartner, SitePrice } from '../../types/site.types';
 import { WORKFLOW_STAGES, STATUS_CONFIG, PRIORITY_CONFIG } from '../../constants/workflow';
 
+// 3D 파이프라인: Dynamic Import (Three.js 번들 분리)
+const WorkflowPipeline3D = lazy(() =>
+  import('../../components/three/workflow/WorkflowPipeline3D').then(m => ({ default: m.WorkflowPipeline3D }))
+);
+
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 const VIEW_OPTIONS = [
   { value: 'grid', label: '그리드' },
   { value: 'kanban', label: '칸반' },
+  { value: '3d', label: '3D' },
 ];
 
 interface WorkflowPageProps {
@@ -43,9 +49,10 @@ interface WorkflowPageProps {
   mode: 'monitor' | 'manage';
   filterStage?: string;
   onItemSelect: (item: WorkflowItem | SiteMaster | null) => void;
+  stageCounts?: import('../../types/workflow.types').StageCount[];
 }
 
-export function WorkflowPage({ menuCode, mode, filterStage, onItemSelect }: WorkflowPageProps) {
+export function WorkflowPage({ menuCode, mode, filterStage, onItemSelect, stageCounts }: WorkflowPageProps) {
   const activeStage = useMemo(() => {
     // monitor 모드: 스테퍼에서 선택한 filterStage 사용
     if (mode === 'monitor' && filterStage) return filterStage;
@@ -337,6 +344,17 @@ export function WorkflowPage({ menuCode, mode, filterStage, onItemSelect }: Work
               : '해당 단계에 등록된 업무 항목이 없습니다.'
             }
           />
+        ) : !isProjectStage && viewMode === '3d' ? (
+          <Suspense fallback={<div style={{ padding: 16 }}><Skeleton variant="rounded" width="100%" height={360} /></div>}>
+            <WorkflowPipeline3D
+              activeStage={activeStage}
+              onStageClick={(code) => {
+                const menu = WORKFLOW_STAGES.find(s => s.code === code);
+                if (menu) onItemSelect(null);
+              }}
+              stageCounts={stageCounts}
+            />
+          </Suspense>
         ) : !isProjectStage && viewMode === 'kanban' ? (
           <div style={{ padding: 12 }}>
             <KanbanBoard items={items} onItemClick={handleItemClick} />

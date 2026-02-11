@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import {
   Settings,
   X,
@@ -44,6 +44,26 @@ import { WorkflowPage } from './pages/production/WorkflowPage';
 import { DailyMeetingPage } from './pages/production/DailyMeetingPage';
 import { WorkflowStepper } from './components/workflow/WorkflowStepper';
 import { StageDetailPanel } from './components/workflow/StageDetailPanel';
+
+// 3D 스마트 팩토리: Dynamic Import
+const ProductionDashboard3D = lazy(() =>
+  import('./components/three/dashboard/ProductionDashboard3D').then(m => ({ default: m.ProductionDashboard3D }))
+);
+const CuttingOptimizer3D = lazy(() =>
+  import('./components/three/cutting/CuttingOptimizer3D').then(m => ({ default: m.CuttingOptimizer3D }))
+);
+const FactoryFloor3D = lazy(() =>
+  import('./components/three/factory/FactoryFloor3D').then(m => ({ default: m.FactoryFloor3D }))
+);
+const Warehouse3D = lazy(() =>
+  import('./components/three/inventory/Warehouse3D').then(m => ({ default: m.Warehouse3D }))
+);
+const QualityDashboard3D = lazy(() =>
+  import('./components/three/quality/QualityDashboard3D').then(m => ({ default: m.QualityDashboard3D }))
+);
+const WorkerHeatmap3D = lazy(() =>
+  import('./components/three/worker/WorkerHeatmap3D').then(m => ({ default: m.WorkerHeatmap3D }))
+);
 import { SiteDetailPanel } from './components/site/SiteDetailPanel';
 import { WorkerAssignmentPanel } from './components/workflow/WorkerAssignmentPanel';
 import { useWorkflowCounts } from './hooks/useWorkflow';
@@ -511,6 +531,40 @@ function App() {
             )}
           </div>
 
+          {/* 3D 스마트 팩토리 메뉴 */}
+          <div style={{ display: 'flex', gap: 4, position: 'relative' }}>
+            {[
+              { code: 'DASHBOARD_3D', label: '생산', title: '생산 대시보드 3D' },
+              { code: 'CUTTING_3D', label: '재단', title: '재단 최적화 3D' },
+              { code: 'FACTORY_3D', label: '공장', title: '공장 현황 3D' },
+              { code: 'WAREHOUSE_3D', label: '창고', title: '창고 재고 3D' },
+              { code: 'QUALITY_3D', label: '품질', title: '품질 SPC 3D' },
+              { code: 'WORKER_3D', label: '인력', title: '작업자 배치 3D' },
+            ].map((btn) => (
+              <button
+                key={btn.code}
+                type="button"
+                onClick={() => setSelectedMenuCode(btn.code)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  padding: '5px 10px',
+                  background: selectedMenuCode === btn.code ? 'var(--accent)' : 'var(--btn-bg)',
+                  border: selectedMenuCode === btn.code ? 'none' : '1px solid var(--btn-border)',
+                  borderRadius: 6,
+                  color: selectedMenuCode === btn.code ? 'var(--on-accent)' : 'var(--btn-text)',
+                  fontSize: 11,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+                title={btn.title}
+              >
+                {btn.label}
+              </button>
+            ))}
+          </div>
+
           {/* 알림 · 승인 */}
           <button
             type="button"
@@ -853,7 +907,52 @@ function App() {
                       menuCode={selectedMenuCode}
                       mode="manage"
                       onItemSelect={setSelectedWorkflowItem}
+                      stageCounts={stageCounts}
                     />
+                  );
+                }
+
+                // 3D 스마트 팩토리 뷰
+                if (selectedMenuCode === 'DASHBOARD_3D') {
+                  return (
+                    <Suspense fallback={<div style={{ padding: 16, color: 'var(--text-tertiary)' }}>3D 대시보드 로딩 중...</div>}>
+                      <ProductionDashboard3D />
+                    </Suspense>
+                  );
+                }
+                if (selectedMenuCode === 'CUTTING_3D') {
+                  return (
+                    <Suspense fallback={<div style={{ padding: 16, color: 'var(--text-tertiary)' }}>재단 3D 로딩 중...</div>}>
+                      <CuttingOptimizer3D />
+                    </Suspense>
+                  );
+                }
+                if (selectedMenuCode === 'FACTORY_3D') {
+                  return (
+                    <Suspense fallback={<div style={{ padding: 16, color: 'var(--text-tertiary)' }}>공장 3D 로딩 중...</div>}>
+                      <FactoryFloor3D />
+                    </Suspense>
+                  );
+                }
+                if (selectedMenuCode === 'WAREHOUSE_3D') {
+                  return (
+                    <Suspense fallback={<div style={{ padding: 16, color: 'var(--text-tertiary)' }}>창고 3D 로딩 중...</div>}>
+                      <Warehouse3D />
+                    </Suspense>
+                  );
+                }
+                if (selectedMenuCode === 'QUALITY_3D') {
+                  return (
+                    <Suspense fallback={<div style={{ padding: 16, color: 'var(--text-tertiary)' }}>품질 3D 로딩 중...</div>}>
+                      <QualityDashboard3D />
+                    </Suspense>
+                  );
+                }
+                if (selectedMenuCode === 'WORKER_3D') {
+                  return (
+                    <Suspense fallback={<div style={{ padding: 16, color: 'var(--text-tertiary)' }}>작업자 3D 로딩 중...</div>}>
+                      <WorkerHeatmap3D />
+                    </Suspense>
                   );
                 }
 
