@@ -5,6 +5,8 @@ import com.biz.management.site.dto.BusinessPartnerDto;
 import com.biz.management.site.service.BusinessPartnerService;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/business-partners")
 public class BusinessPartnerController {
@@ -22,5 +24,13 @@ public class BusinessPartnerController {
             return ApiResponse.error("거래처를 찾을 수 없습니다.");
         }
         return ApiResponse.success(bp);
+    }
+
+    @GetMapping("/search")
+    public ApiResponse<List<BusinessPartnerDto>> search(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String bpType) {
+        List<BusinessPartnerDto> list = businessPartnerService.searchByName(keyword, bpType);
+        return ApiResponse.success(list);
     }
 }

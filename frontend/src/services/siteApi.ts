@@ -3,7 +3,7 @@
  */
 
 import api from './api';
-import type { SiteMaster, SiteMasterCreateRequest, BusinessPartner, SitePrice, SalesOrderHeader, SalesOrderDetail, SalesOrderCreateRequest } from '../types/site.types';
+import type { SiteMaster, SiteMasterCreateRequest, BusinessPartner, SitePrice, SitePriceCreateRequest, SalesOrderHeader, SalesOrderDetail, SalesOrderCreateRequest } from '../types/site.types';
 
 export const siteApi = {
   findAll: () => api.get<SiteMaster[]>('/v1/sites'),
@@ -19,10 +19,23 @@ export const siteApi = {
 
 export const sitePriceApi = {
   findBySiteCd: (siteCd: string) => api.get<SitePrice[]>(`/v1/site-prices/by-site-cd/${siteCd}`),
+
+  create: (data: SitePriceCreateRequest) => api.post<void>('/v1/site-prices', data),
+
+  update: (id: number, data: SitePriceCreateRequest) => api.put<void>(`/v1/site-prices/${id}`, data),
+
+  delete: (id: number) => api.delete<void>(`/v1/site-prices/${id}`),
 };
 
 export const bpApi = {
   findByBpCd: (bpCd: string) => api.get<BusinessPartner>(`/v1/business-partners/by-bp-cd/${bpCd}`),
+
+  search: (keyword: string, bpType?: string) => {
+    const params = new URLSearchParams();
+    if (keyword) params.set('keyword', keyword);
+    if (bpType) params.set('bpType', bpType);
+    return api.get<BusinessPartner[]>(`/v1/business-partners/search?${params.toString()}`);
+  },
 };
 
 export const salesOrderApi = {

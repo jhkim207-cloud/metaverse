@@ -10,4 +10,14 @@ import java.util.List;
 public interface SitePriceMapper {
 
     List<SitePriceDto> findBySiteCd(@Param("siteCd") String siteCd);
+
+    void insert(SitePriceDto dto);
+
+    void update(@Param("id") Long id, @Param("req") SitePriceDto req);
+
+    void delete(@Param("id") Long id);
+
+    void updateCustomerBySiteCd(@Param("siteCd") String siteCd,
+                                @Param("customerCd") String customerCd,
+                                @Param("customerNm") String customerNm);
 }

@@ -10,8 +10,8 @@ import {
   Building2, MapPin, FileText, Hash, HardHat,
   Plus, Pencil, Trash2, Save, X, AlertTriangle,
 } from 'lucide-react';
-import { siteApi } from '../../services/siteApi';
-import type { SiteMaster, SiteMasterCreateRequest } from '../../types/site.types';
+import { siteApi, bpApi } from '../../services/siteApi';
+import type { SiteMaster, SiteMasterCreateRequest, BusinessPartner } from '../../types/site.types';
 
 type FormMode = 'view' | 'edit' | 'create';
 
@@ -47,6 +47,12 @@ export function SiteInfoForm({ selectedSite, onSaved, onDeleted, onCreated }: Si
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
   const skipNextEffectRef = useRef(false);
 
+  // 거래처 검색 상태
+  const [bpResults, setBpResults] = useState<BusinessPartner[]>([]);
+  const [bpDropdownOpen, setBpDropdownOpen] = useState(false);
+  const bpSearchTimer = useRef<ReturnType<typeof setTimeout>>();
+  const bpWrapperRef = useRef<HTMLDivElement>(null);
+
   // selectedSite 변경 시 폼 초기화 (저장 직후에는 스킵)
   useEffect(() => {
     if (skipNextEffectRef.current) {
@@ -69,6 +75,17 @@ export function SiteInfoForm({ selectedSite, onSaved, onDeleted, onCreated }: Si
     setSaveMessage(null);
   }, [selectedSite]);
 
+  // 거래처 드롭다운 외부 클릭 닫기
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (bpWrapperRef.current && !bpWrapperRef.current.contains(e.target as Node)) {
+        setBpDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   // 메시지 자동 숨김
   useEffect(() => {
     if (saveMessage) {
@@ -83,6 +100,39 @@ export function SiteInfoForm({ selectedSite, onSaved, onDeleted, onCreated }: Si
       setErrors(prev => ({ ...prev, [field]: undefined }));
     }
   }, [errors]);
+
+  // 거래처 검색 (디바운스 200ms)
+  const handleBpSearch = useCallback((keyword: string) => {
+    setForm(prev => ({ ...prev, constructorNm: keyword, bpCd: '', address: '' }));
+    if (bpSearchTimer.current) clearTimeout(bpSearchTimer.current);
+    if (keyword.length >= 1) {
+      bpSearchTimer.current = setTimeout(async () => {
+        try {
+          const res = await bpApi.search(keyword, 'SALES');
+          if (res.success && res.data) {
+            setBpResults(res.data);
+            setBpDropdownOpen(true);
+          }
+        } catch { /* 무시 */ }
+      }, 200);
+    } else {
+      setBpResults([]);
+      setBpDropdownOpen(false);
+    }
+  }, []);
+
+  // 거래처 선택 시 bpCd, address 자동 채움
+  const handleBpSelect = useCallback((bp: BusinessPartner) => {
+    const addr = [bp.address1, bp.address2].filter(Boolean).join(' ');
+    setForm(prev => ({
+      ...prev,
+      constructorNm: bp.bpNm,
+      bpCd: bp.bpCd,
+      address: addr,
+    }));
+    setBpDropdownOpen(false);
+    setBpResults([]);
+  }, []);
 
   const validateField = useCallback((field: keyof FieldErrors): string | undefined => {
     if (field === 'siteCd' && !form.siteCd.trim()) return '현장코드는 필수입니다';
@@ -315,14 +365,44 @@ export function SiteInfoForm({ selectedSite, onSaved, onDeleted, onCreated }: Si
           onChange={(v) => handleChange('siteNm', v)}
           onBlur={() => handleBlur('siteNm')}
         />
-        <Field
-          icon={<HardHat size={13} />}
-          label="건설사"
-          value={form.constructorNm}
-          editing={isEditing}
-          maxLength={100}
-          onChange={(v) => handleChange('constructorNm', v)}
-        />
+        {/* 거래처 검색 드롭다운 */}
+        <div style={{ ...fieldContainerStyle, gridColumn: 'span 1', position: 'relative' }} ref={bpWrapperRef}>
+          <label style={fieldLabelStyle}>
+            <span style={{ color: 'var(--text-tertiary)', display: 'flex' }}><HardHat size={13} /></span>
+            거래처
+          </label>
+          {isEditing ? (
+            <>
+              <input
+                type="text"
+                style={inputStyle}
+                value={form.constructorNm}
+                maxLength={100}
+                placeholder="거래처명 입력 (1자 이상 검색)"
+                onChange={(e) => handleBpSearch(e.target.value)}
+                onFocus={() => { if (bpResults.length > 0) setBpDropdownOpen(true); }}
+              />
+              {bpDropdownOpen && bpResults.length > 0 && (
+                <div style={bpDropdownStyle}>
+                  {bpResults.map((bp) => (
+                    <div
+                      key={bp.id}
+                      style={bpDropdownItemStyle}
+                      onMouseDown={() => handleBpSelect(bp)}
+                    >
+                      <span style={{ fontWeight: 500 }}>{bp.bpNm}</span>
+                      <span style={{ fontSize: 11, color: 'var(--text-tertiary)', marginLeft: 8 }}>
+                        {bp.bpCd}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <div style={readonlyValueStyle}>{form.constructorNm || '-'}</div>
+          )}
+        </div>
 
         {/* 2행 */}
         <Field
@@ -330,6 +410,7 @@ export function SiteInfoForm({ selectedSite, onSaved, onDeleted, onCreated }: Si
           label="거래처코드"
           value={form.bpCd}
           editing={isEditing}
+          readonlyInEdit
           maxLength={30}
           onChange={(v) => handleChange('bpCd', v)}
         />
@@ -338,6 +419,7 @@ export function SiteInfoForm({ selectedSite, onSaved, onDeleted, onCreated }: Si
           label="주소"
           value={form.address}
           editing={isEditing}
+          readonlyInEdit
           maxLength={300}
           wide3
           onChange={(v) => handleChange('address', v)}
@@ -656,6 +738,34 @@ const errorTextStyle: CSSProperties = {
   fontSize: 11,
   color: 'var(--error, #ff453a)',
   marginTop: 1,
+};
+
+/* ─── 거래처 검색 드롭다운 ─── */
+
+const bpDropdownStyle: CSSProperties = {
+  position: 'absolute',
+  top: '100%',
+  left: 0,
+  right: 0,
+  maxHeight: 200,
+  overflowY: 'auto',
+  background: 'var(--panel-solid, #fff)',
+  border: '1px solid var(--border)',
+  borderRadius: 6,
+  boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+  zIndex: 50,
+  marginTop: 2,
+};
+
+const bpDropdownItemStyle: CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  padding: '6px 10px',
+  fontSize: 13,
+  color: 'var(--text)',
+  cursor: 'pointer',
+  borderBottom: '1px solid var(--border)',
+  transition: 'background 0.1s',
 };
 
 /* ─── 삭제 확인 모달 ─── */

@@ -11,6 +11,9 @@ public class SitePriceDto {
     private String siteCd;
     private String siteNm;
     private String customerNm;
+    private String customerCd;
+    private String materialCd;
+    private String materialNm;
     private String spec;
     private String remark;
     private BigDecimal bidPrice;
@@ -41,6 +44,15 @@ public class SitePriceDto {
 
     public String getCustomerNm() { return customerNm; }
     public void setCustomerNm(String customerNm) { this.customerNm = customerNm; }
+
+    public String getCustomerCd() { return customerCd; }
+    public void setCustomerCd(String customerCd) { this.customerCd = customerCd; }
+
+    public String getMaterialCd() { return materialCd; }
+    public void setMaterialCd(String materialCd) { this.materialCd = materialCd; }
+
+    public String getMaterialNm() { return materialNm; }
+    public void setMaterialNm(String materialNm) { this.materialNm = materialNm; }
 
     public String getSpec() { return spec; }
     public void setSpec(String spec) { this.spec = spec; }

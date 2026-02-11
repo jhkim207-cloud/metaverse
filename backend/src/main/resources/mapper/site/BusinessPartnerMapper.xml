@@ -30,4 +30,18 @@
          WHERE bp_cd = #{bpCd}
     </select>
 
+    <select id="searchByName" resultType="com.biz.management.site.dto.BusinessPartnerDto">
+        SELECT id, bp_cd, bp_type, bp_nm, address1, address2, is_active
+          FROM business_partner
+         WHERE is_active = true
+        <if test="bpType != null and bpType != ''">
+           AND bp_type = #{bpType}
+        </if>
+        <if test="keyword != null and keyword != ''">
+           AND bp_nm ILIKE '%' || #{keyword} || '%'
+        </if>
+         ORDER BY bp_nm
+         LIMIT 20
+    </select>
+
 </mapper>

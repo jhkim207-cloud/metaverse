@@ -23,7 +23,7 @@ CREATE TABLE hkgn.sales_order_header (
     order_date      DATE          NOT NULL,                                  -- [수주일] 수주 접수일
     delivery_date   DATE,                                                    -- [납기일] 약속된 납품일
     customer_cd     VARCHAR(30)   NOT NULL,                                  -- [고객사코드] 고객사 코드 (→ business_partner.bp_cd)
-    order_type      VARCHAR(20),                                             -- [수주구분] 완제품, 반제품, 원자재 등
+    order_type      VARCHAR(20),                                             -- [수주구분] 완제품, 공사, 임가공, 하자분, 소매
     order_kind      VARCHAR(50),                                             -- [주문종류] 주문 종류
 
     -- 현장 정보
@@ -70,7 +70,7 @@ COMMENT ON COLUMN hkgn.sales_order_header.order_no IS '[수주번호] 수주 문
 COMMENT ON COLUMN hkgn.sales_order_header.order_date IS '[수주일] 수주 접수일';
 COMMENT ON COLUMN hkgn.sales_order_header.delivery_date IS '[납기일] 약속된 납품일';
 COMMENT ON COLUMN hkgn.sales_order_header.customer_cd IS '[고객사코드] 고객사 코드 (→ business_partner.bp_cd)';
-COMMENT ON COLUMN hkgn.sales_order_header.order_type IS '[수주구분] 완제품, 반제품, 원자재 등';
+COMMENT ON COLUMN hkgn.sales_order_header.order_type IS '[수주구분] 완제품, 공사, 임가공, 하자분, 소매';
 COMMENT ON COLUMN hkgn.sales_order_header.order_kind IS '[주문종류] 주문 종류';
 COMMENT ON COLUMN hkgn.sales_order_header.site_cd IS '[현장코드] 납품 현장 코드 (→ site_master.site_cd)';
 COMMENT ON COLUMN hkgn.sales_order_header.site_nm IS '[현장명] 납품 현장명';

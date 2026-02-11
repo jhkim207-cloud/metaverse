@@ -22,4 +22,22 @@ public class SitePriceController {
         List<SitePriceDto> prices = sitePriceService.findBySiteCd(siteCd);
         return ApiResponse.success(prices);
     }
+
+    @PostMapping
+    public ApiResponse<Void> create(@RequestBody SitePriceDto dto) {
+        sitePriceService.create(dto);
+        return ApiResponse.success(null);
+    }
+
+    @PutMapping("/{id}")
+    public ApiResponse<Void> update(@PathVariable Long id, @RequestBody SitePriceDto dto) {
+        sitePriceService.update(id, dto);
+        return ApiResponse.success(null);
+    }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> delete(@PathVariable Long id) {
+        sitePriceService.delete(id);
+        return ApiResponse.success(null);
+    }
 }

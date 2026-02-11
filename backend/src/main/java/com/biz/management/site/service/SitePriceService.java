@@ -18,4 +18,16 @@ public class SitePriceService {
     public List<SitePriceDto> findBySiteCd(String siteCd) {
         return sitePriceMapper.findBySiteCd(siteCd);
     }
+
+    public void create(SitePriceDto dto) {
+        sitePriceMapper.insert(dto);
+    }
+
+    public void update(Long id, SitePriceDto dto) {
+        sitePriceMapper.update(id, dto);
+    }
+
+    public void delete(Long id) {
+        sitePriceMapper.delete(id);
+    }
 }

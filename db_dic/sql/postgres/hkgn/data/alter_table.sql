@@ -201,3 +201,55 @@ COMMENT ON COLUMN hkgn.work_request.request_status
 CREATE INDEX IF NOT EXISTS idx_work_request_request_status
     ON hkgn.work_request(request_status);
 
+-- ============================================
+-- 8. sales_order_detail: area_pyeong 컬럼 추가
+-- ============================================
+ALTER TABLE hkgn.sales_order_detail
+ADD COLUMN IF NOT EXISTS area_pyeong NUMERIC(12,3) NULL;
+
+COMMENT ON COLUMN hkgn.sales_order_detail.area_pyeong
+    IS '[면적평수] 평 단위 면적';
+
+-- ============================================
+-- 9. area_pyeong 소수점 NUMERIC(12,2) → NUMERIC(12,3) 변경
+-- ============================================
+ALTER TABLE hkgn.purchase_order_detail ALTER COLUMN area_pyeong TYPE NUMERIC(12,3);
+ALTER TABLE hkgn.subcontract_order ALTER COLUMN area_pyeong TYPE NUMERIC(12,3);
+ALTER TABLE hkgn.inventory ALTER COLUMN area_pyeong TYPE NUMERIC(12,3);
+ALTER TABLE hkgn.goods_receipt ALTER COLUMN area_pyeong TYPE NUMERIC(12,3);
+ALTER TABLE hkgn.inventory_transaction ALTER COLUMN area_pyeong TYPE NUMERIC(12,3);
+
+-- ============================================
+-- 10. site_price: customer_cd, material_cd, material_nm 컬럼 추가
+-- ============================================
+ALTER TABLE hkgn.site_price
+ADD COLUMN IF NOT EXISTS customer_cd VARCHAR(30) NULL;
+
+ALTER TABLE hkgn.site_price
+ADD COLUMN IF NOT EXISTS material_cd VARCHAR(30) NULL;
+
+ALTER TABLE hkgn.site_price
+ADD COLUMN IF NOT EXISTS material_nm VARCHAR(200) NULL;
+
+COMMENT ON COLUMN hkgn.site_price.customer_cd
+    IS '[거래처코드] 거래처 코드 (→ business_partner.bp_cd)';
+
+COMMENT ON COLUMN hkgn.site_price.material_cd
+    IS '[자재코드] 자재 코드 (→ item_master.material_cd)';
+
+COMMENT ON COLUMN hkgn.site_price.material_nm
+    IS '[자재명] 자재 이름';
+
+CREATE INDEX IF NOT EXISTS idx_site_price_customer ON hkgn.site_price(customer_cd);
+CREATE INDEX IF NOT EXISTS idx_site_price_material ON hkgn.site_price(material_cd);
+
+-- ============================================
+-- 11. sales_order_header: owner_id 컬럼 추가
+-- ============================================
+ALTER TABLE hkgn.sales_order_header
+ADD COLUMN IF NOT EXISTS owner_id BIGINT NULL;
+
+COMMENT ON COLUMN hkgn.sales_order_header.owner_id
+    IS '[담당자ID] 수주 담당자 ID (→ users.id)';
+
+

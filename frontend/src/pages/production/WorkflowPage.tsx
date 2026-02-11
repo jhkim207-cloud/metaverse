@@ -25,10 +25,11 @@ import { Skeleton } from '../../components/ui/Skeleton';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { ProjectCreateModal } from '../../components/site/ProjectCreateModal';
 import { SiteInfoForm } from '../../components/site/SiteInfoForm';
+import { SitePricePanel } from '../../components/site/SitePricePanel';
 import { useStageItems } from '../../hooks/useWorkflow';
-import { siteApi, bpApi, sitePriceApi } from '../../services/siteApi';
+import { siteApi, bpApi } from '../../services/siteApi';
 import type { WorkflowItem } from '../../types/workflow.types';
-import type { SiteMaster, BusinessPartner, SitePrice } from '../../types/site.types';
+import type { SiteMaster, BusinessPartner } from '../../types/site.types';
 import { WORKFLOW_STAGES, STATUS_CONFIG, PRIORITY_CONFIG } from '../../constants/workflow';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -73,16 +74,13 @@ export function WorkflowPage({ menuCode, mode, filterStage, onItemSelect }: Work
   const [sitesLoading, setSitesLoading] = useState(false);
   const [selectedSite, setSelectedSite] = useState<SiteMaster | null>(null);
 
-  // 견적단가 데이터
-  const [prices, setPrices] = useState<SitePrice[]>([]);
-  const [pricesLoading, setPricesLoading] = useState(false);
-
   // 거래처 데이터
   const [bp, setBp] = useState<BusinessPartner | null>(null);
   const [bpLoading, setBpLoading] = useState(false);
 
   // 하단 탭 상태
   const [activeTab, setActiveTab] = useState<'site' | 'price' | 'bp'>('site');
+  const [priceCount, setPriceCount] = useState(0);
 
   const fetchSites = useCallback(async () => {
     setSitesLoading(true);
@@ -111,31 +109,6 @@ export function WorkflowPage({ menuCode, mode, filterStage, onItemSelect }: Work
     });
     return () => { cancelled = true; };
   }, [isProjectStage]);
-
-  // 현장 선택 시 견적단가 조회
-  useEffect(() => {
-    if (!selectedSite?.siteCd) {
-      setPrices([]);
-      return;
-    }
-    let cancelled = false;
-    setPricesLoading(true);
-    sitePriceApi.findBySiteCd(selectedSite.siteCd).then(response => {
-      if (cancelled) return;
-      if (response.success && response.data) {
-        setPrices(response.data);
-      } else {
-        setPrices([]);
-      }
-      setPricesLoading(false);
-    }).catch(() => {
-      if (!cancelled) {
-        setPrices([]);
-        setPricesLoading(false);
-      }
-    });
-    return () => { cancelled = true; };
-  }, [selectedSite?.siteCd]);
 
   // 현장 선택 시 거래처 조회
   useEffect(() => {
@@ -229,7 +202,7 @@ export function WorkflowPage({ menuCode, mode, filterStage, onItemSelect }: Work
   const siteColumnDefs = useMemo<ColDef<SiteMaster>[]>(() => [
     { headerName: '현장코드', field: 'siteCd', width: 120 },
     { headerName: '현장명', field: 'siteNm', flex: 2, minWidth: 180 },
-    { headerName: '건설사', field: 'constructorNm', flex: 1, minWidth: 120 },
+    { headerName: '거래처', field: 'constructorNm', flex: 1, minWidth: 120 },
     { headerName: '거래처코드', field: 'bpCd', width: 110 },
     { headerName: '주소', field: 'address', flex: 2, minWidth: 150 },
     { headerName: '비고', field: 'remark', flex: 1, minWidth: 100 },
@@ -399,10 +372,8 @@ export function WorkflowPage({ menuCode, mode, filterStage, onItemSelect }: Work
                     onClick={() => setActiveTab('price')}
                   >
                     <Receipt size={13} />
-                    견적 단가
-                    {prices.length > 0 && (
-                      <span style={tabBadgeStyle}>{prices.length}</span>
-                    )}
+                    현장 단가
+                    {priceCount > 0 && <span style={tabBadgeStyle}>{priceCount}</span>}
                   </button>
                   <button
                     type="button"
@@ -422,21 +393,7 @@ export function WorkflowPage({ menuCode, mode, filterStage, onItemSelect }: Work
                       onCreated={handleSiteCreated}
                     />
                   ) : activeTab === 'price' ? (
-                    !selectedSite ? (
-                      <div style={bpEmptyStyle}>
-                        현장을 선택하면 견적 단가가 표시됩니다.
-                      </div>
-                    ) : pricesLoading ? (
-                      <div style={{ padding: 16 }}>
-                        <Skeleton variant="rounded" width="100%" height={100} />
-                      </div>
-                    ) : prices.length === 0 ? (
-                      <div style={bpEmptyStyle}>
-                        등록된 견적 단가가 없습니다. (현장: {selectedSite.siteCd})
-                      </div>
-                    ) : (
-                      <PriceGrid prices={prices} />
-                    )
+                    <SitePricePanel selectedSite={selectedSite} onPriceCountChange={setPriceCount} />
                   ) : (
                     !selectedSite ? (
                       <div style={bpEmptyStyle}>
@@ -472,52 +429,6 @@ export function WorkflowPage({ menuCode, mode, filterStage, onItemSelect }: Work
       />
     </div>
   );
-}
-
-/* ─── 견적단가 Grid 컴포넌트 ─── */
-
-function PriceGrid({ prices }: { prices: SitePrice[] }) {
-  const gridRef = useRef<AgGridReact>(null);
-
-  const columnDefs = useMemo<ColDef<SitePrice>[]>(() => [
-    { headerName: '사양', field: 'spec', flex: 2, minWidth: 200 },
-    { headerName: '비고', field: 'remark', width: 90 },
-    { headerName: '입찰가', field: 'bidPrice', width: 100, type: 'rightAligned', valueFormatter: numFmt },
-    { headerName: '가공가', field: 'procPrice', width: 100, type: 'rightAligned', valueFormatter: numFmt },
-    { headerName: '가공비', field: 'processingCost', width: 90, type: 'rightAligned', valueFormatter: numFmt },
-    { headerName: '아르곤', field: 'argonCost', width: 80, type: 'rightAligned', valueFormatter: numFmt },
-    { headerName: '단열', field: 'insulCost', width: 70, type: 'rightAligned', valueFormatter: numFmt },
-    { headerName: '접합', field: 'structCost', width: 70, type: 'rightAligned', valueFormatter: numFmt },
-    { headerName: '면취', field: 'edgeCost', width: 70, type: 'rightAligned', valueFormatter: numFmt },
-    { headerName: '식각', field: 'etchingCost', width: 70, type: 'rightAligned', valueFormatter: numFmt },
-    { headerName: '단차', field: 'stepCost', width: 70, type: 'rightAligned', valueFormatter: numFmt },
-    { headerName: '이형', field: 'deformCost', width: 70, type: 'rightAligned', valueFormatter: numFmt },
-    { headerName: '강화1', field: 'temper1Cost', width: 75, type: 'rightAligned', valueFormatter: numFmt },
-    { headerName: '강화2', field: 'temper2Cost', width: 75, type: 'rightAligned', valueFormatter: numFmt },
-    { headerName: '강화3', field: 'temper3Cost', width: 75, type: 'rightAligned', valueFormatter: numFmt },
-    { headerName: '합계', field: 'totalProcessingCost', width: 100, type: 'rightAligned', valueFormatter: numFmt },
-  ], []);
-
-  const defaultColDef = useMemo<ColDef>(() => ({ sortable: true, resizable: true }), []);
-
-  return (
-    <div className="ag-theme-quartz" style={{ width: '100%', height: '100%' }}>
-      <AgGridReact<SitePrice>
-        ref={gridRef}
-        rowData={prices}
-        columnDefs={columnDefs}
-        defaultColDef={defaultColDef}
-        domLayout="autoHeight"
-        suppressCellFocus
-        getRowId={(params) => String(params.data.id)}
-      />
-    </div>
-  );
-}
-
-function numFmt(params: { value: number | null }) {
-  if (params.value == null || params.value === 0) return '-';
-  return params.value.toLocaleString();
 }
 
 /* ─── 거래처 Form 컴포넌트 ─── */
@@ -695,11 +606,11 @@ const tabInactiveStyle: CSSProperties = {
 const tabBadgeStyle: CSSProperties = {
   fontSize: 11,
   fontWeight: 600,
-  padding: '1px 7px',
-  borderRadius: 10,
-  background: 'color-mix(in srgb, var(--accent) 15%, transparent)',
+  padding: '0 6px',
+  borderRadius: 8,
+  background: 'color-mix(in srgb, var(--accent) 12%, transparent)',
   color: 'var(--accent)',
-  marginLeft: 2,
+  lineHeight: '18px',
 };
 
 const bpContentStyle: CSSProperties = {
