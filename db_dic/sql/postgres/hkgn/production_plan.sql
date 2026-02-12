@@ -56,6 +56,16 @@ CREATE TABLE hkgn.production_plan (
     -- 작업 의뢰 연결
     work_request_no             VARCHAR(50)   NULL,                               -- [작업의뢰번호] 작업 의뢰 번호 (work_request.request_no 참조)
 
+    -- 일정 정보 (추가)
+    start_date                  DATE          NULL,                               -- [시작일] 생산 시작일
+    end_date                    DATE          NULL,                               -- [종료일] 생산 종료일
+    planned_start_date          DATE          NULL,                               -- [계획시작일] 계획 시작일
+    planned_end_date            DATE          NULL,                               -- [계획종료일] 계획 종료일
+
+    -- 수주/현장 연결
+    order_header_id             BIGINT        NULL,                               -- [수주헤더ID] 수주 헤더 ID (sales_order_header.id 참조)
+    site_cd                     VARCHAR(30)   NULL,                               -- [현장코드] 현장 코드 (site_master.site_cd 참조)
+
     -- 감사 컬럼
     created_at                  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),  -- [생성일시] 레코드 생성 시각
     updated_at                  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),  -- [수정일시] 레코드 최종 수정 시각
@@ -104,6 +114,12 @@ COMMENT ON COLUMN hkgn.production_plan.amount IS '금액 - 총 금액';
 COMMENT ON COLUMN hkgn.production_plan.plan_status IS '계획상태 - REGISTERED:등록, CONFIRMED:확정, IN_PROGRESS:진행중, COMPLETED:완료, CANCELLED:취소';
 COMMENT ON COLUMN hkgn.production_plan.remarks IS '비고 - 비고';
 COMMENT ON COLUMN hkgn.production_plan.work_request_no IS '작업의뢰번호 - 작업 의뢰 번호 (work_request.request_no 참조)';
+COMMENT ON COLUMN hkgn.production_plan.start_date IS '시작일 - 생산 시작일';
+COMMENT ON COLUMN hkgn.production_plan.end_date IS '종료일 - 생산 종료일';
+COMMENT ON COLUMN hkgn.production_plan.planned_start_date IS '계획시작일 - 계획 시작일';
+COMMENT ON COLUMN hkgn.production_plan.planned_end_date IS '계획종료일 - 계획 종료일';
+COMMENT ON COLUMN hkgn.production_plan.order_header_id IS '수주헤더ID - 수주 헤더 ID (sales_order_header.id 참조)';
+COMMENT ON COLUMN hkgn.production_plan.site_cd IS '현장코드 - 현장 코드 (site_master.site_cd 참조)';
 COMMENT ON COLUMN hkgn.production_plan.created_at IS '생성일시 - 레코드 생성 시각';
 COMMENT ON COLUMN hkgn.production_plan.updated_at IS '수정일시 - 레코드 최종 수정 시각';
 COMMENT ON COLUMN hkgn.production_plan.created_by IS '생성자 - 레코드 생성자';

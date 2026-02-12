@@ -114,7 +114,16 @@
       "Bash(tasklist:*)",
       "mcp__postgres-crud__execute_rollback",
       "Bash(git reset:*)",
-      "Bash(docker ps:*)"
+      "Bash(docker ps:*)",
+      "Bash(Select-Object -First 30)",
+      "Bash(git fetch:*)",
+      "Bash(git branch:*)",
+      "Bash(git config alias.pushall \"!git push origin master && git push origin egjang\")",
+      "Bash(git config alias.pushall \"!git push origin master && git branch -f egjang master && git push origin egjang\")",
+      "Bash(py:*)",
+      "Bash(python -c:*)",
+      "Bash(python:*)",
+      "Bash(chcp:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

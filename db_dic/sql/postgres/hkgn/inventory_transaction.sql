@@ -38,7 +38,7 @@ CREATE TABLE hkgn.inventory_transaction (
     -- 수량
     quantity          NUMERIC(12,2) NOT NULL,                                  -- [수량] 이동 수량 (양수:입고, 음수:출고)
     unit              VARCHAR(10)   DEFAULT 'EA',                              -- [단위] EA/매/M2/평/kg/BOX
-    area_pyeong       NUMERIC(12,2),                                           -- [면적평수] 이동 수량 평수 환산 (원판유리 전용)
+    area_pyeong       NUMERIC(12,3),                                           -- [면적평수] 이동 수량 평수 환산 (원판유리 전용)
 
     -- 이동 전후 재고
     before_qty        NUMERIC(12,2),                                           -- [이동전재고] 이동 전 재고 수량

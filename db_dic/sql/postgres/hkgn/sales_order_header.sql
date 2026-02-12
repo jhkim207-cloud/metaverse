@@ -44,6 +44,10 @@ CREATE TABLE hkgn.sales_order_header (
     order_status    VARCHAR(20)   NOT NULL DEFAULT 'PENDING',                -- [수주상태] PENDING:대기, CONFIRMED:확정, PROCESSING:진행중, COMPLETED:완료, CANCELLED:취소
     is_urgent       BOOLEAN       DEFAULT FALSE,                             -- [긴급여부] 긴급 주문 여부
 
+    -- 추가 일정/담당 정보
+    delivery_request_date DATE,                                              -- [납품요청일] 납품 요청일
+    owner_id        BIGINT,                                                  -- [담당자ID] 담당자 ID (users.id 참조)
+
     -- 감사 컬럼
     created_at      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),         -- [생성일시] 레코드 생성 시각
     updated_at      TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),         -- [수정일시] 레코드 최종 수정 시각
@@ -82,6 +86,8 @@ COMMENT ON COLUMN hkgn.sales_order_header.duo_light IS '[듀오라이트] 듀오
 COMMENT ON COLUMN hkgn.sales_order_header.remarks IS '[비고] 특이사항';
 COMMENT ON COLUMN hkgn.sales_order_header.order_status IS '[수주상태] PENDING:대기, CONFIRMED:확정, PROCESSING:진행중, COMPLETED:완료, CANCELLED:취소';
 COMMENT ON COLUMN hkgn.sales_order_header.is_urgent IS '[긴급여부] 긴급 주문 여부';
+COMMENT ON COLUMN hkgn.sales_order_header.delivery_request_date IS '[납품요청일] 납품 요청일';
+COMMENT ON COLUMN hkgn.sales_order_header.owner_id IS '[담당자ID] 담당자 ID (users.id 참조)';
 COMMENT ON COLUMN hkgn.sales_order_header.created_at IS '[생성일시] 레코드 생성 시각';
 COMMENT ON COLUMN hkgn.sales_order_header.updated_at IS '[수정일시] 레코드 최종 수정 시각';
 COMMENT ON COLUMN hkgn.sales_order_header.created_by IS '[생성자] 레코드 생성자';
