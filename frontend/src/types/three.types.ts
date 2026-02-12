@@ -63,7 +63,7 @@ export interface FactoryZone3D {
   name: string;
   position: [number, number, number];
   size: [number, number, number];
-  type: 'PRODUCTION' | 'WAREHOUSE' | 'PACKING' | 'SHIPPING';
+  type: 'PRODUCTION' | 'WAREHOUSE' | 'PACKING' | 'SHIPPING' | 'INSPECTION' | 'PREPARATION' | 'UTILITY';
   status: 'ACTIVE' | 'IDLE' | 'ERROR';
 }
 

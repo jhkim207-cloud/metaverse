@@ -55,6 +55,9 @@ const CuttingOptimizer3D = lazy(() =>
 const FactoryFloor3D = lazy(() =>
   import('./components/three/factory/FactoryFloor3D').then(m => ({ default: m.FactoryFloor3D }))
 );
+const FactoryMetaverse3D = lazy(() =>
+  import('./components/three/metaverse/MetaverseScene').then(m => ({ default: m.FactoryMetaverse3D }))
+);
 const Warehouse3D = lazy(() =>
   import('./components/three/inventory/Warehouse3D').then(m => ({ default: m.Warehouse3D }))
 );
@@ -531,38 +534,48 @@ function App() {
             )}
           </div>
 
-          {/* 3D 스마트 팩토리 메뉴 */}
-          <div style={{ display: 'flex', gap: 4, position: 'relative' }}>
-            {[
-              { code: 'DASHBOARD_3D', label: '생산', title: '생산 대시보드 3D' },
-              { code: 'CUTTING_3D', label: '재단', title: '재단 최적화 3D' },
-              { code: 'FACTORY_3D', label: '공장', title: '공장 현황 3D' },
-              { code: 'WAREHOUSE_3D', label: '창고', title: '창고 재고 3D' },
-              { code: 'QUALITY_3D', label: '품질', title: '품질 SPC 3D' },
-              { code: 'WORKER_3D', label: '인력', title: '작업자 배치 3D' },
-            ].map((btn) => (
-              <button
-                key={btn.code}
-                type="button"
-                onClick={() => setSelectedMenuCode(btn.code)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  padding: '5px 10px',
-                  background: selectedMenuCode === btn.code ? 'var(--accent)' : 'var(--btn-bg)',
-                  border: selectedMenuCode === btn.code ? 'none' : '1px solid var(--btn-border)',
-                  borderRadius: 6,
-                  color: selectedMenuCode === btn.code ? 'var(--on-accent)' : 'var(--btn-text)',
-                  fontSize: 11,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-                title={btn.title}
-              >
-                {btn.label}
-              </button>
-            ))}
+          {/* 3D 스마트 팩토리 Navigator */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Factory size={16} style={{ color: 'var(--accent)' }} />
+            <select
+              value={
+                ['DASHBOARD_3D', 'CUTTING_3D', 'FACTORY_3D', 'WAREHOUSE_3D', 'QUALITY_3D', 'WORKER_3D', 'METAVERSE_3D'].includes(selectedMenuCode ?? '')
+                  ? selectedMenuCode!
+                  : ''
+              }
+              onChange={(e) => {
+                if (e.target.value) setSelectedMenuCode(e.target.value);
+              }}
+              style={{
+                padding: '6px 28px 6px 10px',
+                fontSize: 12,
+                fontWeight: 600,
+                background: ['DASHBOARD_3D', 'CUTTING_3D', 'FACTORY_3D', 'WAREHOUSE_3D', 'QUALITY_3D', 'WORKER_3D', 'METAVERSE_3D'].includes(selectedMenuCode ?? '')
+                  ? 'var(--accent)'
+                  : 'var(--btn-bg)',
+                color: ['DASHBOARD_3D', 'CUTTING_3D', 'FACTORY_3D', 'WAREHOUSE_3D', 'QUALITY_3D', 'WORKER_3D', 'METAVERSE_3D'].includes(selectedMenuCode ?? '')
+                  ? 'var(--on-accent)'
+                  : 'var(--btn-text)',
+                border: '1px solid var(--btn-border)',
+                borderRadius: 6,
+                cursor: 'pointer',
+                appearance: 'none',
+                WebkitAppearance: 'none',
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'right 8px center',
+              }}
+              aria-label="3D Navigator"
+            >
+              <option value="" disabled style={{ background: '#fff', color: '#333' }}>3D Navigator</option>
+              <option value="DASHBOARD_3D" style={{ background: '#fff', color: '#333' }}>생산 대시보드</option>
+              <option value="CUTTING_3D" style={{ background: '#fff', color: '#333' }}>재단 최적화</option>
+              <option value="FACTORY_3D" style={{ background: '#fff', color: '#333' }}>공장 현황</option>
+              <option value="WAREHOUSE_3D" style={{ background: '#fff', color: '#333' }}>창고 재고</option>
+              <option value="QUALITY_3D" style={{ background: '#fff', color: '#333' }}>품질 SPC</option>
+              <option value="WORKER_3D" style={{ background: '#fff', color: '#333' }}>작업자 배치</option>
+              <option value="METAVERSE_3D" style={{ background: '#fff', color: '#333' }}>메타버스</option>
+            </select>
           </div>
 
           {/* 알림 · 승인 */}
@@ -952,6 +965,13 @@ function App() {
                   return (
                     <Suspense fallback={<div style={{ padding: 16, color: 'var(--text-tertiary)' }}>작업자 3D 로딩 중...</div>}>
                       <WorkerHeatmap3D />
+                    </Suspense>
+                  );
+                }
+                if (selectedMenuCode === 'METAVERSE_3D') {
+                  return (
+                    <Suspense fallback={<div style={{ padding: 16, color: 'var(--text-tertiary)' }}>메타버스 로딩 중...</div>}>
+                      <FactoryMetaverse3D />
                     </Suspense>
                   );
                 }
