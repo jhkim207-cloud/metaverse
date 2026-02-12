@@ -9,6 +9,9 @@
                site_cd,
                site_nm,
                customer_nm,
+               customer_cd,
+               material_cd,
+               material_nm,
                spec,
                remark,
                bid_price,
@@ -29,5 +32,61 @@
          WHERE site_cd = #{siteCd}
          ORDER BY id
     </select>
+
+    <insert id="insert" parameterType="com.biz.management.site.dto.SitePriceDto">
+        INSERT INTO site_price (
+            site_cd, site_nm, customer_nm, customer_cd,
+            material_cd, material_nm, spec, remark,
+            bid_price, proc_price, processing_cost,
+            argon_cost, insul_cost, struct_cost, edge_cost,
+            etching_cost, step_cost, deform_cost,
+            temper1_cost, temper2_cost, temper3_cost,
+            total_processing_cost
+        ) VALUES (
+            #{siteCd}, #{siteNm}, #{customerNm}, #{customerCd},
+            #{materialCd}, #{materialNm}, #{spec}, #{remark},
+            #{bidPrice}, #{procPrice}, #{processingCost},
+            #{argonCost}, #{insulCost}, #{structCost}, #{edgeCost},
+            #{etchingCost}, #{stepCost}, #{deformCost},
+            #{temper1Cost}, #{temper2Cost}, #{temper3Cost},
+            #{totalProcessingCost}
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE site_price
+           SET material_cd   = #{req.materialCd},
+               material_nm   = #{req.materialNm},
+               spec          = #{req.spec},
+               remark        = #{req.remark},
+               bid_price     = #{req.bidPrice},
+               proc_price    = #{req.procPrice},
+               processing_cost = #{req.processingCost},
+               argon_cost    = #{req.argonCost},
+               insul_cost    = #{req.insulCost},
+               struct_cost   = #{req.structCost},
+               edge_cost     = #{req.edgeCost},
+               etching_cost  = #{req.etchingCost},
+               step_cost     = #{req.stepCost},
+               deform_cost   = #{req.deformCost},
+               temper1_cost  = #{req.temper1Cost},
+               temper2_cost  = #{req.temper2Cost},
+               temper3_cost  = #{req.temper3Cost},
+               total_processing_cost = #{req.totalProcessingCost},
+               updated_at    = now()
+         WHERE id = #{id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM site_price WHERE id = #{id}
+    </delete>
+
+    <update id="updateCustomerBySiteCd">
+        UPDATE site_price
+           SET customer_cd = #{customerCd},
+               customer_nm = #{customerNm},
+               updated_at  = now()
+         WHERE site_cd = #{siteCd}
+    </update>
 
 </mapper>

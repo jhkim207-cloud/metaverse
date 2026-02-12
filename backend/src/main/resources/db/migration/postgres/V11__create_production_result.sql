@@ -1,5 +1,5 @@
 -- ============================================
--- V9: 생산실적 (production_result) 테이블 + 불량사유 코드
+-- V11: 생산실적 (production_result) 테이블 + 불량사유 코드
 -- ============================================
 
 -- 1. production_result 테이블 생성
@@ -38,7 +38,7 @@ CREATE INDEX idx_pr_plan       ON hkgn.production_result(plan_no);
 COMMENT ON TABLE hkgn.production_result IS '생산실적 - 양품/불량/면적 기록';
 
 -- 2. 불량사유 공통코드 등록
-INSERT INTO code_master (group_code, group_name, code_id, code_name, sort_order, description, is_active)
+INSERT INTO hkgn.code_master (group_code, group_name, code_id, code_name, sort_order, description, is_active)
 VALUES
 ('DEFECT_REASON', '불량사유', 'SCRATCH',     '스크래치',     1, '표면 스크래치 발생',     TRUE),
 ('DEFECT_REASON', '불량사유', 'CRACK',       '파손/크랙',    2, '유리 파손 또는 크랙',    TRUE),

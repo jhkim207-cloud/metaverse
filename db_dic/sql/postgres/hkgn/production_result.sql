@@ -10,13 +10,14 @@ CREATE TABLE hkgn.production_result (
     id                          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,  -- [식별자] 기본 키
 
     -- 기본 정보
-    production_no               VARCHAR(30)   NOT NULL UNIQUE,                    -- [생산번호] 생산 실적 문서 번호
+    production_result_no        VARCHAR(30)   NOT NULL UNIQUE,                    -- [생산실적번호] 생산 실적 문서 번호
     production_date             DATE          NOT NULL,                           -- [생산일] 생산 완료일
 
     -- FK (선택적 참조)
     plan_no                     VARCHAR(50)   NULL,                               -- [계획번호] 생산 계획 번호 (production_plan.plan_no 참조)
     plan_line_no                INTEGER       NULL,                               -- [계획행번호] 생산 계획 상세 행번호
     order_no                    VARCHAR(30)   NULL,                               -- [수주번호] 연관 수주 번호 (sales_order_header.order_no)
+    order_line_seq              INTEGER       NULL,                               -- [수주행번호] 수주 상세 행 번호
     work_request_no             VARCHAR(50)   NULL,                               -- [작업의뢰번호] 작업 의뢰 번호 (work_request.request_no 참조)
 
     -- 자재 정보
@@ -62,11 +63,12 @@ CREATE INDEX idx_production_result_status ON hkgn.production_result(result_statu
 -- 코멘트 추가
 COMMENT ON TABLE hkgn.production_result IS '생산 실적 - 생산 완료 기록 (양품, 불량, 면적 포함)';
 COMMENT ON COLUMN hkgn.production_result.id IS '식별자 - 기본 키';
-COMMENT ON COLUMN hkgn.production_result.production_no IS '생산번호 - 생산 실적 문서 번호';
+COMMENT ON COLUMN hkgn.production_result.production_result_no IS '생산실적번호 - 생산 실적 문서 번호';
 COMMENT ON COLUMN hkgn.production_result.production_date IS '생산일 - 생산 완료일';
 COMMENT ON COLUMN hkgn.production_result.plan_no IS '계획번호 - 생산 계획 번호 (production_plan.plan_no 참조)';
 COMMENT ON COLUMN hkgn.production_result.plan_line_no IS '계획행번호 - 생산 계획 상세 행번호';
 COMMENT ON COLUMN hkgn.production_result.order_no IS '수주번호 - 연관 수주 번호 (sales_order_header.order_no)';
+COMMENT ON COLUMN hkgn.production_result.order_line_seq IS '수주행번호 - 수주 상세 행 번호';
 COMMENT ON COLUMN hkgn.production_result.work_request_no IS '작업의뢰번호 - 작업 의뢰 번호 (work_request.request_no 참조)';
 COMMENT ON COLUMN hkgn.production_result.material_cd IS '자재코드 - 생산 자재 코드 (item_master.material_cd)';
 COMMENT ON COLUMN hkgn.production_result.material_nm IS '자재명 - 자재 이름 (참조용)';

@@ -53,7 +53,7 @@ CREATE TABLE hkgn.goods_receipt (
 
     -- 면적 정보
     area_m2               NUMERIC(12,4),                                           -- [면적M2] M2 단위 면적
-    area_pyeong           NUMERIC(12,2),                                           -- [면적평수] 평 단위 면적
+    area_pyeong           NUMERIC(12,3),                                           -- [면적평수] 평 단위 면적
 
     -- 금액 정보
     unit_price            NUMERIC(12,2) DEFAULT 0,                                 -- [단가] M2 단위 단가 (원/m2)

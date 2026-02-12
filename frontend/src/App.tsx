@@ -1025,6 +1025,10 @@ function App() {
                   widgetKey={selectedDashboardWidget}
                   onClose={() => setSelectedDashboardWidget(null)}
                 />
+              ) : selectedMenuCode === 'PROD_WORK_ORDER' ? (
+                <WorkerAssignmentPanel
+                  targetDate={selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd')}
+                />
               ) : (selectedMenuCode?.startsWith('PROD_') || selectedMenuCode === 'MAIN_WORKFLOW') && selectedWorkflowItem ? (
                 isSiteMaster(selectedWorkflowItem) ? (
                   <SiteDetailPanel
@@ -1037,10 +1041,6 @@ function App() {
                     onClose={() => setSelectedWorkflowItem(null)}
                   />
                 )
-              ) : selectedMenuCode === 'PROD_WORK_ORDER' ? (
-                <WorkerAssignmentPanel
-                  targetDate={selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd')}
-                />
               ) : (
                 <>
                   {/* Filter Header - 고정 영역 */}
@@ -1119,16 +1119,19 @@ function App() {
                   </div>
 
                   {/* Content */}
-                  <div style={{ padding: 16, flex: 1, overflowY: 'auto' }}>
-                    <div className="card" style={{ padding: 16 }}>
-                      <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-                        {(selectedMenuCode?.startsWith('PROD_') || selectedMenuCode === 'MAIN_WORKFLOW')
-                          ? '좌측 그리드 또는 칸반에서 항목을 선택하세요.'
-                          : '선택된 항목의 상세 정보가 여기에 표시됩니다.'}
-                      </p>
+                  {selectedMenuCode === null ? (
+                    <TodaySitePanel />
+                  ) : (
+                    <div style={{ padding: 16, flex: 1, overflowY: 'auto' }}>
+                      <div className="card" style={{ padding: 16 }}>
+                        <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+                          {(selectedMenuCode?.startsWith('PROD_') || selectedMenuCode === 'MAIN_WORKFLOW')
+                            ? '좌측 그리드 또는 칸반에서 항목을 선택하세요.'
+                            : '선택된 항목의 상세 정보가 여기에 표시됩니다.'}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  {selectedMenuCode === null && <TodaySitePanel />}
+                  )}
                 </>
               )}
             </div>

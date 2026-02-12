@@ -1,4 +1,5 @@
-import { useMemo, CSSProperties } from 'react';
+import { useState, useMemo, CSSProperties } from 'react';
+import { List, ListTree } from 'lucide-react';
 import { addDays, subWeeks, addWeeks, format, isSameDay, isWithinInterval, parseISO, differenceInDays, startOfWeek, isSameWeek } from 'date-fns';
 import type { ProductionPlan, Machine } from '../../types/productionPlan.types';
 import type { SalesOrderHeader } from '../../types/site.types';
@@ -26,6 +27,8 @@ interface MachineGanttProps {
 export function MachineGantt({
   machines, plans, weekStart, selectedOrder, onPlanClick, onCellClick,
 }: MachineGanttProps) {
+  const [expanded, setExpanded] = useState(false);
+
   // 3 weeks: prev week Monday ~ next week Saturday
   const prevWeekStart = useMemo(() => subWeeks(startOfWeek(weekStart, { weekStartsOn: 1 }), 1), [weekStart]);
 
@@ -80,7 +83,17 @@ export function MachineGantt({
       <div style={scrollWrapperStyle}>
         {/* Week group header row */}
         <div style={weekGroupRowStyle}>
-          <div style={machineLabelHeaderStyle}>호기</div>
+          <div style={machineLabelHeaderStyle}>
+            <button
+              type="button"
+              style={toggleBtnStyle}
+              onClick={() => setExpanded(prev => !prev)}
+              title={expanded ? '요약 보기' : '상세 보기'}
+            >
+              {expanded ? <ListTree size={13} /> : <List size={13} />}
+            </button>
+            <span>호기</span>
+          </div>
           {weekGroups.map((wg, wIdx) => (
             <div
               key={wIdx}
@@ -120,6 +133,126 @@ export function MachineGantt({
         {/* Machine rows */}
         {machines.map(machine => {
           const machinePlans = plansByMachine.get(machine.codeName) || [];
+
+          /* ── Expanded: group header + individual plan rows ── */
+          if (expanded) {
+            return (
+              <div key={machine.codeId}>
+                {/* Group header row */}
+                <div style={gridRowStyle}>
+                  <div style={machineGroupHeaderLabelStyle}>
+                    <span>{machine.codeName}</span>
+                    {machinePlans.length > 0 && (
+                      <span style={planCountBadgeStyle}>{machinePlans.length}</span>
+                    )}
+                  </div>
+                  {days.map((day, dayIdx) => {
+                    const isToday = isSameDay(day, today);
+                    const dayInWeek = dayIdx % DAYS_PER_WEEK;
+                    const isWeekBoundary = dayIdx > 0 && dayInWeek === 0;
+                    return (
+                      <div
+                        key={dayIdx}
+                        style={{
+                          ...groupHeaderCellStyle,
+                          ...(isToday ? todayCellStyle : {}),
+                          ...(isWeekBoundary ? weekBoundaryStyle : {}),
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+
+                {/* Individual plan detail rows */}
+                {machinePlans.map(plan => (
+                  <div key={plan.id} style={gridRowStyle}>
+                    <div style={planDetailLabelStyle}>
+                      {plan.customerNm ? plan.customerNm.substring(0, 6) : plan.planNo}
+                      {plan.quantity ? ` · ${plan.quantity}EA` : ''}
+                    </div>
+                    {days.map((day, dayIdx) => {
+                      const isToday = isSameDay(day, today);
+                      const dayInWeek = dayIdx % DAYS_PER_WEEK;
+                      const isWeekBoundary = dayIdx > 0 && dayInWeek === 0;
+
+                      // Render bar only on start day or first visible day / week boundary
+                      let shouldRenderBar = false;
+                      if (plan.startDate && plan.endDate) {
+                        const s = parseISO(plan.startDate);
+                        const e = parseISO(plan.endDate);
+                        if (isSameDay(s, day)) shouldRenderBar = true;
+                        else if (dayIdx === 0 && s < day && e >= day) shouldRenderBar = true;
+                        else if (isWeekBoundary && s < day && e >= day) shouldRenderBar = true;
+                      }
+
+                      return (
+                        <div
+                          key={dayIdx}
+                          style={{
+                            ...detailCellStyle,
+                            ...(isToday ? todayCellStyle : {}),
+                            ...(selectedOrder ? cellClickableStyle : {}),
+                            ...(isWeekBoundary ? weekBoundaryStyle : {}),
+                          }}
+                          onClick={() => {
+                            if (selectedOrder) onCellClick(machine.codeName, day);
+                          }}
+                        >
+                          {shouldRenderBar && (() => {
+                            const s = parseISO(plan.startDate!);
+                            const e = parseISO(plan.endDate!);
+                            const visibleStart = s < days[0] ? days[0] : s;
+                            const visibleEnd = e > days[lastDayIdx] ? days[lastDayIdx] : e;
+                            const weekEndIdx = Math.floor(dayIdx / DAYS_PER_WEEK) * DAYS_PER_WEEK + (DAYS_PER_WEEK - 1);
+                            const weekEndDay = days[weekEndIdx];
+                            const barEnd = e > weekEndDay ? weekEndDay : visibleEnd;
+                            const barStart = s < day ? day : visibleStart;
+                            const spanDays = differenceInDays(barEnd, barStart) + 1;
+                            const offsetFromCell = differenceInDays(barStart, day);
+                            const colors = STATUS_COLORS[plan.planStatus] || STATUS_COLORS.REGISTERED;
+
+                            return (
+                              <div
+                                style={{
+                                  ...barStyle,
+                                  background: colors.bg,
+                                  color: colors.text,
+                                  width: `calc(${spanDays * 100}% + ${(spanDays - 1) * 1}px)`,
+                                  left: `${offsetFromCell * 100}%`,
+                                }}
+                                onClick={(ev) => {
+                                  ev.stopPropagation();
+                                  onPlanClick(plan);
+                                }}
+                                title={`${plan.planNo} · ${plan.customerNm || ''} · ${plan.siteNm || ''}\n${plan.quantity}EA · ${plan.materialNm || ''}`}
+                              >
+                                <span style={barTextStyle}>
+                                  {plan.customerNm ? plan.customerNm.substring(0, 6) : plan.planNo}
+                                  {plan.quantity ? ` · ${plan.quantity}` : ''}
+                                </span>
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+
+                {/* Empty row if no plans for this machine */}
+                {machinePlans.length === 0 && (
+                  <div style={gridRowStyle}>
+                    <div style={planDetailLabelStyle}>-</div>
+                    {days.map((_, dayIdx) => (
+                      <div key={dayIdx} style={detailCellStyle} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          }
+
+          /* ── Collapsed (default): single row per machine ── */
           return (
             <div key={machine.codeId} style={gridRowStyle}>
               <div style={machineLabelStyle}>{machine.codeName}</div>
@@ -247,13 +380,14 @@ const machineLabelHeaderStyle: CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
+  gap: 4,
   fontSize: 11,
   fontWeight: 600,
   color: 'var(--text-tertiary)',
   background: 'var(--panel-2)',
   borderBottom: '1px solid var(--border)',
   borderRight: '1px solid var(--border)',
-  padding: '6px 0',
+  padding: '6px 4px',
   position: 'sticky',
   left: 0,
   zIndex: 2,
@@ -367,6 +501,86 @@ const barTextStyle: CSSProperties = {
   whiteSpace: 'nowrap',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
+};
+
+const toggleBtnStyle: CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: 20,
+  height: 20,
+  padding: 0,
+  border: '1px solid var(--accent)',
+  borderRadius: 4,
+  background: 'color-mix(in srgb, var(--accent) 10%, transparent)',
+  color: 'var(--accent)',
+  cursor: 'pointer',
+  fontFamily: 'inherit',
+  flexShrink: 0,
+  transition: 'all 0.15s',
+};
+
+const machineGroupHeaderLabelStyle: CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 4,
+  fontSize: 11,
+  fontWeight: 700,
+  color: 'var(--text)',
+  background: 'var(--panel-2)',
+  borderBottom: '1px solid var(--border)',
+  borderRight: '1px solid var(--border)',
+  padding: '0 6px',
+  minHeight: 32,
+  position: 'sticky',
+  left: 0,
+  zIndex: 1,
+};
+
+const planCountBadgeStyle: CSSProperties = {
+  fontSize: 9,
+  fontWeight: 600,
+  color: 'var(--accent)',
+  background: 'color-mix(in srgb, var(--accent) 12%, transparent)',
+  padding: '1px 5px',
+  borderRadius: 6,
+};
+
+const groupHeaderCellStyle: CSSProperties = {
+  borderBottom: '1px solid var(--border)',
+  borderRight: '1px solid var(--border)',
+  minHeight: 32,
+  background: 'var(--panel-2)',
+};
+
+const planDetailLabelStyle: CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  fontSize: 10,
+  fontWeight: 500,
+  color: 'var(--text-secondary)',
+  background: 'var(--panel)',
+  borderBottom: '1px solid var(--border)',
+  borderRight: '1px solid var(--border)',
+  paddingLeft: 12,
+  paddingRight: 4,
+  minHeight: 40,
+  position: 'sticky',
+  left: 0,
+  zIndex: 1,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+};
+
+const detailCellStyle: CSSProperties = {
+  position: 'relative',
+  borderBottom: '1px solid var(--border)',
+  borderRight: '1px solid var(--border)',
+  minHeight: 40,
+  padding: '3px 1px',
+  overflow: 'visible',
 };
 
 const emptyStyle: CSSProperties = {

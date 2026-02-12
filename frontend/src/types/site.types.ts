@@ -125,8 +125,36 @@ export interface SitePrice {
   siteCd: string;
   siteNm: string | null;
   customerNm: string | null;
+  customerCd: string | null;
+  materialCd: string | null;
+  materialNm: string | null;
   spec: string;
   remark: string | null;
+  bidPrice: number | null;
+  procPrice: number | null;
+  processingCost: number | null;
+  argonCost: number | null;
+  insulCost: number | null;
+  structCost: number | null;
+  edgeCost: number | null;
+  etchingCost: number | null;
+  stepCost: number | null;
+  deformCost: number | null;
+  temper1Cost: number | null;
+  temper2Cost: number | null;
+  temper3Cost: number | null;
+  totalProcessingCost: number | null;
+}
+
+export interface SitePriceCreateRequest {
+  siteCd: string;
+  siteNm: string;
+  customerNm: string;
+  customerCd: string;
+  materialCd: string;
+  materialNm: string;
+  spec: string;
+  remark: string;
   bidPrice: number | null;
   procPrice: number | null;
   processingCost: number | null;

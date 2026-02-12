@@ -73,7 +73,7 @@ CREATE INDEX idx_dmai_status ON hkgn.daily_meeting_action_item(status);
 COMMENT ON TABLE hkgn.daily_meeting_action_item IS '일일 생산회의 액션아이템 - 담당자/마감일/우선순위';
 
 -- 4. 공통코드 등록
-INSERT INTO code_master (group_code, group_name, code_id, code_name, sort_order, description, is_active) VALUES
+INSERT INTO hkgn.code_master (group_code, group_name, code_id, code_name, sort_order, description, is_active) VALUES
 ('MEETING_STATUS', '회의상태', 'DRAFT',        '작성중',      1, '회의 준비 중',     TRUE),
 ('MEETING_STATUS', '회의상태', 'IN_PROGRESS',   '진행중',      2, '회의 진행 중',     TRUE),
 ('MEETING_STATUS', '회의상태', 'COMPLETED',     '완료',        3, '회의 완료',        TRUE),
@@ -92,11 +92,11 @@ INSERT INTO code_master (group_code, group_name, code_id, code_name, sort_order,
 ('ACTION_STATUS',  '액션상태', 'CANCELLED',     '취소',        4, '취소됨',           TRUE);
 
 -- 5. 메뉴 등록 (작업지시 바로 아래, sort_order 기존값 조정)
-UPDATE menus SET sort_order = sort_order + 1
-WHERE parent_id = (SELECT id FROM menus WHERE code = 'PRODUCTION')
+UPDATE hkgn.menus SET sort_order = sort_order + 1
+WHERE parent_id = (SELECT id FROM hkgn.menus WHERE code = 'PRODUCTION')
   AND sort_order >= 8;
 
-INSERT INTO menus (code, name, parent_id, path, icon, menu_type, sort_order, is_active, depth) VALUES
+INSERT INTO hkgn.menus (code, name, parent_id, path, icon, menu_type, sort_order, is_active, depth) VALUES
 ('PROD_DAILY_MEETING', '일일 생산회의',
- (SELECT id FROM menus WHERE code = 'PRODUCTION'),
+ (SELECT id FROM hkgn.menus WHERE code = 'PRODUCTION'),
  '/production/daily-meeting', 'clipboard_list', 'MENU', 8, TRUE, 1);

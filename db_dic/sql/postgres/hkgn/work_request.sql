@@ -59,6 +59,9 @@ CREATE TABLE hkgn.work_request (
     process_6                   VARCHAR(100)  NULL,                               -- [공정6] 공정 6
     process_7                   VARCHAR(100)  NULL,                               -- [공정7] 공정 7
 
+    -- 진행 상태
+    request_status              VARCHAR(20)   NOT NULL DEFAULT 'REGISTERED',      -- [의뢰상태] REGISTERED:등록, IN_PROGRESS:진행중, COMPLETED:완료, CANCELLED:취소
+
     -- 감사 컬럼
     created_at                  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),  -- [생성일시] 레코드 생성 시각
     updated_at                  TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),  -- [수정일시] 레코드 최종 수정 시각
@@ -71,6 +74,7 @@ CREATE INDEX idx_work_request_request_no ON hkgn.work_request(request_no);
 CREATE INDEX idx_work_request_order_no ON hkgn.work_request(order_no);
 CREATE INDEX idx_work_request_request_date ON hkgn.work_request(request_date);
 CREATE INDEX idx_work_request_approval_status ON hkgn.work_request(approval_status);
+CREATE INDEX idx_work_request_request_status ON hkgn.work_request(request_status);
 
 -- 코멘트 추가
 COMMENT ON TABLE hkgn.work_request IS '작업 의뢰 정보';
@@ -108,6 +112,7 @@ COMMENT ON COLUMN hkgn.work_request.process_4 IS '공정4 - 공정 4';
 COMMENT ON COLUMN hkgn.work_request.process_5 IS '공정5 - 공정 5';
 COMMENT ON COLUMN hkgn.work_request.process_6 IS '공정6 - 공정 6';
 COMMENT ON COLUMN hkgn.work_request.process_7 IS '공정7 - 공정 7';
+COMMENT ON COLUMN hkgn.work_request.request_status IS '의뢰상태 - REGISTERED:등록, IN_PROGRESS:진행중, COMPLETED:완료, CANCELLED:취소';
 COMMENT ON COLUMN hkgn.work_request.created_at IS '생성일시 - 레코드 생성 시각';
 COMMENT ON COLUMN hkgn.work_request.updated_at IS '수정일시 - 레코드 최종 수정 시각';
 COMMENT ON COLUMN hkgn.work_request.created_by IS '생성자 - 레코드 생성자';

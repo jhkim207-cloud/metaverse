@@ -8,4 +8,6 @@ import org.apache.ibatis.annotations.Param;
 public interface BusinessPartnerMapper {
 
     BusinessPartnerDto findByBpCd(@Param("bpCd") String bpCd);
+
+    java.util.List<BusinessPartnerDto> searchByName(@Param("keyword") String keyword, @Param("bpType") String bpType);
 }

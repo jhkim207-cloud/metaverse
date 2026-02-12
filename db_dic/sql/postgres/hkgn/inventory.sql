@@ -40,7 +40,7 @@ CREATE TABLE hkgn.inventory (
     available_qty     NUMERIC(12,2) NOT NULL DEFAULT 0,                        -- [가용재고] 가용 재고 (현재고 - 예약)
     reserved_qty      NUMERIC(12,2) DEFAULT 0,                                 -- [예약수량] 예약된 수량
     unit              VARCHAR(10)   DEFAULT 'EA',                              -- [단위] EA/매/M2/평/kg/BOX
-    area_pyeong       NUMERIC(12,2),                                           -- [면적평수] 현재고 평수 환산 (원판유리 전용)
+    area_pyeong       NUMERIC(12,3),                                           -- [면적평수] 현재고 평수 환산 (원판유리 전용)
 
     -- 재고 기준
     min_qty           NUMERIC(12,2) DEFAULT 0,                                 -- [최소재고] 안전 재고 수량

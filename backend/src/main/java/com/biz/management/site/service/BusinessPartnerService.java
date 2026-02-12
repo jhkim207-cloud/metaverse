@@ -4,6 +4,8 @@ import com.biz.management.site.dto.BusinessPartnerDto;
 import com.biz.management.site.mapper.BusinessPartnerMapper;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class BusinessPartnerService {
 
@@ -15,5 +17,9 @@ public class BusinessPartnerService {
 
     public BusinessPartnerDto findByBpCd(String bpCd) {
         return businessPartnerMapper.findByBpCd(bpCd);
+    }
+
+    public List<BusinessPartnerDto> searchByName(String keyword, String bpType) {
+        return businessPartnerMapper.searchByName(keyword, bpType);
     }
 }

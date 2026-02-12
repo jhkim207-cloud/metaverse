@@ -51,7 +51,7 @@ CREATE TABLE hkgn.subcontract_order (
     order_qty             NUMERIC(12,2) DEFAULT 0,                                 -- [발주수량] 외주 수량
     unit                  VARCHAR(10)   DEFAULT 'EA',                              -- [단위] EA/M2/평
     area_m2               NUMERIC(12,4),                                           -- [면적M2] M2 단위 면적
-    area_pyeong           NUMERIC(12,2),                                           -- [면적평수] 평 단위 면적
+    area_pyeong           NUMERIC(12,3),                                           -- [면적평수] 평 단위 면적
 
     -- 금액 정보
     unit_price            NUMERIC(15,2) DEFAULT 0,                                 -- [단가] 단위당 가공비

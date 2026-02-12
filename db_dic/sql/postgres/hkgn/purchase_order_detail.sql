@@ -37,7 +37,7 @@ CREATE TABLE hkgn.purchase_order_detail (
     -- 수량/면적
     order_qty             NUMERIC(12,2) NOT NULL,                                  -- [발주수량] 발주 수량
     unit                  VARCHAR(10)   DEFAULT 'EA',                              -- [단위] EA/매/BOX/M2/평/kg
-    area_pyeong           NUMERIC(12,2),                                           -- [면적평수] 평 단위 면적
+    area_pyeong           NUMERIC(12,3),                                           -- [면적평수] 평 단위 면적
 
     -- 금액 정보
     unit_price            NUMERIC(12,2) DEFAULT 0,                                 -- [단가] 개당/단위당 가격
