@@ -4,7 +4,7 @@ import path from 'path';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const target = env.VITE_API_BASE_URL || env.VITE_BACKEND_URL || 'http://localhost:8083';
+  const target = env.VITE_API_BASE_URL || env.VITE_BACKEND_URL || 'http://localhost:8086';
   return {
     plugins: [react()],
     resolve: {
