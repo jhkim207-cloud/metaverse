@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
         '@': path.resolve(__dirname, './src'),
       },
     },
-    base: mode === 'production' ? '/biz/' : '/',
+    base: mode === 'production' ? '/metaverse/' : '/',
     server: {
       port: 5177,
       proxy: {

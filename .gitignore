@@ -48,4 +48,6 @@ db_dic/sql/postgres/hkgn/ref/
 # Scripts
 *.bat
 *.ps1
-scripts/
+scripts/*.ps1
+scripts/*.java
+!scripts/*.sh

@@ -3,8 +3,9 @@
  */
 
 import type { CuttingDailyLayout } from '../types/cutting.types';
+import { API_BASE_URL } from './api';
 
-const API_BASE = '/api/v1/cutting';
+const API_BASE = `${API_BASE_URL}/v1/cutting`;
 
 interface ApiResponse<T> {
   success: boolean;

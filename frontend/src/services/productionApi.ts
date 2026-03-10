@@ -3,8 +3,9 @@
  */
 
 import type { ProductionDashboardKpi } from '../types/three.types';
+import { API_BASE_URL } from './api';
 
-const API_BASE = '/api/v1/production';
+const API_BASE = `${API_BASE_URL}/v1/production`;
 
 interface ApiResponse<T> {
   success: boolean;

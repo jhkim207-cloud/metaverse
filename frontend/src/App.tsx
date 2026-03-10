@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
+import { API_BASE_URL } from './services/api';
 import {
   Settings,
   X,
@@ -364,7 +365,7 @@ function App() {
   }, [theme]);
 
   useEffect(() => {
-    fetch('/api/v1/health')
+    fetch(`${API_BASE_URL}/v1/health`)
       .then((res) => res.json())
       .then(() => setBackendStatus('ok'))
       .catch(() => setBackendStatus('error'));

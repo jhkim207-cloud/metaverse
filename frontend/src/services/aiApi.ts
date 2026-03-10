@@ -6,7 +6,7 @@ import type { SSECallbacks, NL2SQLResult } from '../types/ai.types';
 import type { ApiResponse } from '../types/api.types';
 import api from './api';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+import { API_BASE_URL } from './api';
 
 /**
  * SSE EventSource 연결 헬퍼

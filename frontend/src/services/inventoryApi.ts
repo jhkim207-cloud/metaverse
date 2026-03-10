@@ -1,4 +1,4 @@
-import api from './api';
+import api, { API_BASE_URL } from './api';
 import type { InventoryItem, InventoryTransaction } from '../types/inventory.types';
 import type { WarehouseViewData } from '../types/warehouse.types';
 
@@ -28,7 +28,7 @@ interface ApiResponse<T> {
 }
 
 export async function fetchWarehouseView(): Promise<WarehouseViewData> {
-  const res = await fetch('/api/v1/inventory/warehouse-view');
+  const res = await fetch(`${API_BASE_URL}/v1/inventory/warehouse-view`);
   if (!res.ok) {
     throw new Error(`창고 데이터 조회 실패: ${res.status}`);
   }

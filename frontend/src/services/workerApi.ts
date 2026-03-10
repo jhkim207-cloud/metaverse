@@ -3,8 +3,9 @@
  */
 
 import type { WorkerDailyDistribution } from '../types/worker.types';
+import { API_BASE_URL } from './api';
 
-const API_BASE = '/api/v1/workers';
+const API_BASE = `${API_BASE_URL}/v1/workers`;
 
 interface ApiResponse<T> {
   success: boolean;

@@ -3,8 +3,9 @@
  */
 
 import type { QualityDashboardData } from '../types/quality.types';
+import { API_BASE_URL } from './api';
 
-const API_BASE = '/api/v1/quality';
+const API_BASE = `${API_BASE_URL}/v1/quality`;
 
 interface ApiResponse<T> {
   success: boolean;
