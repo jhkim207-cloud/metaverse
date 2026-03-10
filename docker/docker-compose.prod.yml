@@ -26,12 +26,10 @@ services:
       - "8086"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    env_file:
+      - .env
     environment:
-      SPRING_PROFILES_ACTIVE: prod
       SERVER_PORT: 8086
-      DB_URL: ${DB_URL}
-      DB_USERNAME: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:8086/api/v1/health"]
       interval: 30s
