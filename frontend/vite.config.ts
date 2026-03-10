@@ -16,11 +16,12 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 5177,
       proxy: {
-        '/api': {
+        '/metaverse-api': {
           target,
           changeOrigin: true,
           secure: false,
           timeout: 300000,
+          rewrite: (path: string) => path.replace(/^\/metaverse-api/, '/api'),
         },
       },
     },
