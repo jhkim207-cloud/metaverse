@@ -34,7 +34,8 @@ tmp/
 temp/
 
 # Local config (sensitive data)
-**/application*.yml
+**/application-local.yml
+**/application-prod.yml
 .mcp.json
 nul
 frontend/nul
