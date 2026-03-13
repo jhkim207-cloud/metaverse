@@ -68,6 +68,9 @@ const QualityDashboard3D = lazy(() =>
 const WorkerHeatmap3D = lazy(() =>
   import('./components/three/worker/WorkerHeatmap3D').then(m => ({ default: m.WorkerHeatmap3D }))
 );
+const YardSimulation3D = lazy(() =>
+  import('./components/three/yard/YardScene').then(m => ({ default: m.YardSimulation3D }))
+);
 import { SiteDetailPanel } from './components/site/SiteDetailPanel';
 import { WorkerAssignmentPanel } from './components/workflow/WorkerAssignmentPanel';
 import { useWorkflowCounts } from './hooks/useWorkflow';
@@ -540,7 +543,7 @@ function App() {
             <Factory size={16} style={{ color: 'var(--accent)' }} />
             <select
               value={
-                ['DASHBOARD_3D', 'CUTTING_3D', 'FACTORY_3D', 'WAREHOUSE_3D', 'QUALITY_3D', 'WORKER_3D', 'METAVERSE_3D'].includes(selectedMenuCode ?? '')
+                ['DASHBOARD_3D', 'CUTTING_3D', 'FACTORY_3D', 'WAREHOUSE_3D', 'QUALITY_3D', 'WORKER_3D', 'METAVERSE_3D', 'YARD_3D'].includes(selectedMenuCode ?? '')
                   ? selectedMenuCode!
                   : ''
               }
@@ -551,10 +554,10 @@ function App() {
                 padding: '6px 28px 6px 10px',
                 fontSize: 12,
                 fontWeight: 600,
-                background: ['DASHBOARD_3D', 'CUTTING_3D', 'FACTORY_3D', 'WAREHOUSE_3D', 'QUALITY_3D', 'WORKER_3D', 'METAVERSE_3D'].includes(selectedMenuCode ?? '')
+                background: ['DASHBOARD_3D', 'CUTTING_3D', 'FACTORY_3D', 'WAREHOUSE_3D', 'QUALITY_3D', 'WORKER_3D', 'METAVERSE_3D', 'YARD_3D'].includes(selectedMenuCode ?? '')
                   ? 'var(--accent)'
                   : 'var(--btn-bg)',
-                color: ['DASHBOARD_3D', 'CUTTING_3D', 'FACTORY_3D', 'WAREHOUSE_3D', 'QUALITY_3D', 'WORKER_3D', 'METAVERSE_3D'].includes(selectedMenuCode ?? '')
+                color: ['DASHBOARD_3D', 'CUTTING_3D', 'FACTORY_3D', 'WAREHOUSE_3D', 'QUALITY_3D', 'WORKER_3D', 'METAVERSE_3D', 'YARD_3D'].includes(selectedMenuCode ?? '')
                   ? 'var(--on-accent)'
                   : 'var(--btn-text)',
                 border: '1px solid var(--btn-border)',
@@ -576,6 +579,7 @@ function App() {
               <option value="QUALITY_3D" style={{ background: '#fff', color: '#333' }}>품질 SPC</option>
               <option value="WORKER_3D" style={{ background: '#fff', color: '#333' }}>작업자 배치</option>
               <option value="METAVERSE_3D" style={{ background: '#fff', color: '#333' }}>메타버스</option>
+              <option value="YARD_3D" style={{ background: '#fff', color: '#333' }}>야적장</option>
             </select>
           </div>
 
@@ -973,6 +977,13 @@ function App() {
                   return (
                     <Suspense fallback={<div style={{ padding: 16, color: 'var(--text-tertiary)' }}>메타버스 로딩 중...</div>}>
                       <FactoryMetaverse3D />
+                    </Suspense>
+                  );
+                }
+                if (selectedMenuCode === 'YARD_3D') {
+                  return (
+                    <Suspense fallback={<div style={{ padding: 16, color: 'var(--text-tertiary)' }}>야적장 3D 로딩 중...</div>}>
+                      <YardSimulation3D />
                     </Suspense>
                   );
                 }

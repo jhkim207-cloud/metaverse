@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.biz.management.yard.mapper.YardVehicleMapper">
+
+    <!-- 차량 목록 -->
+    <select id="selectVehicles" resultType="com.biz.management.yard.dto.YardVehicleDto">
+        SELECT id, yard_cd, vehicle_nm, vehicle_type, current_x, current_z,
+               heading, speed, status, assigned_route_id, is_off_route,
+               last_updated, created_at, updated_at
+        FROM yard_vehicle
+        WHERE yard_cd = #{yardCd}
+        ORDER BY id
+    </select>
+
+    <!-- 차량 등록 -->
+    <insert id="insertVehicle" parameterType="com.biz.management.yard.dto.YardVehicleDto" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO yard_vehicle (yard_cd, vehicle_nm, vehicle_type, current_x, current_z, status)
+        VALUES (#{yardCd}, #{vehicleNm}, #{vehicleType}, #{currentX}, #{currentZ}, #{status})
+    </insert>
+
+    <!-- 차량 위치 업데이트 -->
+    <update id="updateVehiclePosition">
+        UPDATE yard_vehicle
+        SET current_x = #{currentX}, current_z = #{currentZ},
+            heading = #{heading}, speed = #{speed},
+            last_updated = now(), updated_at = now()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 차량 상태 업데이트 -->
+    <update id="updateVehicleStatus">
+        UPDATE yard_vehicle SET status = #{status}, updated_at = now() WHERE id = #{id}
+    </update>
+
+    <!-- 차량 이탈 상태 -->
+    <update id="updateVehicleOffRoute">
+        UPDATE yard_vehicle SET is_off_route = #{isOffRoute}, updated_at = now() WHERE id = #{id}
+    </update>
+
+    <!-- 경로 할당 -->
+    <update id="assignRoute">
+        UPDATE yard_vehicle SET assigned_route_id = #{routeId}, updated_at = now() WHERE id = #{vehicleId}
+    </update>
+
+    <!-- 경로 목록 -->
+    <select id="selectRoutes" resultType="com.biz.management.yard.dto.YardRouteDto">
+        SELECT id, yard_cd, route_nm, vehicle_id, status, created_at, updated_at
+        FROM yard_route
+        WHERE yard_cd = #{yardCd}
+        ORDER BY id
+    </select>
+
+    <!-- 경로 상세 -->
+    <select id="selectRouteById" resultType="com.biz.management.yard.dto.YardRouteDto">
+        SELECT id, yard_cd, route_nm, vehicle_id, status, created_at, updated_at
+        FROM yard_route WHERE id = #{id}
+    </select>
+
+    <!-- 웨이포인트 -->
+    <select id="selectWaypoints" resultType="com.biz.management.yard.dto.YardRouteDto$Waypoint">
+        SELECT id, route_id, seq, position_x, position_z, action_type
+        FROM yard_route_waypoint
+        WHERE route_id = #{routeId}
+        ORDER BY seq
+    </select>
+
+    <!-- 경로 생성 -->
+    <insert id="insertRoute" parameterType="com.biz.management.yard.dto.YardRouteDto" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO yard_route (yard_cd, route_nm, vehicle_id, status)
+        VALUES (#{yardCd}, #{routeNm}, #{vehicleId}, #{status})
+    </insert>
+
+    <!-- 웨이포인트 추가 -->
+    <insert id="insertWaypoint" parameterType="com.biz.management.yard.dto.YardRouteDto$Waypoint">
+        INSERT INTO yard_route_waypoint (route_id, seq, position_x, position_z, action_type)
+        VALUES (#{routeId}, #{seq}, #{positionX}, #{positionZ}, #{actionType})
+    </insert>
+
+    <!-- 경로 삭제 -->
+    <delete id="deleteRoute">
+        DELETE FROM yard_route WHERE id = #{id}
+    </delete>
+
+    <!-- 이탈 이력 -->
+    <select id="selectDeviations" resultType="com.biz.management.yard.dto.YardRouteDeviationDto">
+        SELECT id, yard_cd, vehicle_id, route_id, deviation_dist,
+               detected_by_cctv_id, position_x, position_z, acknowledged, created_at
+        FROM yard_route_deviation
+        WHERE yard_cd = #{yardCd}
+        ORDER BY created_at DESC
+        LIMIT 50
+    </select>
+
+    <!-- 이탈 기록 -->
+    <insert id="insertDeviation" parameterType="com.biz.management.yard.dto.YardRouteDeviationDto">
+        INSERT INTO yard_route_deviation (yard_cd, vehicle_id, route_id, deviation_dist,
+                                          detected_by_cctv_id, position_x, position_z)
+        VALUES (#{yardCd}, #{vehicleId}, #{routeId}, #{deviationDist},
+                #{detectedByCctvId}, #{positionX}, #{positionZ})
+    </insert>
+
+    <!-- 이탈 확인 -->
+    <update id="acknowledgeDeviation">
+        UPDATE yard_route_deviation SET acknowledged = true WHERE id = #{id}
+    </update>
+
+    <!-- 차량 단건 조회 -->
+    <select id="selectVehicleById" resultType="com.biz.management.yard.dto.YardVehicleDto">
+        SELECT id, yard_cd, vehicle_nm, vehicle_type, current_x, current_z,
+               heading, speed, status, assigned_route_id, is_off_route,
+               last_updated, created_at, updated_at
+        FROM yard_vehicle
+        WHERE id = #{id}
+    </select>
+
+</mapper>

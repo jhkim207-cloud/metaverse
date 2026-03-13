@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.biz.management.yard.mapper.YardMapper">
+
+    <!-- 야적장 마스터 조회 -->
+    <select id="selectYardMaster" resultType="com.biz.management.yard.dto.YardMasterDto">
+        SELECT id, yard_cd, yard_nm, rows_count, columns_count, sector_count,
+               space_width, space_length, spacing, created_at, updated_at
+        FROM yard_master
+        WHERE yard_cd = #{yardCd}
+    </select>
+
+    <!-- 야적장 물건 목록 -->
+    <select id="selectYardItems" resultType="com.biz.management.yard.dto.YardItemDto">
+        SELECT id, yard_cd, item_nm, item_type, width_val, length_val,
+               position_x, position_z, rotation_y, color, status, created_at, updated_at
+        FROM yard_item
+        WHERE yard_cd = #{yardCd}
+          AND status != 'DELETED'
+        ORDER BY id
+    </select>
+
+    <!-- CCTV 목록 -->
+    <select id="selectYardCctvs" resultType="com.biz.management.yard.dto.YardCctvDto">
+        SELECT id, yard_cd, cctv_nm, position_x, position_z, direction,
+               alarm_status, coverage_radius, coverage_angle, created_at, updated_at
+        FROM yard_cctv
+        WHERE yard_cd = #{yardCd}
+        ORDER BY id
+    </select>
+
+    <!-- 물건 추가 -->
+    <insert id="insertYardItem" parameterType="com.biz.management.yard.dto.YardItemDto">
+        INSERT INTO yard_item (yard_cd, item_nm, item_type, width_val, length_val,
+                               position_x, position_z, rotation_y, color, status)
+        VALUES (#{yardCd}, #{itemNm}, #{itemType}, #{widthVal}, #{lengthVal},
+                #{positionX}, #{positionZ}, #{rotationY}, #{color}, #{status})
+    </insert>
+
+    <!-- 물건 업데이트 -->
+    <update id="updateYardItem" parameterType="com.biz.management.yard.dto.YardItemDto">
+        UPDATE yard_item
+        SET position_x = #{positionX},
+            position_z = #{positionZ},
+            rotation_y = #{rotationY},
+            status     = #{status},
+            updated_at = now()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 물건 삭제 -->
+    <update id="deleteYardItem">
+        UPDATE yard_item
+        SET status = 'DELETED', updated_at = now()
+        WHERE id = #{id}
+    </update>
+
+    <!-- CCTV 알람 업데이트 -->
+    <update id="updateCctvAlarm">
+        UPDATE yard_cctv
+        SET alarm_status = #{alarmStatus}, updated_at = now()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 알람 로그 추가 -->
+    <insert id="insertAlarmLog">
+        INSERT INTO yard_alarm_log (yard_cd, cctv_nm, alarm_type, message)
+        VALUES (#{yardCd}, #{cctvNm}, #{alarmType}, #{message})
+    </insert>
+
+</mapper>
