@@ -51,6 +51,8 @@ export function YardDeviationMarker({ deviation }: Props) {
         <meshStandardMaterial
           ref={matRef}
           color="#EF4444"
+          emissive="#EF4444"
+          emissiveIntensity={2.0}
           transparent
           opacity={0.5}
           side={THREE.DoubleSide}

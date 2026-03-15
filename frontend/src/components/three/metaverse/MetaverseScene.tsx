@@ -80,7 +80,7 @@ function ZoneNode({ zone }: { zone: FactoryZone }) {
         <meshPhysicalMaterial
           color={statusColor}
           emissive={statusColor}
-          emissiveIntensity={zone.status === 'ERROR' ? 0.8 : 0.3}
+          emissiveIntensity={zone.status === 'ERROR' ? 2.5 : 0.5}
         />
       </mesh>
       <Text
@@ -484,7 +484,7 @@ export function FactoryMetaverse3D() {
       >
         {mode === 'topview' ? (
           <ThemeAwareScene
-            config={{ cameraPosition: [12.5, 18, 22], cameraFov: 50, demandRendering: false }}
+            config={{ cameraPosition: [12.5, 18, 22], cameraFov: 50, demandRendering: false, effects: { bloom: true, ssao: true } }}
             style={{ width: '100%', height: '100%', borderRadius: 12 }}
           >
             <TopViewScene />
@@ -492,7 +492,7 @@ export function FactoryMetaverse3D() {
         ) : (
           <KeyboardControls map={KEYBOARD_MAP}>
             <ThemeAwareScene
-              config={{ cameraPosition: [2, 3, 7], cameraFov: 65, demandRendering: false }}
+              config={{ cameraPosition: [2, 3, 7], cameraFov: 65, demandRendering: false, effects: { bloom: true, ssao: true, vignette: true } }}
               style={{ width: '100%', height: '100%', borderRadius: 12 }}
             >
               <WalkthroughScene

@@ -6,7 +6,8 @@
 
 import { useEffect, useCallback, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, ContactShadows, Grid } from '@react-three/drei';
+import { OrbitControls, ContactShadows, Grid, Environment } from '@react-three/drei';
+import { SceneEffects } from '../common/SceneEffects';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { useYard } from '../../../hooks/useYard';
 import { usePlacementSimulation } from '../../../hooks/usePlacementSimulation';
@@ -63,9 +64,18 @@ function YardSceneContent({
 
   return (
     <>
-      {/* 조명 */}
-      <ambientLight intensity={ambientIntensity} />
-      <directionalLight position={[0, 10, 5]} intensity={dirIntensity} castShadow />
+      {/* 환경맵 + 조명 */}
+      <Environment preset="city" background={false} environmentIntensity={state.nightMode ? 0.2 : 0.5} />
+      <ambientLight intensity={ambientIntensity * 0.5} />
+      <directionalLight
+        position={[0, 10, 5]}
+        intensity={dirIntensity}
+        castShadow
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
+        shadow-camera-far={30}
+        shadow-camera-near={0.1}
+      />
       {state.nightMode && (
         <pointLight position={[0, 5, 0]} intensity={0.4} color="#FFA500" distance={15} />
       )}
@@ -157,6 +167,9 @@ function YardSceneContent({
         dampingFactor={0.1}
         target={[0, 0, 0]}
       />
+
+      {/* 후처리 효과 */}
+      <SceneEffects bloom ssao />
     </>
   );
 }
@@ -250,11 +263,12 @@ export function YardSimulation3D() {
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <Canvas
+        shadows
         frameloop="always"
         dpr={[1, 2]}
         camera={{ position: [0, 8, 8], fov: 45, near: 0.1, far: 100 }}
         style={{ background: state.nightMode ? '#1a1a2e' : YARD_COLORS.SCENE_BG }}
-        gl={{ antialias: true }}
+        gl={{ antialias: true, toneMapping: 4 /* ACESFilmicToneMapping */ }}
       >
         <YardSceneContent
           state={state}

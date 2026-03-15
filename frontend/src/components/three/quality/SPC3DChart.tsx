@@ -128,7 +128,7 @@ function SpcScene({
             <meshStandardMaterial
               color={pt.ooc ? '#ff453a' : (isDark ? '#5ac8fa' : '#0a84ff')}
               emissive={pt.ooc ? '#ff453a' : '#000000'}
-              emissiveIntensity={pt.ooc ? 0.5 : 0}
+              emissiveIntensity={pt.ooc ? 2.0 : 0}
             />
           </Sphere>
           {/* 이탈 포인트 값 표시 */}

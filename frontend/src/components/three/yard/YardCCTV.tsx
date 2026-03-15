@@ -10,6 +10,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { YardCCTV as YardCCTVType } from '../../../types/yard.types';
 import { YARD_COLORS } from '../../../constants/yardLayout';
+import { Model } from '../common/ModelLoader';
 
 interface YardCCTVProps {
   cctv: YardCCTVType;
@@ -64,21 +65,31 @@ export function YardCCTV({ cctv, onClick }: YardCCTVProps) {
         onClick?.(cctv.id);
       }}
     >
-      {/* 기둥 */}
-      <mesh position={[0, POLE_HEIGHT / 2, 0]}>
-        <cylinderGeometry args={[POLE_RADIUS, POLE_RADIUS, POLE_HEIGHT, 8]} />
-        <meshStandardMaterial color={YARD_COLORS.CCTV_POLE} />
-      </mesh>
-
-      {/* 구체 (카메라 헤드) */}
-      <mesh position={[0, POLE_HEIGHT, 0]}>
-        <sphereGeometry args={[SPHERE_RADIUS, 16, 16]} />
-        <meshStandardMaterial
-          color={cctv.alarmActive ? '#ff453a' : YARD_COLORS.CCTV_SPHERE}
-          emissive={cctv.alarmActive ? '#ff453a' : '#000000'}
-          emissiveIntensity={cctv.alarmActive ? 0.5 : 0}
-        />
-      </mesh>
+      {/* GLTF CCTV 모델 또는 절차적 폴백 */}
+      <Model
+        url="/models/environment/cctv.glb"
+        scale={0.3}
+        position={[0, POLE_HEIGHT / 2, 0]}
+        castShadow
+        fallback={
+          <>
+            {/* 기둥 */}
+            <mesh position={[0, POLE_HEIGHT / 2, 0]} castShadow>
+              <cylinderGeometry args={[POLE_RADIUS, POLE_RADIUS, POLE_HEIGHT, 8]} />
+              <meshStandardMaterial color={YARD_COLORS.CCTV_POLE} />
+            </mesh>
+            {/* 구체 (카메라 헤드) */}
+            <mesh position={[0, POLE_HEIGHT, 0]} castShadow>
+              <sphereGeometry args={[SPHERE_RADIUS, 16, 16]} />
+              <meshStandardMaterial
+                color={cctv.alarmActive ? '#ff453a' : YARD_COLORS.CCTV_SPHERE}
+                emissive={cctv.alarmActive ? '#ff453a' : '#000000'}
+                emissiveIntensity={cctv.alarmActive ? 2.0 : 0}
+              />
+            </mesh>
+          </>
+        }
+      />
 
       {/* 커버리지 부채꼴 영역 (항상 표시) */}
       <mesh

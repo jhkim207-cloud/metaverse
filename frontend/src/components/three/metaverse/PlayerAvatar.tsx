@@ -1,19 +1,52 @@
 /**
- * PlayerAvatar - 심플 캡슐 아바타
+ * PlayerAvatar - GLTF 캐릭터 아바타 (캡슐 폴백)
  *
- * Phase 1: 캡슐 + 색상 + 이름 태그로 구성.
- * 향후 Ready Player Me glTF 아바타로 교체 가능.
+ * GLTF 모델이 있으면 Mixamo 애니메이션 캐릭터 렌더링,
+ * 없으면 기존 캡슐 + 색상 + 이름 태그로 폴백.
  */
 
 import { Text } from '@react-three/drei';
 import { useThreeTheme } from '../../../hooks/useThreeTheme';
 import { CHARACTER_CONFIG } from '../../../types/metaverse.types';
+import { Model } from '../common/ModelLoader';
+
+const CHARACTER_MODEL_URL = '/models/characters/worker.glb';
 
 interface PlayerAvatarProps {
   isMoving: boolean;
   yaw: number;
   name?: string;
   color?: string;
+}
+
+/** 절차적 캡슐 아바타 (폴백) */
+function CapsuleAvatar({ isMoving, color }: { isMoving: boolean; color: string }) {
+  const totalHeight = CHARACTER_CONFIG.halfHeight * 2 + CHARACTER_CONFIG.radius * 2;
+
+  return (
+    <>
+      <mesh castShadow>
+        <capsuleGeometry args={[CHARACTER_CONFIG.radius, CHARACTER_CONFIG.halfHeight * 2, 8, 16]} />
+        <meshPhysicalMaterial
+          color={color}
+          roughness={0.3}
+          metalness={0.1}
+          transparent
+          opacity={0.85}
+        />
+      </mesh>
+      <mesh position={[0, CHARACTER_CONFIG.halfHeight + CHARACTER_CONFIG.radius * 0.5, -CHARACTER_CONFIG.radius * 0.8]}>
+        <sphereGeometry args={[0.06, 8, 8]} />
+        <meshBasicMaterial color="#ffffff" />
+      </mesh>
+      {isMoving && (
+        <mesh position={[0, -totalHeight / 2 + 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.2, 0.28, 16]} />
+          <meshBasicMaterial color={color} transparent opacity={0.4} />
+        </mesh>
+      )}
+    </>
+  );
 }
 
 export function PlayerAvatar({
@@ -27,23 +60,13 @@ export function PlayerAvatar({
 
   return (
     <group rotation={[0, yaw, 0]}>
-      {/* 몸통 (캡슐) */}
-      <mesh>
-        <capsuleGeometry args={[CHARACTER_CONFIG.radius, CHARACTER_CONFIG.halfHeight * 2, 8, 16]} />
-        <meshPhysicalMaterial
-          color={color}
-          roughness={0.3}
-          metalness={0.1}
-          transparent
-          opacity={0.85}
-        />
-      </mesh>
-
-      {/* 머리 방향 표시 (작은 구) */}
-      <mesh position={[0, CHARACTER_CONFIG.halfHeight + CHARACTER_CONFIG.radius * 0.5, -CHARACTER_CONFIG.radius * 0.8]}>
-        <sphereGeometry args={[0.06, 8, 8]} />
-        <meshBasicMaterial color="#ffffff" />
-      </mesh>
+      {/* GLTF 캐릭터 또는 캡슐 폴백 */}
+      <Model
+        url={CHARACTER_MODEL_URL}
+        scale={0.8}
+        fallback={<CapsuleAvatar isMoving={isMoving} color={color} />}
+        castShadow
+      />
 
       {/* 이름 태그 */}
       <Text
@@ -56,14 +79,6 @@ export function PlayerAvatar({
       >
         {name}
       </Text>
-
-      {/* 이동 중 표시 (발밑 링) */}
-      {isMoving && (
-        <mesh position={[0, -totalHeight / 2 + 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.2, 0.28, 16]} />
-          <meshBasicMaterial color={color} transparent opacity={0.4} />
-        </mesh>
-      )}
     </group>
   );
 }

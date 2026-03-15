@@ -8,8 +8,9 @@
 
 import { ReactNode, Component, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { ContactShadows } from '@react-three/drei';
+import { ContactShadows, Environment } from '@react-three/drei';
 import { useThreeTheme } from '../../../hooks/useThreeTheme';
+import { SceneEffects } from './SceneEffects';
 import type { SceneConfig } from '../../../types/three.types';
 
 interface ThemeAwareSceneProps {
@@ -25,11 +26,20 @@ function SceneLighting() {
   const { ambientIntensity, directionalIntensity, isDark } = useThreeTheme();
   return (
     <>
-      <ambientLight intensity={ambientIntensity} />
+      <Environment preset="warehouse" background={false} environmentIntensity={isDark ? 0.3 : 0.6} />
+      <ambientLight intensity={ambientIntensity * 0.5} />
       <directionalLight
-        position={[5, 5, 5]}
+        position={[5, 8, 5]}
         intensity={directionalIntensity}
-        castShadow={false}
+        castShadow
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
+        shadow-camera-far={30}
+        shadow-camera-near={0.1}
+        shadow-camera-left={-15}
+        shadow-camera-right={15}
+        shadow-camera-top={15}
+        shadow-camera-bottom={-15}
       />
       <ContactShadows
         opacity={isDark ? 0.2 : 0.4}
@@ -112,15 +122,19 @@ export function ThemeAwareScene({
     <WebGLErrorBoundary fallback={fallback}>
       <Suspense fallback={<LoadingFallback />}>
         <Canvas
+          shadows
           frameloop={demandRendering ? 'demand' : 'always'}
           dpr={dpr}
           camera={{ position: cameraPosition, fov: cameraFov }}
           style={{ background: 'transparent', ...style }}
           className={className}
-          gl={{ alpha: true, antialias: true }}
+          gl={{ alpha: true, antialias: true, toneMapping: 4 /* ACESFilmicToneMapping */ }}
         >
           <SceneLighting />
           {children}
+          {config?.effects !== false && (
+            <SceneEffects {...(typeof config?.effects === 'object' ? config.effects : {})} />
+          )}
         </Canvas>
       </Suspense>
     </WebGLErrorBoundary>

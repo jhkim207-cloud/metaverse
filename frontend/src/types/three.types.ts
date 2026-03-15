@@ -16,6 +16,16 @@ export interface ThreeMaterialConfig {
   directionalIntensity: number;
 }
 
+/** 후처리 효과 설정 */
+export interface EffectsConfig {
+  /** Bloom 발광 효과 (기본 true) */
+  bloom?: boolean;
+  /** SSAO 입체감 효과 (기본 true) */
+  ssao?: boolean;
+  /** Vignette 몰입감 효과 (기본 false) */
+  vignette?: boolean;
+}
+
 /** 3D 씬 설정 */
 export interface SceneConfig {
   /** on-demand 렌더링 여부 (기본 true) */
@@ -26,6 +36,8 @@ export interface SceneConfig {
   cameraPosition?: [number, number, number];
   /** 카메라 FOV */
   cameraFov?: number;
+  /** 후처리 효과 설정 (false로 비활성화) */
+  effects?: EffectsConfig | false;
 }
 
 /** 워크플로우 3D 파이프라인 단계 데이터 */
